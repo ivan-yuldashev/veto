@@ -14,7 +14,7 @@ jobs:
         # 20 is the minimum declared in engines; 22 is the current LTS.
         node: [20, 22]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
@@ -35,7 +35,7 @@ jobs:
     # @vetojs/react declares react >=18; prove it against the oldest supported major.
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
@@ -54,7 +54,7 @@ jobs:
     # What consumers actually install: publishable manifests, exports and type resolution.
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
