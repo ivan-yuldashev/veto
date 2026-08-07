@@ -1,0 +1,43 @@
+# Veto
+
+> Type-safe authorization for TypeScript with no classes and no hidden state. A policy is a pure function of the user returning an array of rules — plain JSON. Rules cross the server/client boundary untouched, compile to a SQL `WHERE`, and fail closed on malformed data. The engine has no runtime dependencies.
+
+Install `@vetojs/core` for the engine; add `@vetojs/react` for `<Can>` / `useAbility` bindings. ESM only, Node 20+.
+
+The one page to read if you are generating code that uses this library is [For agents](https://github.com/ivan-yuldashev/veto/blob/main/docs/for-agents.md) — it carries the whole API surface plus the mistakes that look plausible but are wrong.
+
+## Start here
+
+- [For agents](https://github.com/ivan-yuldashev/veto/blob/main/docs/for-agents.md): the complete API in one page, correct idioms, and the errors to avoid.
+- [Project README](https://github.com/ivan-yuldashev/veto/blob/main/README.md): what the library is, why it exists, and how it compares to CASL.
+- [Documentation index](https://github.com/ivan-yuldashev/veto/blob/main/docs/README.md): a page per concept, English and Russian.
+
+## Setting up a policy
+
+- [Declaring resources](https://github.com/ivan-yuldashev/veto/blob/main/docs/define-abilities.md): `defineAbilities` — the single declaration every type is inferred from.
+- [What a rule is](https://github.com/ivan-yuldashev/veto/blob/main/docs/rules.md): the data model, and why `where` (which rows) and `payload` (which fields and values) are separate.
+- [Writing policies](https://github.com/ivan-yuldashev/veto/blob/main/docs/create-rules.md): `createRules` — typed `allow` / `deny` factories.
+- [Checking access](https://github.com/ivan-yuldashev/veto/blob/main/docs/ability.md): `buildAbility` — `can`, `cannot`, `authorize`, `permittedFields`, `validate`.
+
+## Conditions
+
+- [Conditions](https://github.com/ivan-yuldashev/veto/blob/main/docs/conditions.md): the tree behind `where`, and the third answer — "unknown".
+- [Field shorthand](https://github.com/ivan-yuldashev/veto/blob/main/docs/condition-shorthand.md): how `{ views: { gte: 100 } }` is written and stored.
+- [Operators](https://github.com/ivan-yuldashev/veto/blob/main/docs/operators.md): all ten, with the null and type-mismatch behaviour that keeps checks safe.
+- [Relations](https://github.com/ivan-yuldashev/veto/blob/main/docs/relations.md): conditions across related resources, and why a relation you forgot to load throws.
+
+## Enforcing
+
+- [How a decision is made](https://github.com/ivan-yuldashev/veto/blob/main/docs/rule-evaluation.md): deny-override, default-deny, fail-closed.
+- [Writes](https://github.com/ivan-yuldashev/veto/blob/main/docs/mutations.md): `canMutate` for the row, `validatePayload` for fields and values.
+- [Filtering in the database](https://github.com/ivan-yuldashev/veto/blob/main/docs/where.md): `ability.where()` returns a condition that selects exactly the rows `can()` allows.
+- [Rules from outside](https://github.com/ivan-yuldashev/veto/blob/main/docs/parse.md): `parseRules` — the gate for rule JSON from a database or the network.
+
+## In an app
+
+- [React](https://github.com/ivan-yuldashev/veto/blob/main/docs/react.md): `createVetoContext(ac)` → `AbilityProvider`, `<Can>`, `useAbility`.
+
+## Optional
+
+- [Contributing](https://github.com/ivan-yuldashev/veto/blob/main/CONTRIBUTING.md): repo conventions, checks, changesets.
+- [Security policy](https://github.com/ivan-yuldashev/veto/blob/main/SECURITY.md): what counts as a vulnerability here, and how to report one.

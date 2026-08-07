@@ -1,0 +1,63 @@
+# Contributing
+
+Thanks for taking the time. This page is short on purpose — everything here is something the CI will check anyway.
+
+## Getting set up
+
+Node 20+ and pnpm 10.
+
+```sh
+pnpm install
+pnpm build     # dist/ is gitignored, and the cross-package tests import it
+```
+
+Build first. The React test suite resolves `@vetojs/core` from its built output, so a fresh clone can't run it until `pnpm build` has run once.
+
+## The checks
+
+```sh
+pnpm test        # vitest, all packages
+pnpm typecheck   # tsc across the workspace
+pnpm check       # biome — formatting and lint
+pnpm knip        # unused exports
+pnpm type-bench  # inference cost of the public types
+```
+
+All five run in CI, on Node 20 and 22. `pnpm test:coverage` is there when you want the numbers.
+
+To run one package's tests, go through the root — the projects are defined in the root `vitest.config.ts`, so `vitest` inside a package directory finds nothing:
+
+```sh
+pnpm vitest run --project @vetojs/core   # ✓
+pnpm --filter @vetojs/core test          # ✗ "No projects were found"
+```
+
+## Conventions worth knowing
+
+**No comments in source.** The reasoning lives in [`docs/`](./docs/README.md) instead — one page per concept, each ending in a "why it works this way" section. If a change needs explaining, explain it there. Functional directives (`@ts-expect-error`, `biome-ignore`, `"use client"`) are of course fine.
+
+**Docs are bilingual.** Every page in `docs/` has an English and a Russian version (`x.md` and `x.ru.md`), linked to each other. Change one and the other needs the same change. If translating isn't practical for you, say so in the PR — that's better than a silent divergence.
+
+**Tests before behaviour.** The engine decides who may read and write what, so behaviour changes want a test that fails without them. Look at [`conformance.test.ts`](./packages/core/tests/conformance.test.ts) for the strictest example: it asserts that the in-memory check and the compiled query agree on every row, including messy ones.
+
+**Fail closed.** When data doesn't fit a condition, the answer is "unknown", and unknown must never grant. If a change makes an `allow` more generous or a `deny` less likely to fire on malformed input, it needs a very good reason.
+
+## Changesets
+
+Anything users would notice — a fix, a new export, changed behaviour — needs one:
+
+```sh
+pnpm changeset
+```
+
+Pick the packages, pick the bump, describe the change the way a user reading the changelog would want to hear it. Internal-only work (tests, refactors, CI) doesn't need a changeset.
+
+## Pull requests
+
+Keep them focused, and let the description say what changed and why. If you touched behaviour, mention how you convinced yourself it's right — a test, a benchmark, a demo run.
+
+If a change touches how conditions are evaluated or compiled, say which test covers it — [`conformance.test.ts`](./packages/core/tests/conformance.test.ts) is the one that asserts both paths agree on every row.
+
+## Security
+
+Please don't open a public issue for a vulnerability — see [SECURITY.md](./SECURITY.md).

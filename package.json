@@ -1,0 +1,45 @@
+{
+	"name": "veto",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Function-first, RSC-native, fully-typed authorization for TypeScript.",
+	"type": "module",
+	"license": "MIT",
+	"packageManager": "pnpm@10.20.0",
+	"engines": {
+		"node": ">=20"
+	},
+	"scripts": {
+		"build": "pnpm -r run build",
+		"dev": "pnpm -r --parallel run dev",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"test:coverage": "vitest run --coverage",
+		"bench": "vitest bench",
+		"type-bench": "tsc -p packages/core/type-bench/tsconfig.json --extendedDiagnostics",
+		"typecheck": "tsc -p tsconfig.json --noEmit",
+		"lint": "biome lint .",
+		"format": "biome format --write .",
+		"check": "biome check .",
+		"prepare": "simple-git-hooks",
+		"knip": "knip",
+		"changeset": "changeset",
+		"version-packages": "changeset version",
+		"release": "pnpm build && changeset publish"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.5.0",
+		"@changesets/cli": "^2.31.0",
+		"@types/node": "^26.0.0",
+		"@vitest/coverage-v8": "^4.1.10",
+		"knip": "^6.23.0",
+		"simple-git-hooks": "^2.13.1",
+		"tsup": "^8.5.1",
+		"typescript": "^6.0.3",
+		"vitest": "^4.1.9"
+	},
+	"simple-git-hooks": {
+		"pre-commit": "pnpm exec biome check --staged --no-errors-on-unmatched",
+		"pre-push": "pnpm typecheck && pnpm test"
+	}
+}

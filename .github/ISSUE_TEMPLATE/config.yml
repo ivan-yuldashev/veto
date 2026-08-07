@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Report a vulnerability
+    url: https://github.com/ivan-yuldashev/veto/security/advisories/new
+    about: Anything that grants more access than the policy states — please report privately.
+  - name: Documentation
+    url: https://github.com/ivan-yuldashev/veto/blob/main/docs/README.md
+    about: A page per concept — operators, relations, writes, filtering in the database.

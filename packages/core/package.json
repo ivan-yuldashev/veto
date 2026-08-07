@@ -1,0 +1,49 @@
+{
+	"name": "@vetojs/core",
+	"version": "0.1.0",
+	"description": "Type-safe authorization for TypeScript where rules are data. RSC-native, compiles to SQL, zero runtime dependencies.",
+	"keywords": [
+		"authorization",
+		"permissions",
+		"access-control",
+		"abac",
+		"rbac",
+		"casl",
+		"typescript",
+		"rsc"
+	],
+	"homepage": "https://github.com/ivan-yuldashev/veto#readme",
+	"bugs": "https://github.com/ivan-yuldashev/veto/issues",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/ivan-yuldashev/veto.git",
+		"directory": "packages/core"
+	},
+	"license": "MIT",
+	"type": "module",
+	"sideEffects": false,
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"types": "./dist/index.d.ts",
+	"files": [
+		"dist"
+	],
+	"engines": {
+		"node": ">=20"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"scripts": {
+		"build": "tsup",
+		"prepack": "pnpm build",
+		"dev": "tsup --watch",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"typecheck": "tsc --noEmit"
+	}
+}

@@ -1,0 +1,37 @@
+export type {
+	AbilitySet,
+	ActionFor,
+	CheckedRule,
+	CheckedRules,
+	PayloadResult,
+	PayloadViolation,
+	ResourceMap,
+	ResourceName,
+	RuleParseResult,
+	ShapeOf,
+	UnknownRule,
+	ValidateResult,
+	Vocabulary,
+} from "./api/index.js";
+export {
+	buildAbility,
+	createRules,
+	defineAbilities,
+	parseRules,
+	toVocabulary,
+	type,
+} from "./api/index.js";
+export { ForbiddenError, RelationNotLoadedError } from "./errors/index.js";
+export { markLoaded, ruleMatches } from "./evaluation/index.js";
+export type {
+	ConditionNode,
+	RelationNode,
+	Rule,
+	RulePayload,
+} from "./model/index.js";
+export {
+	ConditionOperator,
+	MatchQuantifier,
+	RelationKind,
+	RuleEffect,
+} from "./shared/index.js";

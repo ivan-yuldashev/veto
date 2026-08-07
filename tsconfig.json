@@ -1,0 +1,9 @@
+{
+	"extends": "./tsconfig.base.json",
+	"include": [
+		"vitest.config.ts",
+		"packages/**/*.ts",
+		"internal/packages/**/*.ts"
+	],
+	"exclude": ["node_modules", "**/dist", "**/type-bench"]
+}

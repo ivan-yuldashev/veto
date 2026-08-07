@@ -1,0 +1,231 @@
+import {
+	evaluateOperator,
+	evaluateRules,
+	kleeneAndOver,
+	ruleMatches,
+	ruleWhereVerdict,
+	type Verdict,
+} from "../evaluation/index.js";
+import type { ConditionNode, Rule } from "../model/index.js";
+import {
+	type ConditionOperator,
+	isPlainObject,
+	RuleEffect,
+} from "../shared/index.js";
+import type { PayloadResult, PayloadViolation } from "./mutation.types.js";
+
+export const canMutate = <T extends Record<string, unknown>>(
+	rules: Rule<T>[],
+	action: string,
+	resource: string,
+	row: unknown,
+): boolean => evaluateRules(rules, action, resource, row);
+
+export const permittedFields = <T extends Record<string, unknown>>(
+	rules: Rule<T>[],
+	action: string,
+	resource: string,
+	fields: (keyof T)[],
+): (keyof T)[] => {
+	const matched = rules.filter((rule) => ruleMatches(rule, action, resource));
+	const allows = matched.filter((rule) => rule.effect === RuleEffect.Allow);
+
+	if (allows.length === 0) {
+		return [];
+	}
+
+	const denies = matched.filter((rule) => rule.effect === RuleEffect.Deny);
+
+	if (
+		denies.some(
+			(rule) =>
+				rule.where === undefined &&
+				rule.payload?.fields === undefined &&
+				rule.payload?.constraints === undefined,
+		)
+	) {
+		return [];
+	}
+
+	const allowsAll = allows.some((rule) => rule.payload?.fields === undefined);
+	const allowFields = new Set<keyof T>(
+		allows.flatMap((rule) => rule.payload?.fields ?? []),
+	);
+	const denyFields = new Set<keyof T>(
+		denies.flatMap((rule) => rule.payload?.fields ?? []),
+	);
+
+	return fields.filter(
+		(field) => !denyFields.has(field) && (allowsAll || allowFields.has(field)),
+	);
+};
+
+const fieldsOf = <T extends Record<string, unknown>>(rules: Rule<T>[]) => {
+	return rules.flatMap((rule) => rule.payload?.fields ?? []);
+};
+
+type FieldConstraint = {
+	field: string;
+	op: ConditionOperator;
+	value: unknown;
+};
+
+const fieldConstraints = <T extends Record<string, unknown>>(
+	constraint: ConditionNode<T> | undefined,
+): FieldConstraint[] | null => {
+	if (constraint === undefined) {
+		return [];
+	}
+
+	if ("and" in constraint) {
+		const collected: FieldConstraint[] = [];
+
+		for (const child of constraint.and) {
+			const childConstraints = fieldConstraints(child);
+
+			if (childConstraints === null) {
+				return null;
+			}
+
+			collected.push(...childConstraints);
+		}
+
+		return collected;
+	}
+
+	if ("field" in constraint && typeof constraint.field === "string") {
+		return [
+			{
+				field: constraint.field,
+				op: constraint.op,
+				value: constraint.value,
+			},
+		];
+	}
+
+	return null;
+};
+
+const constraintsHold = (
+	constraints: FieldConstraint[],
+	value: unknown,
+): Verdict => {
+	return kleeneAndOver(constraints, (constraint) =>
+		evaluateOperator(constraint.op, value, constraint.value),
+	);
+};
+
+const getFieldConstraintsForRule = <T extends Record<string, unknown>>(
+	rule: Rule<T>,
+	targetField: string,
+): FieldConstraint[] | null => {
+	if (!rule.payload?.constraints) {
+		return [];
+	}
+
+	const all = fieldConstraints(rule.payload.constraints);
+
+	if (all === null) {
+		return null;
+	}
+
+	return all.filter((constraint) => constraint.field === targetField);
+};
+
+export const validatePayload = <T extends Record<string, unknown>>(
+	rules: Rule<T>[],
+	action: string,
+	resource: string,
+	row: unknown,
+	data: unknown,
+): PayloadResult<T> => {
+	if (!isPlainObject<T>(row) || !isPlainObject<Partial<T>>(data)) {
+		return { ok: false, violations: [] };
+	}
+
+	const allows = rules.filter(
+		(rule) =>
+			rule.effect === RuleEffect.Allow &&
+			ruleWhereVerdict(rule, action, resource, row) === true,
+	);
+
+	const denies = rules.filter(
+		(rule) =>
+			rule.effect === RuleEffect.Deny &&
+			ruleWhereVerdict(rule, action, resource, row) !== false,
+	);
+
+	const vetoed = denies.some(
+		(rule) =>
+			rule.payload?.fields === undefined &&
+			rule.payload?.constraints === undefined,
+	);
+
+	if (vetoed) {
+		return { ok: false, violations: [] };
+	}
+
+	const allowsWithFields = allows.filter(
+		(rule) => rule.payload?.fields !== undefined,
+	);
+
+	const hasAllowFields = allowsWithFields.length > 0;
+	const allowFields = new Set(fieldsOf(allowsWithFields));
+	const denyFields = new Set(fieldsOf(denies));
+
+	const violations: PayloadViolation[] = [];
+
+	for (const [field, value] of Object.entries(data)) {
+		const allowedByFields = hasAllowFields ? allowFields.has(field) : true;
+
+		if (!allowedByFields || denyFields.has(field)) {
+			violations.push({ field, reason: "field not permitted" });
+			continue;
+		}
+
+		const isDeniedByValue = denies.some((rule) => {
+			const ruleConstraints = getFieldConstraintsForRule(rule, field);
+
+			if (ruleConstraints === null) {
+				return true;
+			}
+
+			return (
+				ruleConstraints.length > 0 &&
+				constraintsHold(ruleConstraints, value) !== false
+			);
+		});
+
+		if (isDeniedByValue) {
+			violations.push({ field, reason: "value denied" });
+			continue;
+		}
+
+		const isAllowedByValue = allows.some((rule) => {
+			if (rule.payload?.fields && !rule.payload.fields.includes(field)) {
+				return false;
+			}
+
+			const ruleConstraints = getFieldConstraintsForRule(rule, field);
+
+			if (ruleConstraints === null) {
+				return false;
+			}
+
+			return (
+				ruleConstraints.length === 0 ||
+				constraintsHold(ruleConstraints, value) === true
+			);
+		});
+
+		if (!isAllowedByValue) {
+			violations.push({ field, reason: "value not permitted" });
+		}
+	}
+
+	if (violations.length > 0) {
+		return { ok: false, violations };
+	}
+
+	return { ok: true, data: { ...data } };
+};

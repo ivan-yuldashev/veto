@@ -1,0 +1,42 @@
+name: Feature request
+description: Something the library can't currently express
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to express?
+      description: >
+        The authorization rule you have in mind, in plain words — "editors may publish, but only
+        during business hours", that sort of thing. The underlying need matters more than the API.
+    validations:
+      required: true
+
+  - type: textarea
+    id: current
+    attributes:
+      label: What happens today
+      description: How you'd have to write it now, or why it can't be written at all.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you have in mind
+      description: An API sketch if you have one. Perfectly fine to leave blank.
+      render: ts
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: Does it fit the design?
+      description: >
+        Not a gate — just a prompt. These properties are what make the library work, and a proposal
+        that breaks one needs to be worth it.
+      options:
+        - label: Rules stay plain serializable JSON (no functions inside a rule)
+        - label: It can compile to a SQL `WHERE`, so `can()` and the query still agree
+        - label: Malformed data still fails closed

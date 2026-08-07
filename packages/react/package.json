@@ -1,0 +1,61 @@
+{
+	"name": "@vetojs/react",
+	"version": "0.1.0",
+	"description": "React bindings for @vetojs — <Can>, useAbility, AbilityProvider.",
+	"keywords": [
+		"authorization",
+		"permissions",
+		"access-control",
+		"react",
+		"rsc",
+		"casl",
+		"typescript"
+	],
+	"homepage": "https://github.com/ivan-yuldashev/veto/tree/main/packages/react#readme",
+	"bugs": "https://github.com/ivan-yuldashev/veto/issues",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/ivan-yuldashev/veto.git",
+		"directory": "packages/react"
+	},
+	"license": "MIT",
+	"type": "module",
+	"sideEffects": false,
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"types": "./dist/index.d.ts",
+	"files": [
+		"dist"
+	],
+	"engines": {
+		"node": ">=20"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"scripts": {
+		"build": "tsup",
+		"prepack": "pnpm build",
+		"dev": "tsup --watch",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@vetojs/core": "workspace:^"
+	},
+	"peerDependencies": {
+		"react": ">=18"
+	},
+	"devDependencies": {
+		"@types/react": "^19.0.0",
+		"@types/react-dom": "^19.0.0",
+		"jsdom": "^26.0.0",
+		"react": "^19.0.0",
+		"react-dom": "^19.0.0"
+	}
+}

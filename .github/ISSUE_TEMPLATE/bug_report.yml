@@ -1,0 +1,43 @@
+name: Bug report
+description: Something behaves differently than documented
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        If the bug lets someone read or write more than the policy allows, please report it
+        privately instead — see [SECURITY.md](https://github.com/ivan-yuldashev/veto/blob/main/SECURITY.md).
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Which package and version — e.g. `@vetojs/core` 0.1.0
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: >
+        The rules, the data, and the call. A failing test is the fastest possible report —
+        anything runnable beats a description.
+      render: ts
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected, and what happened
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Node version, package manager, and anything unusual — bundler, framework, ORM.
+    validations:
+      required: false
