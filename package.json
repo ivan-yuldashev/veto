@@ -30,7 +30,7 @@
 	"devDependencies": {
 		"@biomejs/biome": "^2.5.0",
 		"@changesets/cli": "^2.31.0",
-		"@types/node": "^26.0.0",
+		"@types/node": "^26.1.2",
 		"@vitest/coverage-v8": "^4.1.10",
 		"knip": "^6.23.0",
 		"simple-git-hooks": "^2.13.1",
