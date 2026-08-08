@@ -1,6 +1,6 @@
-import { isPayloadScoped, ruleMatches } from "../evaluation/index.js";
+import { ruleMatches } from "../evaluation/index.js";
 import type { ConditionNode, Rule } from "../model/index.js";
-import { RuleEffect } from "../shared/index.js";
+import { isPayloadScoped, RuleEffect } from "../shared/index.js";
 
 export const compileWhere = <T extends Record<string, unknown>>(
 	rules: Rule<T>[],

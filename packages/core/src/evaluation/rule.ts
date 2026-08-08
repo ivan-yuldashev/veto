@@ -1,5 +1,10 @@
 import type { Rule } from "../model/index.js";
-import { isPlainObject, MANAGE_ACTION, RuleEffect } from "../shared/index.js";
+import {
+	isPayloadScoped,
+	isPlainObject,
+	MANAGE_ACTION,
+	RuleEffect,
+} from "../shared/index.js";
 import { evaluateCondition } from "./condition.js";
 import type { Verdict } from "./verdict.js";
 
@@ -20,15 +25,6 @@ export const ruleMatches = <T extends Record<string, unknown>>(
 	resource: string,
 ): boolean => {
 	return rule.resource === resource && actionMatches(rule.action, action);
-};
-
-export const isPayloadScoped = <T extends Record<string, unknown>>(
-	rule: Rule<T>,
-): boolean => {
-	return (
-		rule.payload?.fields !== undefined ||
-		rule.payload?.constraints !== undefined
-	);
 };
 
 export const ruleWhereVerdict = <T extends Record<string, unknown>>(

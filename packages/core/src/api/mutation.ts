@@ -1,7 +1,6 @@
 import {
 	evaluateOperator,
 	evaluateRules,
-	isPayloadScoped,
 	kleeneAndOver,
 	ruleMatches,
 	ruleWhereVerdict,
@@ -10,6 +9,7 @@ import {
 import type { ConditionNode, Rule } from "../model/index.js";
 import {
 	type ConditionOperator,
+	isPayloadScoped,
 	isPlainObject,
 	RuleEffect,
 } from "../shared/index.js";
