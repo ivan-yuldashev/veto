@@ -1,5 +1,13 @@
 # @vetojs/react
 
+## 0.1.1
+
+### Patch Changes
+
+- Updated dependencies [6e5c998]
+- Updated dependencies [f303ea8]
+  - @vetojs/core@0.2.0
+
 ## 0.1.0
 
 ### Minor Changes
