@@ -23,14 +23,11 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-          registry-url: https://registry.npmjs.org
+      - run: npm install -g npm@latest
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       - run: pnpm test
 
-      # Opens (or updates) a "Version Packages" PR while changesets are pending;
-      # once that PR is merged, the same step publishes via `pnpm release`.
-      # Publishing must go through pnpm — npm cannot resolve the workspace: protocol.
       - uses: changesets/action@v1
         with:
           version: pnpm run version-packages
@@ -40,4 +37,3 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

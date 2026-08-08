@@ -1,7 +1,7 @@
 {
 	"name": "@vetojs/react",
 	"version": "0.1.0",
-	"description": "React bindings for @vetojs — <Can>, useAbility, AbilityProvider.",
+	"description": "React bindings for @vetojs — <Can>, useAbility, AbilityProvider. The same rules that guard the server decide what the user can reach in the UI.",
 	"keywords": [
 		"authorization",
 		"permissions",
@@ -19,6 +19,7 @@
 		"directory": "packages/react"
 	},
 	"license": "MIT",
+	"author": "Ivan Yuldashev <geekk@ya.ru>",
 	"type": "module",
 	"sideEffects": false,
 	"exports": {
