@@ -145,6 +145,10 @@ export const validatePayload = <T extends Record<string, unknown>>(
 			ruleWhereVerdict(rule, action, resource, row) === true,
 	);
 
+	if (allows.length === 0) {
+		return { ok: false, violations: [] };
+	}
+
 	const denies = rules.filter(
 		(rule) =>
 			rule.effect === RuleEffect.Deny &&

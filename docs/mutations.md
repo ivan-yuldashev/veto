@@ -34,7 +34,7 @@ ability.validatePayload(action, resource, row, data);
 // → { ok: true, data } | { ok: false, violations: [{ field, reason }] }
 ```
 
-It takes the **row** as well as the data, because which rules apply depends on the row — a rule that only covers drafts shouldn't constrain a write to a published post.
+It takes the **row** as well as the data, because which rules apply depends on the row — a rule that only covers drafts shouldn't constrain a write to a published post. A row that no `allow` covers is refused outright, empty data included: with nothing to write there is nothing to object to, and answering `ok` there would be a pass on a row the actor may not touch.
 
 Rejections are **explicit**. Nothing is silently stripped: if a key isn't allowed you get told which one and why, so your API can answer with a real error instead of quietly saving less than the user asked for.
 
