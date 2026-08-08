@@ -79,7 +79,8 @@ Note the difference between the last two: `status` is a field Bob may write, jus
 ## Why it works this way
 
 - **One violation per field.** A key rejected by the field check isn't also reported as a value problem — you get the first, most specific reason.
-- **A blanket `deny` vetoes the whole write**, even one carrying an otherwise-valid payload. A prohibition on the action can't be worked around by sending only permitted fields.
+- **A blanket `deny` vetoes the whole write**, even one carrying an otherwise-valid payload. A prohibition on the action can't be worked around by sending only permitted fields. "Blanket" means it carries no `payload` of its own.
+- **A `deny` that carries a `payload` speaks about data, not rows.** It subtracts fields and values from what may be written and leaves `can` / `canMutate` untouched. Read the other way, a rule meaning "never this field" would mean "never this action", and the field restriction could never be reached — the write would already be refused a step earlier. A `where` on such a rule scopes which rows the field restriction applies to, and still doesn't decide the row.
 - **Value constraints stay flat** (fields and `and` only). "This value is forbidden" is a `deny` rule, not an `or`/`not` expression buried in a constraint — see [condition shorthand](./condition-shorthand.md).
 - **A constraint on a field that isn't in the data is never evaluated**, which is what makes PATCH semantics work.
 

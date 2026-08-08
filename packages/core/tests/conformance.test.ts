@@ -142,6 +142,46 @@ const cases: { name: string; action: string; rules: Rule<Post>[] }[] = [
 			},
 		],
 	},
+	{
+		name: "allow + payload-scoped deny (restricts fields, not rows)",
+		action: "update",
+		rules: [
+			{
+				effect: "allow",
+				action: "update",
+				resource: "post",
+				where: { field: "authorId", op: "eq", value: "u1" },
+			},
+			{
+				effect: "deny",
+				action: "update",
+				resource: "post",
+				payload: { fields: ["status"] },
+			},
+		],
+	},
+	{
+		name: "allow + payload-scoped deny carrying a where",
+		action: "update",
+		rules: [
+			{ effect: "allow", action: "update", resource: "post" },
+			{
+				effect: "deny",
+				action: "update",
+				resource: "post",
+				where: { field: "status", op: "eq", value: "archived" },
+				payload: { fields: ["status"] },
+			},
+		],
+	},
+	{
+		name: "allow + empty-payload deny (names nothing, stays a blanket veto)",
+		action: "update",
+		rules: [
+			{ effect: "allow", action: "update", resource: "post" },
+			{ effect: "deny", action: "update", resource: "post", payload: {} },
+		],
+	},
 ];
 
 describe("conformance: instance-walk vs compiled where()", () => {

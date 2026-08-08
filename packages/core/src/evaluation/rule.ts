@@ -14,17 +14,21 @@ const actionMatches = (
 	return ruleAction === MANAGE_ACTION || ruleAction === action;
 };
 
-/**
- * Does this rule apply to the given action and resource, ignoring its `where`?
- *
- * Exported for adapters and guards that need to inspect a policy without evaluating it.
- */
 export const ruleMatches = <T extends Record<string, unknown>>(
 	rule: Rule<T>,
 	action: string,
 	resource: string,
 ): boolean => {
 	return rule.resource === resource && actionMatches(rule.action, action);
+};
+
+export const isPayloadScoped = <T extends Record<string, unknown>>(
+	rule: Rule<T>,
+): boolean => {
+	return (
+		rule.payload?.fields !== undefined ||
+		rule.payload?.constraints !== undefined
+	);
 };
 
 export const ruleWhereVerdict = <T extends Record<string, unknown>>(
@@ -59,8 +63,13 @@ export const evaluateRules = <T extends Record<string, unknown>>(
 			continue;
 		}
 
-		const verdict = ruleWhereVerdict(rule, action, resource, instance);
 		const isDeny = rule.effect === RuleEffect.Deny;
+
+		if (isDeny && isPayloadScoped(rule)) {
+			continue;
+		}
+
+		const verdict = ruleWhereVerdict(rule, action, resource, instance);
 
 		if (isDeny && verdict !== false) {
 			return false;
@@ -86,7 +95,11 @@ export const mightAllow = <T extends Record<string, unknown>>(
 			continue;
 		}
 
-		if (rule.effect === RuleEffect.Deny && rule.where === undefined) {
+		if (
+			rule.effect === RuleEffect.Deny &&
+			rule.where === undefined &&
+			!isPayloadScoped(rule)
+		) {
 			return false;
 		}
 

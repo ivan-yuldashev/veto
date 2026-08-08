@@ -1,4 +1,4 @@
-import { ruleMatches } from "../evaluation/index.js";
+import { isPayloadScoped, ruleMatches } from "../evaluation/index.js";
 import type { ConditionNode, Rule } from "../model/index.js";
 import { RuleEffect } from "../shared/index.js";
 
@@ -9,7 +9,9 @@ export const compileWhere = <T extends Record<string, unknown>>(
 ): ConditionNode<T> => {
 	const matched = rules.filter((rule) => ruleMatches(rule, action, resource));
 	const allows = matched.filter((rule) => rule.effect === RuleEffect.Allow);
-	const denies = matched.filter((rule) => rule.effect === RuleEffect.Deny);
+	const denies = matched.filter(
+		(rule) => rule.effect === RuleEffect.Deny && !isPayloadScoped(rule),
+	);
 
 	const nothing: ConditionNode<T> = { or: [] };
 	const everything: ConditionNode<T> = { and: [] };

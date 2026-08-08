@@ -153,6 +153,75 @@ describe("evaluateRules", () => {
 			expect(evaluateRules(rules, "read", "post", post)).toBe(true);
 		});
 	});
+
+	describe("payload-scoped deny", () => {
+		it("a deny carrying only a payload leaves the row decision alone", () => {
+			const rules: Rule<Post>[] = [
+				{ effect: "allow", action: "update", resource: "post" },
+				{
+					effect: "deny",
+					action: "update",
+					resource: "post",
+					payload: { fields: ["status"] },
+				},
+			];
+			expect(evaluateRules(rules, "update", "post", post)).toBe(true);
+		});
+
+		it("a where alongside a payload scopes the fields, not the row", () => {
+			const rules: Rule<Post>[] = [
+				{ effect: "allow", action: "update", resource: "post" },
+				{
+					effect: "deny",
+					action: "update",
+					resource: "post",
+					where: { field: "status", op: "eq", value: "archived" },
+					payload: { fields: ["status"] },
+				},
+			];
+			expect(evaluateRules(rules, "update", "post", post)).toBe(true);
+			expect(
+				evaluateRules(rules, "update", "post", { ...post, status: "archived" }),
+			).toBe(true);
+		});
+
+		it("a deny without a payload still vetoes the action outright", () => {
+			const rules: Rule<Post>[] = [
+				{ effect: "allow", action: "update", resource: "post" },
+				{ effect: "deny", action: "update", resource: "post" },
+			];
+			expect(evaluateRules(rules, "update", "post", post)).toBe(false);
+		});
+
+		it("an empty payload names nothing, so the deny stays a blanket veto", () => {
+			const rules: Rule<Post>[] = [
+				{ effect: "allow", action: "update", resource: "post" },
+				{
+					effect: "deny",
+					action: "update",
+					resource: "post",
+					payload: {},
+				},
+			];
+			expect(evaluateRules(rules, "update", "post", post)).toBe(false);
+			expect(mightAllow(rules, "update", "post")).toBe(false);
+		});
+
+		it("a payload naming only constraints is still payload-scoped", () => {
+			const rules: Rule<Post>[] = [
+				{ effect: "allow", action: "update", resource: "post" },
+				{
+					effect: "deny",
+					action: "update",
+					resource: "post",
+					payload: {
+						constraints: { field: "status", op: "eq", value: "draft" },
+					},
+				},
+			];
+			expect(evaluateRules(rules, "update", "post", post)).toBe(true);
+		});
+	});
 });
 
 describe("mightAllow", () => {
@@ -194,5 +263,18 @@ describe("mightAllow", () => {
 			},
 		];
 		expect(mightAllow(rules, "read", "post")).toBe(true);
+	});
+
+	it("returns true when the only deny is scoped to a payload", () => {
+		const rules: Rule<Post>[] = [
+			{ effect: "allow", action: "update", resource: "post" },
+			{
+				effect: "deny",
+				action: "update",
+				resource: "post",
+				payload: { fields: ["status"] },
+			},
+		];
+		expect(mightAllow(rules, "update", "post")).toBe(true);
 	});
 });

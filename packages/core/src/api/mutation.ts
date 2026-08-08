@@ -1,6 +1,7 @@
 import {
 	evaluateOperator,
 	evaluateRules,
+	isPayloadScoped,
 	kleeneAndOver,
 	ruleMatches,
 	ruleWhereVerdict,
@@ -37,12 +38,7 @@ export const permittedFields = <T extends Record<string, unknown>>(
 	const denies = matched.filter((rule) => rule.effect === RuleEffect.Deny);
 
 	if (
-		denies.some(
-			(rule) =>
-				rule.where === undefined &&
-				rule.payload?.fields === undefined &&
-				rule.payload?.constraints === undefined,
-		)
+		denies.some((rule) => rule.where === undefined && !isPayloadScoped(rule))
 	) {
 		return [];
 	}
@@ -155,11 +151,7 @@ export const validatePayload = <T extends Record<string, unknown>>(
 			ruleWhereVerdict(rule, action, resource, row) !== false,
 	);
 
-	const vetoed = denies.some(
-		(rule) =>
-			rule.payload?.fields === undefined &&
-			rule.payload?.constraints === undefined,
-	);
+	const vetoed = denies.some((rule) => !isPayloadScoped(rule));
 
 	if (vetoed) {
 		return { ok: false, violations: [] };
