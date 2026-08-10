@@ -22,7 +22,7 @@ export {
 	type,
 } from "./api/index.js";
 export { ForbiddenError, RelationNotLoadedError } from "./errors/index.js";
-export { markLoaded, ruleMatches } from "./evaluation/index.js";
+export { markLoaded } from "./evaluation/index.js";
 export type {
 	ConditionNode,
 	RelationNode,

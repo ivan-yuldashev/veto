@@ -58,5 +58,5 @@ jobs:
       - run: pnpm build
       - run: npx --yes publint packages/core
       - run: npx --yes publint packages/react
-      - run: npx --yes @arethetypeswrong/cli --pack packages/core --ignore-rules cjs-resolves-to-esm
-      - run: npx --yes @arethetypeswrong/cli --pack packages/react --ignore-rules cjs-resolves-to-esm
+      - run: npx --yes @arethetypeswrong/cli --pack packages/core --profile esm-only
+      - run: npx --yes @arethetypeswrong/cli --pack packages/react --profile esm-only

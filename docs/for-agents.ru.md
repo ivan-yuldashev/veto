@@ -100,7 +100,7 @@ export const { AbilityProvider, useAbility, Can } = createVetoContext(ac);
 where: {
   status: "published",                  // eq
   views: { gte: 100 },                  // объект с оператором
-  title: { contains: "release" },        // только для строк
+  title: { contains: "release" },       // только для строк
   authorId: { in: ["u1", "u2"] },
   deletedAt: { exists: false },
   author: { role: "admin" },            // связь «к одному»

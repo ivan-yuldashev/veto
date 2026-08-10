@@ -35,4 +35,4 @@ One page per concept, each describing how the shipped code actually behaves. Sta
 
 - **[`@vetojs/react`](./react.md)** — `<Can>`, `useAbility`, `AbilityProvider`: the same rules in the UI.
 
-Adapters for Next.js and Drizzle are built and tested but not published yet; their docs land with the packages.
+A Next.js guard and a Drizzle adapter turning `ability.where()` into SQL are in progress; their docs land with the packages.

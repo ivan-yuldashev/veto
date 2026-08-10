@@ -107,7 +107,7 @@ const equalsVerdict = (actual: unknown, expected: unknown): Verdict => {
 	if (
 		isPresent(actual) &&
 		isPresent(expected) &&
-		isObjectLike(actual) !== isObjectLike(expected)
+		(isObjectLike(actual) || isObjectLike(expected))
 	) {
 		return undefined;
 	}

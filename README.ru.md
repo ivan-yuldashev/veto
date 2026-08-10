@@ -68,11 +68,9 @@ CASL — признанный лидер и хорошая библиотека,
 |---|---|---|
 | [`@vetojs/core`](packages/core) | ✅ Готов | Движок: правила, вычисление, операторы, сборка условия для запроса. Без зависимостей. |
 | [`@vetojs/react`](packages/react) | ✅ Готов | [`<Can>`, `useAbility`, `AbilityProvider`](docs/react.ru.md) — те же правила решают, что доступно пользователю в интерфейсе. |
-| `@vetojs/next` | 🚧 В работе | `createGuard` / `withPermission` для server actions и route handlers. |
+| `@vetojs/next` | 🚧 В работе | `createGuard` — одна обёртка определяет пользователя, загружает строку, проверяет её и валидирует данные до того, как отработает ваш server action. |
 | `@vetojs/drizzle` | 🚧 В работе | Условия → SQL `WHERE` (Postgres), связи → `EXISTS`. |
 | `@vetojs/prisma` · `@vetojs/kysely` | 🔜 В планах | Другие адаптеры и диалекты. |
-
-🚧 — ожидают публикации.
 
 ## Единые правила на всех уровнях
 

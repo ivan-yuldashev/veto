@@ -16,7 +16,7 @@ allow("read", "post", { where: { status: { in: ["draft", "review"] } } });
 
 | Operator | True when | Notes |
 |---|---|---|
-| `eq` | values are equal | `Date` compares by timestamp (also against an epoch-ms number), `1` equals `1n`; otherwise strict `===`. Strings are case-sensitive, objects compare by reference |
+| `eq` | values are equal | `Date` compares by timestamp (also against an epoch-ms number), `1` equals `1n`; otherwise strict `===`. Strings are case-sensitive; objects and arrays are **unknown**, never equal or unequal |
 | `ne` | not `eq` | |
 | `in` | the value is in the list | membership uses `eq` equality |
 | `nin` | the value is not in the list | |
@@ -57,6 +57,7 @@ If a malformed list answered a plain **no** for `in`, then `nin` — its negatio
 - **`Date` and `number` are interchangeable.** Rules serialise a `Date` as epoch milliseconds so they survive `JSON.stringify` (see [condition shorthand](./condition-shorthand.md)), but a check against a real `Date` from your ORM still works. Both carriers compare by value.
 - **`1` equals `1n`.** Numeric ids cross the `number`/`bigint` boundary all the time; making them unequal would be a footgun. The check is exactness, not size — `1.5` never equals a bigint.
 - **`exists` asks about presence, not truthiness.** `0` and `""` are values a row legitimately holds; treating them as absent would deny real rows.
+- **An object or array operand is unknown, not unequal.** These operators compare values, and two structurally identical objects are not the same reference — so answering "not equal" would be a guess dressed as a fact. It used to answer `false`, which quietly disarmed every `deny` on such a field: the prohibition never applied, whatever the row held. Unknown is the honest answer, and it fails closed in both polarities. If you need to match inside a nested object, model it as a [relation](./relations.md) — the engine compares scalars, and a database adapter refuses to compile an object comparison at all.
 
 ## Source
 

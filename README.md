@@ -68,11 +68,9 @@ CASL is the incumbent, and a good library — but it predates React Server Compo
 |---|---|---|
 | [`@vetojs/core`](packages/core) | ✅ Ready | The engine: rules, evaluation, operators, query compilation. Zero dependencies. |
 | [`@vetojs/react`](packages/react) | ✅ Ready | [`<Can>`, `useAbility`, `AbilityProvider`](docs/react.md) — the same rules decide what the user can reach in the UI. |
-| `@vetojs/next` | 🚧 In progress | `createGuard` / `withPermission` for server actions and route handlers. |
+| `@vetojs/next` | 🚧 In progress | `createGuard` — one wrapper resolves the actor, loads the row, checks it and validates the payload before your server action runs. |
 | `@vetojs/drizzle` | 🚧 In progress | Conditions → SQL `WHERE` (Postgres), relations → `EXISTS`. |
 | `@vetojs/prisma` · `@vetojs/kysely` | 🔜 Planned | Further adapters and dialects. |
-
-🚧 — built and tested, but not published yet.
 
 ## One set of rules, every layer
 

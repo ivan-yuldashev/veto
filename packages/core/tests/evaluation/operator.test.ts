@@ -242,16 +242,39 @@ describe("evaluateOperator", () => {
 		});
 	});
 
-	describe("reference equality (arrays and objects)", () => {
-		it("compares arrays by reference, not by content", () => {
-			const arr = [1, 2];
-			expect(evaluateOperator("eq", arr, arr)).toBe(true);
-			expect(evaluateOperator("eq", [1, 2], [1, 2])).toBe(false);
+	describe("non-scalar operands are undecidable, not unequal", () => {
+		it("answers unknown for two objects", () => {
+			expect(evaluateOperator("eq", { a: 1 }, { a: 1 })).toBe(undefined);
+			expect(evaluateOperator("eq", { a: 1 }, { a: 2 })).toBe(undefined);
 		});
-		it("compares objects by reference, not by content", () => {
+
+		it("answers unknown for two arrays", () => {
+			expect(evaluateOperator("eq", [1, 2], [1, 2])).toBe(undefined);
+			expect(evaluateOperator("eq", [1, 2], [3])).toBe(undefined);
+		});
+
+		it("answers unknown even for the very same reference", () => {
 			const obj = { a: 1 };
-			expect(evaluateOperator("eq", obj, obj)).toBe(true);
-			expect(evaluateOperator("eq", { a: 1 }, { a: 1 })).toBe(false);
+			expect(evaluateOperator("eq", obj, obj)).toBe(undefined);
+		});
+
+		it("keeps ne undecidable too, so neither polarity can decide", () => {
+			expect(evaluateOperator("ne", { a: 1 }, { a: 1 })).toBe(undefined);
+		});
+
+		it("answers unknown when only one side is non-scalar", () => {
+			expect(evaluateOperator("eq", { a: 1 }, "a")).toBe(undefined);
+			expect(evaluateOperator("eq", "a", { a: 1 })).toBe(undefined);
+		});
+
+		it("still decides when a non-scalar meets an absent value", () => {
+			expect(evaluateOperator("eq", null, { a: 1 })).toBe(false);
+			expect(evaluateOperator("eq", undefined, { a: 1 })).toBe(false);
+		});
+
+		it("leaves Date on the scalar side of the line", () => {
+			const when = new Date("2026-01-01");
+			expect(evaluateOperator("eq", when, new Date("2026-01-01"))).toBe(true);
 		});
 	});
 
