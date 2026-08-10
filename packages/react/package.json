@@ -1,6 +1,6 @@
 {
 	"name": "@vetojs/react",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"description": "React bindings for @vetojs — <Can>, useAbility, AbilityProvider. The same rules that guard the server decide what the user can reach in the UI.",
 	"keywords": [
 		"authorization",
