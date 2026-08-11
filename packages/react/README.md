@@ -19,10 +19,27 @@ React 18 or newer.
 import { createVetoContext } from "@vetojs/react";
 import { ac } from "./abilities";
 
-export const { AbilityProvider, useAbility, Can } = createVetoContext(ac);
+export const { AbilityProvider, useAbility, useCan, useSetRules, Can } =
+	createVetoContext(ac);
 ```
 
 A factory rather than a plain import, because typed bindings need your `ac` — and the payoff is that `<Can>` autocompletes actions per resource and rejects the ones that don't exist.
+
+## On the server, skip all of it
+
+A server component already has an ability, so it needs no provider, no context and no client boundary:
+
+```tsx
+import { Can } from "@vetojs/react/server";
+
+const ability = await getAbility();
+
+<Can ability={ability} I="update" a="post" this={post} fallback={<ReadOnly />}>
+	<EditForm post={post} />
+</Can>
+```
+
+No directive, no hooks, no factory — the resource map is inferred from the ability you pass. Both branches are decided while rendering, so neither reaches the browser.
 
 ## Use them
 
@@ -50,6 +67,26 @@ const writable = ability.permittedFields("update", "post", ["title", "status"]);
 ```
 
 `useAbility` returns the full ability, so every check is available. Called outside a provider it throws rather than silently behaving as if nothing is permitted.
+
+For a single yes-or-no, `useCan` subscribes to that one verdict and re-renders only when it flips — on a list of 50 gated rows where one verdict changes, `useAbility` wakes all 50 and `useCan` wakes 1. `<Can>` uses it internally.
+
+```tsx
+const canEdit = useCan("update", "post", post);
+```
+
+## Switching actors
+
+Handing the provider new `rules` works, but the prop lives in an ancestor's state, so the switch re-renders that ancestor and everything under it. `useSetRules` writes straight to the store instead:
+
+```tsx
+const setRules = useSetRules();
+
+const onSwitchActor = async (id: string) => {
+	setRules(await fetchRulesFor(id));
+};
+```
+
+Nothing above re-renders, and only the rows whose verdict moved update. Use the `rules` prop to seed from the server, `useSetRules` for changes without a new request.
 
 ## Hiding is not protecting
 

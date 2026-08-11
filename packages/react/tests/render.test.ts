@@ -89,6 +89,61 @@ describe("AbilityProvider + Can (render)", () => {
 		expect(container.textContent).toBe("Visible");
 	});
 
+	it("takes an ability prop and needs no provider at all", () => {
+		const ability = buildAbility(ac, [
+			allow("update", "post", { where: { authorId: "u1" } }),
+		]);
+
+		render(
+			createElement(
+				Can,
+				{ ability, I: "update", a: "post", this: { id: "p1", authorId: "u1" } },
+				"Edit",
+			),
+		);
+		expect(container.textContent).toBe("Edit");
+
+		render(
+			createElement(
+				Can,
+				{
+					ability,
+					I: "update",
+					a: "post",
+					this: { id: "p2", authorId: "u2" },
+					fallback: "No",
+				},
+				"Edit",
+			),
+		);
+		expect(container.textContent).toBe("No");
+	});
+
+	it("prefers the ability prop over the surrounding provider", () => {
+		const permissive = buildAbility(ac, [allow("update", "post")]);
+
+		render(
+			createElement(
+				AbilityProvider,
+				{ rules: [] },
+				createElement(
+					Can,
+					{ ability: permissive, I: "update", a: "post" },
+					"Edit",
+				),
+			),
+		);
+		expect(container.textContent).toBe("Edit");
+	});
+
+	it("Can throws with neither a provider nor an ability prop", () => {
+		const silenced = vi.spyOn(console, "error").mockImplementation(() => {});
+		expect(() =>
+			render(createElement(Can, { I: "read", a: "post" }, "Visible")),
+		).toThrow("<Can> needs an ability");
+		silenced.mockRestore();
+	});
+
 	it("useAbility throws outside the provider", () => {
 		const silenced = vi.spyOn(console, "error").mockImplementation(() => {});
 		const Orphan = () => {

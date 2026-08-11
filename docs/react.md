@@ -93,6 +93,35 @@ const writable = ability.permittedFields("update", "post", ["title", "status"]);
 
 It returns the full [`ability`](./ability.md), so `can`, `cannot`, `permittedFields` and the rest are all available. Called outside a provider it throws immediately, rather than silently behaving as if nothing is permitted.
 
+## `useCan` — one question, one subscription
+
+`useAbility` hands back the whole object, so every component holding it wakes up whenever the rules change. `useCan` subscribes to a single verdict instead and re-renders only when *that* answer flips:
+
+```tsx
+const canEdit = useCan("update", "post", post);
+```
+
+On a list of 50 gated rows where switching actors changes exactly one verdict, `useAbility` re-renders all 50 and `useCan` re-renders 1. `<Can>` uses it internally, so it already behaves this way. Reach for `useAbility` when you need more than a yes or no — `permittedFields`, `validate`, a filter over many rows.
+
+## `useSetRules` — switch actors without re-rendering the page
+
+Passing new `rules` to the provider works, but it goes through React state in an ancestor, so that ancestor re-renders and takes its whole subtree with it. On the same 50-row list that is 101 re-renders for one changed verdict — and none of them come from `<Can>`; it is ordinary parent-to-child propagation.
+
+`useSetRules` writes to the store directly instead:
+
+```tsx
+const setRules = useSetRules();
+
+const onSwitchActor = async (id: string) => {
+	const { rules } = await fetchActor(id);
+	setRules(rules);
+};
+```
+
+Nothing above re-renders — not the provider, not the list — and only the rows whose verdict moved update. Measured on that list: provider 0, ungated rows 0, gated rows 1.
+
+Use the `rules` prop to seed the tree from the server, and `useSetRules` for changes that happen without a new request.
+
 ## Hiding is not protecting
 
 A hidden button is a courtesy to the user, not a security boundary — the request it would have sent can still be made by hand. Every action still needs its check on the server:
@@ -104,21 +133,40 @@ The value of sharing one array of rules is that both sides read one source, so t
 
 ## Server components
 
-The whole package is client-side — `createVetoContext` uses context and hooks. In a React Server Components app the split is:
+**On the server you do not need any of the above.** No context, no provider, no client boundary — you already have the ability, so ask it:
 
 ```tsx
-// server component
-const ability = buildAbility(ac, policyFor(user));
+import { Can } from "@vetojs/react/server";
+
+const ability = await getAbility();
 if (!ability.can("read", "post", post)) notFound();
 
 return (
-	<AbilityProvider rules={ability.rules}>
-		<Toolbar post={post} />
-	</AbilityProvider>
+	<Can ability={ability} I="update" a="post" this={post} fallback={<ReadOnly />}>
+		<EditForm post={post} />
+	</Can>
 );
 ```
 
-Only the rules array crosses the boundary — plain JSON, nothing to serialize around. That is the property that makes this work at all: an ability here is data plus closures, never a class instance.
+This `<Can>` carries no `"use client"` and calls no hooks. Both branches are decided while rendering, so **neither reaches the browser** — the client receives only the resolved output. There is no factory either: the resource map is inferred from the ability you pass, so actions are still checked against the resource as you type.
+
+Build the ability once per request rather than per component. In Next, that is React's `cache`:
+
+```ts
+export const getAbility = cache(async () =>
+	buildAbility(ac, policyFor(await getActor())),
+);
+```
+
+Reach for the client bindings only where the UI has to *react* — an optimistic toggle, a role switcher, anything that changes without a new request. Then hand the rules across:
+
+```tsx
+<AbilityProvider rules={ability.rules}>
+	<Toolbar post={post} />
+</AbilityProvider>
+```
+
+Only the rules array crosses the boundary — plain JSON, nothing to serialize around. That is the property that makes this work at all: an ability here is data plus closures, never a class instance. A class-based ability cannot cross that boundary, which is where libraries built on one run out of road.
 
 ## Why it works this way
 
@@ -126,6 +174,8 @@ Only the rules array crosses the boundary — plain JSON, nothing to serialize a
 - **`rules` or `ability`, never both.** The server path ships data; the client path may already have an ability. Allowing both would raise the question of which wins.
 - **`useAbility` throws when unprovided.** Returning a deny-everything ability would look like a policy decision and hide the wiring mistake.
 - **`<Can>` renders `children` or `fallback`, nothing else.** No wrapper element, so it drops into flex and grid layouts without disturbing them.
+- **Two entry points, because `"use client"` marks a whole module.** There is no way for one module to be both, so the server component lives at `@vetojs/react/server` and shares nothing with the client one but a type. The alternative — one client `<Can>` everywhere — is what forces a server component to become a client component just to hide a button.
+- **The client `<Can>` also takes an `ability` prop.** Pass it and the context is ignored, which is the escape hatch when a subtree has its own ability or you would rather not mount a provider at all. With neither, it throws instead of assuming.
 
 ## Source
 

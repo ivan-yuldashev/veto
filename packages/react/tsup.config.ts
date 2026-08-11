@@ -1,13 +1,23 @@
 import { defineConfig } from "tsup";
 
-export default defineConfig({
-	entry: ["src/index.ts"],
-	format: ["esm"],
+const shared = {
+	format: ["esm" as const],
 	target: "es2022",
 	dts: true,
 	splitting: false,
 	sourcemap: true,
-	clean: true,
 	external: ["react", "@vetojs/core"],
-	banner: { js: '"use client";' },
-});
+};
+
+export default defineConfig([
+	{
+		...shared,
+		entry: ["src/index.ts"],
+		clean: true,
+		banner: { js: '"use client";' },
+	},
+	{
+		...shared,
+		entry: ["src/server.ts"],
+	},
+]);
