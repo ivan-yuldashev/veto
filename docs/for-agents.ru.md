@@ -78,10 +78,25 @@ ability.can("update", "post", post);
 
 ### `@vetojs/react`
 
+**В серверном компоненте берите серверную точку входа — ни провайдера, ни контекста, в браузер не уезжает ничего:**
+
+```tsx
+import { Can } from "@vetojs/react/server";
+
+const ability = await getAbility();
+
+<Can ability={ability} I="update" a="post" this={post} fallback={<ReadOnly />}>
+  <EditForm post={post} />
+</Can>
+```
+
+Для клиентских компонентов вызовите фабрику один раз:
+
 ```ts
 // src/veto.ts — вызовите фабрику один раз, импортируйте привязки отсюда
 import { createVetoContext } from "@vetojs/react";
-export const { AbilityProvider, useAbility, Can } = createVetoContext(ac);
+export const { AbilityProvider, useAbility, useCan, useSetRules, Can } =
+  createVetoContext(ac);
 ```
 
 ```tsx
@@ -91,6 +106,18 @@ export const { AbilityProvider, useAbility, Can } = createVetoContext(ac);
   </Can>
 </AbilityProvider>
 ```
+
+| Привязка | Для чего |
+|---|---|
+| `Can` из `@vetojs/react/server` | закрыть серверный компонент; принимает `ability` напрямую |
+| `<Can>` из фабрики | закрыть клиентский компонент |
+| `useCan(action, resource, row?)` | один вердикт; перерисовка только когда меняется этот ответ |
+| `useAbility()` | всё сверх «да/нет» — `permittedFields`, `validate`, фильтрация списка |
+| `useSetRules()` | смена пользователя на клиенте без перерисовки страницы |
+
+### `@vetojs/next`
+
+Пока не опубликован. Сегодня server action защищается вручную — вызовами `ability.canMutate` и `ability.validatePayload`, см. [запись](./mutations.ru.md).
 
 ## Как писать условия
 
@@ -148,7 +175,7 @@ const ability = buildAbility(ac, result.rules);
 
 Всё перечисленное выглядит правдоподобно и при этом неверно.
 
-**Голый массив у поля-массива.** Он означает «равно этому массиву» и сравнивается по ссылке, поэтому со строкой из базы не совпадёт никогда. Типы это отклоняют — берите оператор.
+**Голый массив у поля-массива.** Он сравнивается с этим массивом, а сравнение с массивом или объектом всегда даёт **«неизвестно»**: оно ничего не разрешает и заставляет сработать любой `deny`. Типы это отклоняют — берите оператор.
 
 ```ts
 where: { tags: ["a", "b"] }              // ✗ типы отклонят

@@ -12,6 +12,10 @@ The one page to read if you are generating code that uses this library is [For a
 - [Project README](https://github.com/ivan-yuldashev/veto/blob/main/README.md): what the library is, why it exists, and how it compares to CASL.
 - [Documentation index](https://github.com/ivan-yuldashev/veto/blob/main/docs/README.md): a page per concept, English and Russian.
 
+## Coming from CASL
+
+- [Migrating from CASL](https://github.com/ivan-yuldashev/veto/blob/main/docs/migrate-from-casl.md): API mapping, operators without an equivalent, the React and RSC part, and the behaviour that differs.
+
 ## Setting up a policy
 
 - [Declaring resources](https://github.com/ivan-yuldashev/veto/blob/main/docs/define-abilities.md): `defineAbilities` — the single declaration every type is inferred from.
@@ -35,7 +39,7 @@ The one page to read if you are generating code that uses this library is [For a
 
 ## In an app
 
-- [React](https://github.com/ivan-yuldashev/veto/blob/main/docs/react.md): `createVetoContext(ac)` → `AbilityProvider`, `<Can>`, `useAbility`.
+- [React](https://github.com/ivan-yuldashev/veto/blob/main/docs/react.md): `createVetoContext(ac)` → `AbilityProvider`, `<Can>`, `useCan`, `useSetRules`; `@vetojs/react/server` gates a server component with no client boundary.
 
 ## Optional
 

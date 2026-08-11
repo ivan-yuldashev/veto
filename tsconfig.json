@@ -1,8 +1,12 @@
 {
 	"extends": "./tsconfig.base.json",
+	"compilerOptions": {
+		"jsx": "react-jsx"
+	},
 	"include": [
 		"vitest.config.ts",
 		"packages/**/*.ts",
+		"packages/**/*.tsx",
 		"internal/packages/**/*.ts"
 	],
 	"exclude": ["node_modules", "**/dist", "**/type-bench"]

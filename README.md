@@ -51,16 +51,18 @@ Typos don't reach production: an action, resource, field or operator that doesn'
 
 ## Why not CASL?
 
-CASL is the incumbent, and a good library — but it predates React Server Components and is class-based at its core.
+CASL is the incumbent, and a good library. It is also older than React Server Components, and an ability there is a class instance — which is where the differences start. Checked against `@casl/ability@7.0.1`.
 
 | | CASL | @vetojs |
 |---|---|---|
-| **Server components** | `subject(obj)` **mutates** your objects to tag their type, which RSC can't serialize | rules are plain JSON; the resource name is just an argument — nothing is wrapped or mutated |
-| **Types** | actions aren't narrowed per subject; shapes need hand-written `MongoAbility<[Actions, Subject]>` tuples | actions, resources and shapes all inferred from one declaration |
-| **Tagging an instance** | `can("update", subject("Post", post))` | `can("update", "post", post)` |
-| **Database queries** | `accessibleBy` (Mongo / Prisma) | `ability.where()` → SQL via `@vetojs/drizzle`, with a tested guarantee that the query returns exactly what `can()` allows |
-| **Runtime dependencies** | several | none |
-| **Bad data** | conditions can quietly evaluate the wrong way | a value that doesn't fit its condition is "unknown": an `allow` grants nothing and a `deny` still fires |
+| **Server → client** | an ability is a `PureAbility` instance, and RSC refuses it: *"Only plain objects… Classes or null prototypes are not supported"* ([#999](https://github.com/stalniy/casl/issues/999)) | `ability.rules` is plain JSON; the client rebuilds from it |
+| **Tagging an instance** | `subject("Post", post)` **mutates** `post`, and the tag it adds is non-enumerable — so `JSON.stringify` drops it and the type is lost silently | `can("update", "post", post)` — the resource name is an argument, nothing is wrapped or mutated |
+| **Types** | actions do narrow per subject, but you hand-write the union: `MongoAbility<["create" \| "manage", "campaign"] \| ["create" \| "delete", "user"]>`, and the shapes too | actions, resources and shapes all inferred from one `defineAbilities` declaration |
+| **Database queries** | `accessibleBy`, through an adapter per ORM — SQL has been [open since 2017](https://github.com/stalniy/casl/issues/8), and a new ORM major means waiting for a new adapter release | `ability.where()` returns a plain condition tree you can walk yourself; `@vetojs/drizzle` turns it into SQL, with a tested guarantee that the query returns exactly what `can()` allows |
+| **Dependencies** | 4 | 0 |
+| **Bad data** | `views: "100"` satisfies `$gt: 50`, and a `deny` on `secret: true` does not fire for `secret: "true"` | a value that doesn't fit its condition is "unknown": an `allow` grants nothing and a `deny` still fires |
+
+Coming from CASL? [Migrating from CASL](docs/migrate-from-casl.md) maps the API across, names the operators that have no equivalent, and covers the two behaviour differences that change what your policy does.
 
 ## Packages
 

@@ -78,10 +78,25 @@ Methods on `ability`:
 
 ### `@vetojs/react`
 
+**In a server component, use the server entry — no provider, no context, nothing shipped to the browser:**
+
+```tsx
+import { Can } from "@vetojs/react/server";
+
+const ability = await getAbility();
+
+<Can ability={ability} I="update" a="post" this={post} fallback={<ReadOnly />}>
+  <EditForm post={post} />
+</Can>
+```
+
+For client components, call the factory once:
+
 ```ts
 // src/veto.ts — call the factory once, import bindings from here
 import { createVetoContext } from "@vetojs/react";
-export const { AbilityProvider, useAbility, Can } = createVetoContext(ac);
+export const { AbilityProvider, useAbility, useCan, useSetRules, Can } =
+  createVetoContext(ac);
 ```
 
 ```tsx
@@ -91,6 +106,18 @@ export const { AbilityProvider, useAbility, Can } = createVetoContext(ac);
   </Can>
 </AbilityProvider>
 ```
+
+| Binding | Use it for |
+|---|---|
+| `Can` from `@vetojs/react/server` | gating a server component; takes `ability` directly |
+| `<Can>` from the factory | gating a client component |
+| `useCan(action, resource, row?)` | one verdict; re-renders only when that answer flips |
+| `useAbility()` | anything beyond yes/no — `permittedFields`, `validate`, filtering a list |
+| `useSetRules()` | switching actors on the client without re-rendering the page |
+
+### `@vetojs/next`
+
+Not published yet. Guarding a server action today means calling `ability.canMutate` and `ability.validatePayload` yourself — see [writes](./mutations.md).
 
 ## Writing conditions
 
@@ -148,7 +175,7 @@ const ability = buildAbility(ac, result.rules);
 
 These compile-or-look fine and are wrong:
 
-**A bare array on an array field.** It means "equals this array", compared by reference, so it never matches a row from a database. The type rejects it; use an operator.
+**A bare array on an array field.** It compares against that array, and a comparison against an array or an object is always **unknown** — it grants nothing and fires every `deny`. The type rejects it; use an operator.
 
 ```ts
 where: { tags: ["a", "b"] }          // ✗ rejected by the type system

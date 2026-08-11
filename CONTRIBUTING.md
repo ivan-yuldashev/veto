@@ -42,6 +42,15 @@ pnpm --filter @vetojs/core test          # ✗ "No projects were found"
 
 **Fail closed.** When data doesn't fit a condition, the answer is "unknown", and unknown must never grant. If a change makes an `allow` more generous or a `deny` less likely to fire on malformed input, it needs a very good reason.
 
+**Commits describe the result, not the route.** A message is read later by someone asking what a change did to the library, so write what landed and why it matters — not the order you discovered it in. Concretely:
+
+- A defect that existed only between commits in the same batch is **not a fix**. It is part of the change that introduced it, and belongs in that commit rather than a follow-up.
+- The same goes for anything added and then reworked before it shipped: squash it, and describe the version that survived.
+- Numbers earn their place only when they justify a decision a reader might otherwise reverse. "Measured X versus Y, kept X" is useful; the three attempts that produced the number are not.
+- The subject line is one imperative sentence. The body is for what a reader could not infer from the diff — a behaviour change, a compatibility note, a constraint that forced the shape.
+
+The rule of thumb: if a sentence describes what *you* did rather than what the code now *does*, it belongs in the pull request, not in the history.
+
 ## Changesets
 
 Anything users would notice — a fix, a new export, changed behaviour — needs one:

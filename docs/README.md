@@ -10,6 +10,10 @@ One page per concept, each describing how the shipped code actually behaves. Sta
 
 - **[For agents](./for-agents.md)** — the whole API in one page, correct idioms, and the mistakes that look plausible.
 
+## Coming from CASL
+
+- **[Migrating from CASL](./migrate-from-casl.md)** — API mapping, the operators that have no equivalent, the React and RSC part, and the two behaviour differences that change what your policy does.
+
 ## Getting a policy running
 
 1. **[Declaring resources](./define-abilities.md)** — `defineAbilities`: what exists and what can be done to it. Everything else infers from here.
