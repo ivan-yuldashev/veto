@@ -5,6 +5,8 @@ import { evaluateCondition, evaluateRules } from "../src/evaluation/index.js";
 import type { Rule } from "../src/model/index.js";
 
 type Post = {
+	tags?: unknown;
+	meta?: unknown;
 	authorId: string;
 	status: "draft" | "published" | "archived";
 	views: number;
@@ -18,6 +20,11 @@ const rows: unknown[] = [
 	{ authorId: "u1", status: "published", views: "200" },
 	{ authorId: "u1", status: null, views: 5 },
 	{ authorId: "u1", status: "published" },
+	{ authorId: "u1", status: "published", views: 10, tags: ["x", "y"] },
+	{ authorId: "u1", status: "published", views: 10, tags: [] },
+	{ authorId: "u1", status: "published", views: 10, tags: null },
+	{ authorId: "u1", status: "published", views: 10, tags: "notarray" },
+	{ authorId: "u1", status: "published", views: 10, meta: { lang: "ru" } },
 ];
 
 const payloads: unknown[] = [
@@ -88,6 +95,33 @@ const denyVariants: { name: string; rule?: Rule<Post> }[] = [
 			action: "update",
 			resource: "post",
 			payload: { constraints: { field: "status", op: "eq", value: "draft" } },
+		},
+	},
+	{
+		name: "deny has",
+		rule: {
+			effect: "deny",
+			action: "update",
+			resource: "post",
+			where: { field: "tags", op: "has", value: "x" },
+		},
+	},
+	{
+		name: "deny hasAll empty",
+		rule: {
+			effect: "deny",
+			action: "update",
+			resource: "post",
+			where: { field: "tags", op: "hasAll", value: [] },
+		},
+	},
+	{
+		name: "deny eq on an object field",
+		rule: {
+			effect: "deny",
+			action: "update",
+			resource: "post",
+			where: { field: "meta", op: "eq", value: { lang: "ru" } },
 		},
 	},
 	{

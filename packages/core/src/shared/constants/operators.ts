@@ -9,6 +9,9 @@ export const ConditionOperator = {
 	LessThanOrEqual: "lte",
 	Contains: "contains",
 	Exists: "exists",
+	Has: "has",
+	HasAny: "hasAny",
+	HasAll: "hasAll",
 } as const;
 
 export type ConditionOperator =

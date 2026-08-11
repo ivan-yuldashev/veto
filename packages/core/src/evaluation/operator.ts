@@ -1,5 +1,10 @@
 import { ConditionOperator, NUMERIC_TYPES } from "../shared/index.js";
-import { kleeneNot, type Verdict } from "./verdict.js";
+import {
+	kleeneAndOver,
+	kleeneNot,
+	kleeneOrOver,
+	type Verdict,
+} from "./verdict.js";
 
 const normalize = (value: unknown): number | string | bigint | undefined => {
 	if (typeof value === "string" || typeof value === "bigint") {
@@ -145,6 +150,31 @@ const containsVerdict = (actual: unknown, expected: unknown): Verdict => {
 	return typeof actual === "string" ? actual.includes(expected) : undefined;
 };
 
+const overElements = (
+	actual: unknown,
+	decide: (elements: readonly unknown[]) => Verdict,
+): Verdict => {
+	if (Array.isArray(actual)) {
+		return decide(actual);
+	}
+
+	return isPresent(actual) ? undefined : false;
+};
+
+const overWanted = (
+	actual: unknown,
+	expected: unknown,
+	fold: typeof kleeneAndOver,
+): Verdict => {
+	if (!Array.isArray(expected)) {
+		return undefined;
+	}
+
+	return overElements(actual, (elements) =>
+		fold(expected, (item) => memberVerdict(item, elements)),
+	);
+};
+
 export const evaluateOperator = (
 	operator: ConditionOperator,
 	actual: unknown,
@@ -171,6 +201,14 @@ export const evaluateOperator = (
 			return containsVerdict(actual, expected);
 		case ConditionOperator.Exists:
 			return isPresent(actual) === Boolean(expected);
+		case ConditionOperator.Has:
+			return overElements(actual, (elements) =>
+				memberVerdict(expected, elements),
+			);
+		case ConditionOperator.HasAny:
+			return overWanted(actual, expected, kleeneOrOver);
+		case ConditionOperator.HasAll:
+			return overWanted(actual, expected, kleeneAndOver);
 		default: {
 			operator satisfies never;
 			return false;

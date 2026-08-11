@@ -268,6 +268,24 @@ describe("parseRules", () => {
 			expect(parseRules([makeRule("nin", [])]).ok).toBe(true);
 		});
 
+		it("rejects a non-array value for hasAny/hasAll too", () => {
+			const makeRule = (op: string, value: unknown) => ({
+				effect: "allow",
+				action: "read",
+				resource: "post",
+				where: { field: "tags", op, value },
+			});
+
+			expect(parseRules([makeRule("hasAny", "a")]).ok).toBe(false);
+			expect(parseRules([makeRule("hasAll", "a")]).ok).toBe(false);
+			expect(parseRules([makeRule("hasAny", ["a"])]).ok).toBe(true);
+			expect(parseRules([makeRule("hasAll", [])]).ok).toBe(true);
+
+			// `has` takes a single element, so any shape is a legal value here — a list
+			// simply becomes an element the engine cannot compare, and answers unknown.
+			expect(parseRules([makeRule("has", "a")]).ok).toBe(true);
+		});
+
 		it("does not treat prototype keys as valid operators", () => {
 			expect(
 				parseRules([

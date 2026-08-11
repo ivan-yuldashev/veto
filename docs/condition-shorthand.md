@@ -32,12 +32,14 @@ For a union field such as `status: "draft" | "published"`, any member of the uni
 A value is treated as an operator object only if it is a plain object with exactly one key, and that key is one of the ten operators. Everything else is a value to compare against:
 
 ```ts
-{ tags: ["a", "b"] }        // equals this array (by reference)
+{ tags: ["a", "b"] }        // compares against this array — always unknown
 { tags: { in: ["a", "b"] } } // membership — probably what you wanted
 { createdAt: someDate }      // equals this date
 ```
 
 Arrays and `Date`s are values, never operators.
+
+A `Date` compares by timestamp. An array or an object never compares to anything: two structurally identical objects are different references, so answering "not equal" would be a guess, and the engine answers **unknown** instead — which grants nothing and fires every `deny`. The type system rejects a bare array on an array-typed field for exactly this reason; reach for `in` or a [relation](./relations.md).
 
 ## Dates become numbers
 

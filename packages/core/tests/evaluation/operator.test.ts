@@ -324,3 +324,49 @@ describe("evaluateOperator", () => {
 		});
 	});
 });
+
+describe("array membership", () => {
+	it("has finds an element", () => {
+		expect(evaluateOperator("has", ["a", "b"], "a")).toBe(true);
+		expect(evaluateOperator("has", ["a", "b"], "c")).toBe(false);
+	});
+
+	it("hasAny needs one, hasAll needs every", () => {
+		expect(evaluateOperator("hasAny", ["a"], ["a", "z"])).toBe(true);
+		expect(evaluateOperator("hasAll", ["a"], ["a", "z"])).toBe(false);
+		expect(evaluateOperator("hasAll", ["a", "z"], ["a", "z"])).toBe(true);
+	});
+
+	it("an empty hasAll asks nothing of an array, an empty hasAny finds nothing", () => {
+		expect(evaluateOperator("hasAll", [], [])).toBe(true);
+		expect(evaluateOperator("hasAny", ["a"], [])).toBe(false);
+	});
+
+	it("an absent field is a decidable non-match", () => {
+		expect(evaluateOperator("has", undefined, "a")).toBe(false);
+		expect(evaluateOperator("has", null, "a")).toBe(false);
+		expect(evaluateOperator("hasAll", null, [])).toBe(false);
+	});
+
+	it("a present non-array is unknown, so neither polarity can decide", () => {
+		expect(evaluateOperator("has", "a", "a")).toBe(undefined);
+		expect(evaluateOperator("hasAny", 42, ["a"])).toBe(undefined);
+	});
+
+	it("an element the engine cannot compare leaves the answer unknown", () => {
+		expect(evaluateOperator("has", [{ a: 1 }], { a: 1 })).toBe(undefined);
+	});
+
+	it("a list where a scalar is expected is unknown, not a silent hasAny", () => {
+		expect(evaluateOperator("has", ["a", "b"], ["a"])).toBe(undefined);
+	});
+
+	it("hasAny and hasAll need a list, like in and nin", () => {
+		expect(evaluateOperator("hasAny", ["a"], "a")).toBe(undefined);
+		expect(evaluateOperator("hasAll", ["a"], "a")).toBe(undefined);
+	});
+
+	it("a decidable hit wins over an incomparable neighbour", () => {
+		expect(evaluateOperator("has", ["a", { x: 1 }], "a")).toBe(true);
+	});
+});

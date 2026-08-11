@@ -41,7 +41,10 @@ const validateFieldNode = (
 	}
 
 	const needsArray =
-		node.op === ConditionOperator.In || node.op === ConditionOperator.NotIn;
+		node.op === ConditionOperator.In ||
+		node.op === ConditionOperator.NotIn ||
+		node.op === ConditionOperator.HasAny ||
+		node.op === ConditionOperator.HasAll;
 
 	if (needsArray && !Array.isArray(node.value)) {
 		errors.push(`${path}.value: expected an array for "${node.op}"`);

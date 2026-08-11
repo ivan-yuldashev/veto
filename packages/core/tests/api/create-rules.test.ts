@@ -209,30 +209,55 @@ describe("createRules", () => {
 	});
 });
 
-describe("array-valued fields require an explicit operator", () => {
-	type Doc = { id: string; tags: string[]; status: "draft" | "published" };
+describe("array-valued fields take membership operators only", () => {
+	type Doc = {
+		id: string;
+		tags: string[];
+		meta: { lang: string };
+		status: "draft" | "published";
+	};
 	const acDoc = defineAbilities({
 		resources: { doc: { schema: type<Doc>(), actions: ["update"] } },
 	});
 	const rules = createRules(acDoc);
 
-	it("rejects a bare array, which would compare by reference and never match", () => {
-		// @ts-expect-error a bare array on an array field means eq-by-reference
+	it("rejects a bare array, which would compare the array as a whole", () => {
+		// @ts-expect-error a bare array on an array field means eq
 		rules.allow("update", "doc", { where: { tags: ["a", "b"] } });
 		// biome-ignore format: the directive must stay on the line that errors
 		// @ts-expect-error same in payload constraints
 		rules.allow("update", "doc", { payload: { constraints: { tags: ["a"] } } });
 	});
 
-	it("accepts the operator forms", () => {
+	it("rejects whole-array comparison, which could only ever answer unknown", () => {
+		// biome-ignore format: the directive must stay on the line that errors
+		// @ts-expect-error eq on an array field
+		rules.allow("update", "doc", { where: { tags: { eq: ["a", "b"] } } });
+		// biome-ignore format: the directive must stay on the line that errors
+		// @ts-expect-error in on an array field
+		rules.allow("update", "doc", { where: { tags: { in: [["a"], ["b"]] } } });
+	});
+
+	it("rejects every operator but exists on an object field", () => {
+		// biome-ignore format: the directive must stay on the line that errors
+		// @ts-expect-error a nested object is not comparable
+		rules.allow("update", "doc", { where: { meta: { eq: { lang: "ru" } } } });
+
 		expect(
-			rules.allow("update", "doc", { where: { tags: { eq: ["a", "b"] } } }),
-		).toMatchObject({ where: { field: "tags", op: "eq" } });
+			rules.allow("update", "doc", { where: { meta: { exists: true } } }),
+		).toMatchObject({ where: { field: "meta", op: "exists" } });
+	});
+
+	it("accepts the membership operators", () => {
 		expect(
-			rules.allow("update", "doc", {
-				where: { tags: { in: [["a"], ["b"]] } },
-			}),
-		).toMatchObject({ where: { field: "tags", op: "in" } });
+			rules.allow("update", "doc", { where: { tags: { has: "a" } } }),
+		).toMatchObject({ where: { field: "tags", op: "has", value: "a" } });
+		expect(
+			rules.allow("update", "doc", { where: { tags: { hasAny: ["a", "b"] } } }),
+		).toMatchObject({ where: { field: "tags", op: "hasAny" } });
+		expect(
+			rules.allow("update", "doc", { where: { tags: { hasAll: ["a", "b"] } } }),
+		).toMatchObject({ where: { field: "tags", op: "hasAll" } });
 	});
 
 	it("still accepts a mixed union list for in", () => {
