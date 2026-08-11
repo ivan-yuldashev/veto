@@ -14,24 +14,25 @@ const ability = await getAbility();
 </Can>
 ```
 
-`"use client"` marks a whole module, so the provider, `<Can>` and `useAbility` were client-side together. Gating a server component meant hand-rolling a ternary around `ability.can()` or adding a client boundary just to hide a button.
+No directive, no hooks, no factory — the resource map is inferred from the ability you pass, and both branches are decided while rendering, so neither reaches the browser.
 
-This `Can` carries no directive and calls no hooks. Both branches are decided while rendering, so neither reaches the browser. No factory either: the resource map is inferred from the ability you pass, so an action still cannot be paired with the wrong resource.
-
-**`useCan` — one question, one subscription.**
+**`useCan` — subscribe to one verdict instead of the whole ability.**
 
 ```tsx
 const canEdit = useCan("update", "post", post);
 ```
 
-`useAbility` hands back the whole object, so every component holding it re-renders whenever the rules change. On a list of 50 gated rows where switching actors flips exactly one verdict, that is 50 re-renders for one real change. `useCan` subscribes through `useSyncExternalStore` and re-renders only when *its* answer changes — 1 instead of 50, measured. `<Can>` uses it internally, so existing markup gets this without any edit.
+`useAbility` wakes every component holding it whenever the rules change; on a list of 50 gated rows where one verdict flips, that is 50 re-renders for one real change, against 1 with `useCan`. `<Can>` uses it internally, so existing markup gets this without an edit. Keep `useAbility` for anything beyond a yes or no — `permittedFields`, `validate`, filtering a list.
 
-Reach for `useAbility` when you need more than a yes or no: `permittedFields`, `validate`, filtering many rows at once.
+**`useSetRules` — switch actors without re-rendering the page.**
 
-**`useSetRules` — change rules without re-rendering the tree.** Passing new `rules` to the provider goes through React state in an ancestor, so that ancestor re-renders and takes its subtree with it: on the same 50-row list, 101 re-renders for one changed verdict, none of them from `<Can>`. `useSetRules` writes to the store directly — provider 0, ungated rows 0, gated rows 1. Seed with the `rules` prop, switch with `useSetRules`.
+```tsx
+const setRules = useSetRules();
+setRules(await fetchRulesFor(actorId));
+```
 
-The store is created per provider, never as a module singleton — a module-scoped store is shared by every concurrent request on a server and leaks one user's rules into another's render. It also supplies `getServerSnapshot`, without which server rendering throws and React falls back to client rendering, and it publishes from a layout effect so a rules change lands before the browser paints rather than one frame after.
+Passing new `rules` to the provider re-renders the ancestor holding them and everything beneath it. Use the prop to seed from the server and `useSetRules` for changes without a new request.
 
-**The client `<Can>` now accepts an `ability` prop.** Pass it and the context is ignored — useful when a subtree has its own ability, or when you would rather not mount a provider. With neither, it throws instead of assuming a policy.
+**The client `<Can>` also takes an `ability` prop**, ignoring the context when given — useful when a subtree has its own ability, or when you would rather not mount a provider. With neither it throws rather than assuming a policy.
 
-Nothing is removed: `createVetoContext`, `AbilityProvider` and `useAbility` work exactly as before.
+Nothing is removed: `createVetoContext`, `AbilityProvider` and `useAbility` behave exactly as before, and server rendering is unaffected.

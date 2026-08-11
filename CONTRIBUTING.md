@@ -61,6 +61,13 @@ pnpm changeset
 
 Pick the packages, pick the bump, describe the change the way a user reading the changelog would want to hear it. Internal-only work (tests, refactors, CI) doesn't need a changeset.
 
+The commit rule above applies here more strictly, because a changeset is read by people who never see this repository:
+
+- Describe the version that ships. A shape that existed only mid-branch is not a change to anyone.
+- Say what a released version did wrong only when someone might be running it. A defect introduced and closed before release never reached them.
+- Keep the numbers a reader would act on — "50 re-renders against 1" tells them which hook to pick. Drop the ones that only justify the implementation.
+- Leave out how it works inside. A user needs the behaviour, the migration and the edge cases; whether it uses a store, a shim or a context is ours to change later.
+
 ## Pull requests
 
 Keep them focused, and let the description say what changed and why. If you touched behaviour, mention how you convinced yourself it's right — a test, a benchmark, a demo run.
