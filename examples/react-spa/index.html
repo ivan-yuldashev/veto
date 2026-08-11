@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>@authz react demo</title>
+		<style>
+			body { font-family: system-ui, sans-serif; margin: 2rem auto; max-width: 720px; color: #1a1a1a; }
+			h1 { font-size: 1.3rem; }
+			h2 { font-size: 1rem; margin-top: 1.5rem; }
+			.actor-switch button { margin-right: 0.5rem; padding: 0.3rem 0.9rem; cursor: pointer; }
+			.actor-switch button[data-active="true"] { background: #1a1a1a; color: #fff; }
+			.card { border: 1px solid #ddd; border-radius: 8px; padding: 0.8rem 1rem; margin: 0.6rem 0; }
+			.card header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+			.badge { font-size: 0.75rem; padding: 0.1rem 0.5rem; border-radius: 999px; background: #eee; }
+			.badge[data-status="published"] { background: #d9f2e3; }
+			.actions button { margin-left: 0.4rem; }
+			button:disabled { opacity: 0.45; }
+			.muted { color: #777; font-size: 0.85rem; }
+			details { margin-top: 1.5rem; }
+			pre { background: #f6f6f6; padding: 0.8rem; border-radius: 8px; overflow-x: auto; font-size: 0.75rem; }
+		</style>
+	</head>
+	<body>
+		<div id="root"></div>
+		<script type="module" src="/src/main.tsx"></script>
+	</body>
+</html>

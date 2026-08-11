@@ -1,0 +1,16 @@
+{
+	"name": "@vetojs-examples/shared",
+	"version": "0.0.2",
+	"private": true,
+	"description": "Shared multi-tenant domain for the @veto demos: model, policy, seed data.",
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@vetojs/core": "workspace:*"
+	}
+}
