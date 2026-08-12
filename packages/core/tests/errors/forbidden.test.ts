@@ -24,3 +24,31 @@ describe("ForbiddenError", () => {
 		expect(error.violations).toEqual(violations);
 	});
 });
+
+describe("ForbiddenError.is", () => {
+	it("recognises its own instances", () => {
+		expect(ForbiddenError.is(new ForbiddenError("update", "post"))).toBe(true);
+	});
+
+	it("recognises a refusal thrown by a second copy of the package", () => {
+		const foreign = Object.assign(new Error("Forbidden"), {
+			[Symbol.for("veto.ForbiddenError")]: true,
+		});
+
+		expect(foreign instanceof ForbiddenError).toBe(false);
+		expect(ForbiddenError.is(foreign)).toBe(true);
+	});
+
+	it("rejects anything that is not a veto refusal", () => {
+		for (const value of [
+			new Error("nope"),
+			null,
+			undefined,
+			"Forbidden",
+			403,
+			{},
+		]) {
+			expect(ForbiddenError.is(value)).toBe(false);
+		}
+	});
+});
