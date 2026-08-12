@@ -8,7 +8,7 @@
 		"access-control",
 		"abac",
 		"rbac",
-		"casl",
+		"casl-alternative",
 		"typescript",
 		"rsc"
 	],

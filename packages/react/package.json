@@ -8,7 +8,7 @@
 		"access-control",
 		"react",
 		"rsc",
-		"casl",
+		"casl-alternative",
 		"typescript"
 	],
 	"homepage": "https://github.com/ivan-yuldashev/veto/tree/main/packages/react#readme",
