@@ -21,6 +21,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
+      - run: pnpm demo:react:build
       - run: pnpm check
       - run: pnpm typecheck
       - run: pnpm test
