@@ -38,5 +38,6 @@ One page per concept, each describing how the shipped code actually behaves. Sta
 ## Using it in an app
 
 - **[`@vetojs/react`](./react.md)** — `<Can>`, `useAbility`, `AbilityProvider`: the same rules in the UI.
+- **[`@vetojs/next`](./next.md)** — `createGuard`: the actor, the row and the payload checked before a server action runs.
 
-A Next.js guard and a Drizzle adapter turning `ability.where()` into SQL are in progress; their docs land with the packages.
+A Drizzle adapter turning `ability.where()` into SQL is in progress; its docs land with the package.
