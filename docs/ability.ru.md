@@ -64,7 +64,7 @@ import { ForbiddenError } from "@vetojs/core";
 try {
 	ability.authorize("delete", "post", post);
 } catch (error) {
-	if (error instanceof ForbiddenError) {
+	if (ForbiddenError.is(error)) {
 		error.action;     // "delete"
 		error.resource;   // "post"
 		error.violations; // заполнено только при отказе по данным
@@ -73,6 +73,8 @@ try {
 ```
 
 Удобно в route handler или server action, где обработчик ошибок фреймворка превратит исключение в 403.
+
+Используйте `ForbiddenError.is`, а не `instanceof`. Если в дереве зависимостей окажутся две копии `@vetojs/core`, у ошибки будет две идентичности класса, и `instanceof` ответит `false` на совершенно законный отказ — 403 тихо превратится в 500. Бренд за `is` — зарегистрированный символ, он это переживает.
 
 ## `permittedFields` — для форм
 

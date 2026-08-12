@@ -135,10 +135,11 @@ export const createVetoContext = <AC extends ResourceMap>(
 		ability: given,
 		children,
 		fallback = null,
-	}: CanProps<AC, R>) =>
-		useVerdict(given, (ability) => ability.can(I, a, instance))
+	}: CanProps<AC, R>) => {
+		return useVerdict(given, (ability) => ability.can(I, a, instance))
 			? children
 			: fallback;
+	};
 
 	return { AbilityProvider, useAbility, useCan, useSetRules, Can };
 };

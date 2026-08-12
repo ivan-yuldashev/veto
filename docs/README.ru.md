@@ -38,5 +38,6 @@
 ## Использование в приложении
 
 - **[`@vetojs/react`](./react.ru.md)** — `<Can>`, `useAbility`, `AbilityProvider`: те же правила в интерфейсе.
+- **[`@vetojs/next`](./next.ru.md)** — `createGuard`: пользователь, строка и данные проверены до того, как отработает server action.
 
-Защита для Next.js и адаптер Drizzle, превращающий `ability.where()` в SQL, — в работе; документация выйдет вместе с пакетами.
+Адаптер Drizzle, превращающий `ability.where()` в SQL, — в работе; документация выйдет вместе с пакетом.

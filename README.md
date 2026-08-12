@@ -70,7 +70,7 @@ Coming from CASL? [Migrating from CASL](docs/migrate-from-casl.md) maps the API 
 |---|---|---|
 | [`@vetojs/core`](packages/core) | ✅ Ready | The engine: rules, evaluation, operators, query compilation. Zero dependencies. |
 | [`@vetojs/react`](packages/react) | ✅ Ready | [`<Can>`, `useAbility`, `AbilityProvider`](docs/react.md) — the same rules decide what the user can reach in the UI. |
-| `@vetojs/next` | 🚧 In progress | `createGuard` — one wrapper resolves the actor, loads the row, checks it and validates the payload before your server action runs. |
+| [`@vetojs/next`](packages/next) | ✅ Ready | [`createGuard`](docs/next.md) — one wrapper resolves the actor, loads the row, checks it and validates the payload before your server action runs. |
 | `@vetojs/drizzle` | 🚧 In progress | Conditions → SQL `WHERE` (Postgres), relations → `EXISTS`. |
 | `@vetojs/prisma` · `@vetojs/kysely` | 🔜 Planned | Further adapters and dialects. |
 

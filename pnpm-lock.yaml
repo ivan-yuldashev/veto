@@ -78,11 +78,13 @@ importers:
 
   packages/core: {}
 
-  packages/react:
-    dependencies:
+  packages/next:
+    devDependencies:
       '@vetojs/core':
         specifier: workspace:^
         version: link:../core
+
+  packages/react:
     devDependencies:
       '@types/react':
         specifier: ^19.2.18
@@ -90,6 +92,9 @@ importers:
       '@types/react-dom':
         specifier: ^19.2.4
         version: 19.2.4(@types/react@19.2.18)
+      '@vetojs/core':
+        specifier: workspace:^
+        version: link:../core
       jsdom:
         specifier: ^26.0.0
         version: 26.1.0

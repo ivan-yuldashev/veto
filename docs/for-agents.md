@@ -117,7 +117,7 @@ export const { AbilityProvider, useAbility, useCan, useSetRules, Can } =
 
 ### `@vetojs/next`
 
-Not published yet. Guarding a server action today means calling `ability.canMutate` and `ability.validatePayload` yourself — see [writes](./mutations.md).
+`createGuard({ ac, getActor, policy })` returns `withPermission(options, handler)`. Declare `load` for the row and `payload` for what is being written; the handler runs only if both pass, and `ctx.payload` is the validated copy. See [the guide](./next.md).
 
 ## Writing conditions
 

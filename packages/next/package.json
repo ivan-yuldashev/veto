@@ -1,23 +1,22 @@
 {
-	"name": "@vetojs/core",
-	"version": "0.4.0",
-	"description": "Type-safe authorization for TypeScript with no classes and no hidden state. Rules are plain JSON, cross the server/client boundary as-is, and compile to SQL. Zero dependencies.",
+	"name": "@vetojs/next",
+	"version": "0.0.1",
+	"description": "Next.js guards for @vetojs — createGuard wraps server actions and route handlers with the actor, the row and the payload check.",
 	"keywords": [
 		"authorization",
 		"permissions",
 		"access-control",
-		"abac",
-		"rbac",
-		"casl-alternative",
-		"typescript",
-		"rsc"
+		"nextjs",
+		"server-actions",
+		"rsc",
+		"typescript"
 	],
-	"homepage": "https://github.com/ivan-yuldashev/veto#readme",
+	"homepage": "https://github.com/ivan-yuldashev/veto/tree/main/packages/next#readme",
 	"bugs": "https://github.com/ivan-yuldashev/veto/issues",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/ivan-yuldashev/veto.git",
-		"directory": "packages/core"
+		"directory": "packages/next"
 	},
 	"license": "MIT",
 	"author": "Ivan Yuldashev <geekk@ya.ru>",
@@ -27,10 +26,6 @@
 		".": {
 			"types": "./dist/index.d.ts",
 			"default": "./dist/index.js"
-		},
-		"./internal": {
-			"types": "./dist/internal.d.ts",
-			"default": "./dist/internal.js"
 		}
 	},
 	"types": "./dist/index.d.ts",
@@ -50,5 +45,11 @@
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"typecheck": "tsc --noEmit"
+	},
+	"peerDependencies": {
+		"@vetojs/core": ">=0.4.0 <1"
+	},
+	"devDependencies": {
+		"@vetojs/core": "workspace:^"
 	}
 }

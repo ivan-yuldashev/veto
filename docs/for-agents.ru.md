@@ -117,7 +117,7 @@ export const { AbilityProvider, useAbility, useCan, useSetRules, Can } =
 
 ### `@vetojs/next`
 
-Пока не опубликован. Сегодня server action защищается вручную — вызовами `ability.canMutate` и `ability.validatePayload`, см. [запись](./mutations.ru.md).
+`createGuard({ ac, getActor, policy })` возвращает `withPermission(options, handler)`. Опишите `load` для строки и `payload` для записываемых данных; обработчик выполнится, только если пройдут обе проверки, а в `ctx.payload` окажется проверенная копия. См. [руководство](./next.ru.md).
 
 ## Как писать условия
 

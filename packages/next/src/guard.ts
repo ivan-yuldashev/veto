@@ -1,0 +1,158 @@
+import type { AbilitySet, ResourceMap, Rule } from "@vetojs/core";
+import { buildAbility, ForbiddenError, RuleEffect } from "@vetojs/core";
+import {
+	isPayloadScoped,
+	isPlainObject,
+	ruleMatches,
+} from "@vetojs/core/internal";
+import type {
+	GuardConfig,
+	GuardOptions,
+	Row,
+	WithPermission,
+} from "./types.js";
+
+const hasMatchingDeny = (
+	rules: Rule[],
+	action: string,
+	resource: string,
+): boolean => {
+	return rules.some(
+		(rule) =>
+			rule.effect === RuleEffect.Deny &&
+			ruleMatches(rule, action, resource) &&
+			!isPayloadScoped(rule),
+	);
+};
+
+const mutationRowAllowed = (
+	ability: AbilitySet,
+	action: string,
+	resource: string,
+	row: Row | undefined,
+	base: Row,
+): boolean => {
+	if (row === undefined) {
+		return !hasMatchingDeny(ability.rules, action, resource);
+	}
+
+	return ability.canMutate(action, resource, base);
+};
+
+/**
+ * Configures the guard once: how to find the actor, and which policy to build for them.
+ *
+ * Returns `withPermission(options, handler)`, which resolves the actor, builds the policy,
+ * loads and checks the row, validates the payload, and only then runs your handler.
+ * Arguments pass through untouched, so server actions, `useActionState` and route handlers
+ * all work with the same wrapper.
+ *
+ * @example
+ * export const withPermission = createGuard({ ac, getActor, policy: policyFor });
+ */
+export const createGuard = <AC extends ResourceMap, Actor>(
+	config: GuardConfig<AC, Actor>,
+): WithPermission<AC, Actor> => {
+	const deny = (error: ForbiddenError): never => {
+		config.onDeny?.(error);
+		throw error;
+	};
+
+	const authorizeMutation = (
+		ability: AbilitySet,
+		action: string,
+		resource: string,
+		row: Row | undefined,
+		payload: Row,
+	): Row => {
+		const base = row ?? {};
+
+		if (!mutationRowAllowed(ability, action, resource, row, base)) {
+			deny(new ForbiddenError(action, resource));
+		}
+
+		const result = ability.validatePayload(action, resource, base, payload);
+
+		if (result.ok) {
+			return result.data;
+		}
+
+		return deny(new ForbiddenError(action, resource, result.violations));
+	};
+
+	const authorize = (
+		ability: AbilitySet,
+		action: string,
+		resource: string,
+		row: Row | undefined,
+		payload: Row | undefined,
+	): Row | undefined => {
+		if (payload !== undefined) {
+			return authorizeMutation(ability, action, resource, row, payload);
+		}
+
+		if (row !== undefined && !ability.can(action, resource, row)) {
+			deny(new ForbiddenError(action, resource));
+		}
+
+		if (row === undefined && ability.cannot(action, resource)) {
+			deny(new ForbiddenError(action, resource));
+		}
+
+		return undefined;
+	};
+
+	const withPermission = (
+		options: GuardOptions,
+		handler: (ctx: unknown, ...args: unknown[]) => unknown,
+	) => {
+		const guarded = async (...args: unknown[]): Promise<unknown> => {
+			const actor = await config.getActor();
+
+			if (actor === null || actor === undefined) {
+				config.onUnauthenticated?.();
+
+				return deny(new ForbiddenError(options.action, options.resource));
+			}
+
+			const typedAbility = buildAbility(config.ac, config.policy(actor));
+
+			const { action, resource } = options;
+
+			let row: Row | undefined;
+
+			if (options.load) {
+				const loaded = await options.load(...args);
+
+				if (!isPlainObject<Row>(loaded)) {
+					return deny(new ForbiddenError(action, resource));
+				}
+
+				row = loaded;
+			}
+
+			const payload = options.payload ? options.payload(...args) : undefined;
+
+			const validatedPayload = authorize(
+				typedAbility,
+				action,
+				resource,
+				row,
+				payload,
+			);
+
+			const ctx = {
+				actor,
+				ability: typedAbility,
+				row,
+				payload: validatedPayload,
+			};
+
+			return handler(ctx, ...args);
+		};
+
+		return guarded;
+	};
+
+	return withPermission as WithPermission<AC, Actor>;
+};
