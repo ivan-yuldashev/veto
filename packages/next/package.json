@@ -1,6 +1,6 @@
 {
 	"name": "@vetojs/next",
-	"version": "0.0.1",
+	"version": "0.1.0",
 	"description": "Next.js guards for @vetojs — createGuard wraps server actions and route handlers with the actor, the row and the payload check.",
 	"keywords": [
 		"authorization",
