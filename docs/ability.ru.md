@@ -32,9 +32,9 @@ ability.authorize("update", "post", post);  // то же, но бросает и
 `can`, `cannot` и `authorize` проверяют **одно и то же**. Отличается только способ ответа — берите тот, что удобнее в конкретном месте:
 
 ```ts
-if (ability.can("update", "post", post)) { … }      // логическое значение, для ветвления
+if (ability.can("update", "post", post)) { … }                  // логическое значение, для ветвления
 if (ability.cannot("update", "post", post)) return notFound();  // ранний выход
-ability.authorize("update", "post", post);          // исключение, на границе
+ability.authorize("update", "post", post);                      // исключение, на границе
 ```
 
 `authorize` избавляет от `if (!can(…)) throw new ForbiddenError(action, resource)` и гарантирует, что все отказы выглядят одинаково.

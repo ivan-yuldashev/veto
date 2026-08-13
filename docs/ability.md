@@ -32,9 +32,9 @@ It holds no state and mutates nothing — `ability.rules` is the array of rules 
 `can`, `cannot` and `authorize` all evaluate **the same thing**. They differ only in how the answer comes back, so you can pick the one that fits the call site:
 
 ```ts
-if (ability.can("update", "post", post)) { … }      // a boolean, to branch on
+if (ability.can("update", "post", post)) { … }                  // a boolean, to branch on
 if (ability.cannot("update", "post", post)) return notFound();  // an early exit
-ability.authorize("update", "post", post);          // throws, at a boundary
+ability.authorize("update", "post", post);                      // throws, at a boundary
 ```
 
 `authorize` saves you writing `if (!can(…)) throw new ForbiddenError(action, resource)` and guarantees every refusal looks the same.

@@ -99,7 +99,7 @@ export const evaluateCondition = <T extends Record<string, unknown>>(
 				return kleeneNot(kleeneOrOver(items, itemVerdict));
 			default:
 				node satisfies never;
-				return false;
+				return undefined;
 		}
 	}
 

@@ -24,11 +24,11 @@ Actor values are baked into the rules as plain data at build time — `actor.id`
 ## Everything is checked against your declarations
 
 ```ts
-allow("archive", "post");             // ✗ "post" has no "archive" action
-allow("read", "posts");               // ✗ no such resource
-allow("read", "post", { where: { bogus: 1 } });        // ✗ no such field
-allow("read", "post", { where: { views: "many" } });   // ✗ views is a number
-allow("read", "post", { where: { title: { gt: 5 } } });// ✗ gt isn't for strings
+allow("archive", "post");                               // ✗ "post" has no "archive" action
+allow("read", "posts");                                 // ✗ no such resource
+allow("read", "post", { where: { bogus: 1 } });         // ✗ no such field
+allow("read", "post", { where: { views: "many" } });    // ✗ views is a number
+allow("read", "post", { where: { title: { gt: 5 } } }); // ✗ gt isn't for strings
 ```
 
 The resource argument drives it: from `"post"` the factory infers which actions exist, what shape a row has, and which relations can be traversed.

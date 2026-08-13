@@ -69,6 +69,42 @@ describe("server <Can>", () => {
 		expect(html).toBe("SHOW");
 	});
 
+	it("falls back on a type-confused row, and the client binding agrees", async () => {
+		const { createVetoContext } = await import("../src/context.js");
+		const { AbilityProvider, Can: ClientCan } = createVetoContext(ac);
+		const rules = [allow("update", "post", { where: { authorId: "u1" } })];
+		const confused = { id: "p1", authorId: ["u1"] } as unknown as Post;
+
+		const server = render(
+			createElement(
+				Can,
+				{
+					ability: buildAbility(ac, rules),
+					I: "update",
+					a: "post",
+					this: confused,
+					fallback: "READ-ONLY",
+				},
+				"EDIT",
+			),
+		);
+
+		const client = renderToStaticMarkup(
+			createElement(
+				AbilityProvider,
+				{ rules },
+				createElement(
+					ClientCan,
+					{ I: "update", a: "post", this: confused, fallback: "READ-ONLY" },
+					"EDIT",
+				),
+			),
+		);
+
+		expect(server).toBe("READ-ONLY");
+		expect(client).toBe(server);
+	});
+
 	it("carries no client boundary — the module has no directive", async () => {
 		const source = await import("node:fs/promises").then((fs) =>
 			fs.readFile(new URL("../src/server.ts", import.meta.url), "utf8"),

@@ -337,6 +337,99 @@ describe("createGuard", () => {
 		});
 	});
 
+	it("denies a row whose field arrives type-confused, on both polarities", async () => {
+		const denies = createGuard({
+			ac,
+			getActor: () => actor,
+			policy: () => [
+				allow("read", "post"),
+				deny("read", "post", { where: { status: { eq: "draft" } } }),
+			],
+		});
+		const allows = createGuard({
+			ac,
+			getActor: () => actor,
+			policy: () => [
+				allow("read", "post", { where: { status: { eq: "draft" } } }),
+			],
+		});
+
+		const confused = [
+			{ id: "p1", authorId: "u1", status: ["draft"] },
+			{ id: "p1", authorId: "u1", status: { value: "draft" } },
+		];
+
+		for (const row of confused) {
+			const underDeny = denies(
+				{ action: "read", resource: "post", load: () => row as never },
+				async (ctx) => ctx.row?.id,
+			);
+			const underAllow = allows(
+				{ action: "read", resource: "post", load: () => row as never },
+				async (ctx) => ctx.row?.id,
+			);
+
+			await expect(underDeny()).rejects.toBeInstanceOf(ForbiddenError);
+			await expect(underAllow()).rejects.toBeInstanceOf(ForbiddenError);
+		}
+	});
+
+	it("denies a payload that is not an object", async () => {
+		const withPermission = createGuard({
+			ac,
+			getActor: () => actor,
+			policy: () => [
+				allow("update", "post", { payload: { fields: ["status"] } }),
+			],
+		});
+
+		for (const payload of ["status=draft", 42, [{ status: "draft" }], true]) {
+			const update = withPermission(
+				{
+					action: "update",
+					resource: "post",
+					load: () => ({ id: "p1", authorId: "u1", status: "draft" }) as Post,
+					payload: () => payload as never,
+				},
+				async (ctx) => ctx.payload,
+			);
+
+			await expect(update()).rejects.toBeInstanceOf(ForbiddenError);
+		}
+	});
+
+	it("denies a payload value that a constraint cannot decide", async () => {
+		const withPermission = createGuard({
+			ac,
+			getActor: () => actor,
+			policy: () => [
+				allow("update", "post", {
+					payload: {
+						fields: ["status"],
+						constraints: { status: { eq: "draft" } },
+					},
+				}),
+			],
+		});
+
+		const update = (status: unknown) =>
+			withPermission(
+				{
+					action: "update",
+					resource: "post",
+					load: () => ({ id: "p1", authorId: "u1", status: "draft" }) as Post,
+					payload: () => ({ status }) as never,
+				},
+				async (ctx) => ctx.payload,
+			)();
+
+		expect(await update("draft")).toEqual({ status: "draft" });
+		await expect(update(["draft"])).rejects.toBeInstanceOf(ForbiddenError);
+		await expect(update({ value: "draft" })).rejects.toBeInstanceOf(
+			ForbiddenError,
+		);
+	});
+
 	it("routes denials through a custom onDeny", async () => {
 		const seen: ForbiddenError[] = [];
 		const withPermission = createGuard({
