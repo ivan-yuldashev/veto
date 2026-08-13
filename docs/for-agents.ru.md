@@ -20,23 +20,23 @@ import { defineAbilities, type, createRules, buildAbility } from "@vetojs/core";
 
 // 1. Опишите схему ресурсов один раз. Все типы ниже выводятся отсюда.
 const ac = defineAbilities({
-  resources: {
-    post: {
-      schema: type<{ id: string; authorId: string; status: "draft" | "published" }>(),
-      actions: ["read", "update", "publish"],
-      relations: { author: { resource: "user", kind: "one" } },
-    },
-    user: { schema: type<{ id: string; role: string }>(), actions: ["read"] },
-  },
+	resources: {
+		post: {
+			schema: type<{ id: string; authorId: string; status: "draft" | "published" }>(),
+			actions: ["read", "update", "publish"],
+			relations: { author: { resource: "user", kind: "one" } },
+		},
+		user: { schema: type<{ id: string; role: string }>(), actions: ["read"] },
+	},
 });
 
 // 2. Политика — чистая функция от пользователя, возвращающая массив правил.
 const { allow, deny } = createRules(ac);
 
 const policyFor = (user: { id: string }) => [
-  allow("read", "post", { where: { status: "published" } }),
-  allow(["update", "publish"], "post", { where: { authorId: user.id } }),
-  deny("update", "post", { payload: { fields: ["featured"] } }),
+	allow("read", "post", { where: { status: "published" } }),
+	allow(["update", "publish"], "post", { where: { authorId: user.id } }),
+	deny("update", "post", { payload: { fields: ["featured"] } }),
 ];
 
 // 3. Соберите на запрос — и проверяйте доступ.
@@ -86,7 +86,7 @@ import { Can } from "@vetojs/react/server";
 const ability = await getAbility();
 
 <Can ability={ability} I="update" a="post" this={post} fallback={<ReadOnly />}>
-  <EditForm post={post} />
+	<EditForm post={post} />
 </Can>
 ```
 
@@ -96,14 +96,14 @@ const ability = await getAbility();
 // src/veto.ts — вызовите фабрику один раз, импортируйте привязки отсюда
 import { createVetoContext } from "@vetojs/react";
 export const { AbilityProvider, useAbility, useCan, useSetRules, Can } =
-  createVetoContext(ac);
+	createVetoContext(ac);
 ```
 
 ```tsx
 <AbilityProvider rules={ability.rules}>
-  <Can I="update" a="post" this={post} fallback={<Disabled />}>
-    <EditButton />
-  </Can>
+	<Can I="update" a="post" this={post} fallback={<Disabled />}>
+		<EditButton />
+	</Can>
 </AbilityProvider>
 ```
 
@@ -125,14 +125,14 @@ export const { AbilityProvider, useAbility, useCan, useSetRules, Can } =
 
 ```ts
 where: {
-  status: "published",                  // eq
-  views: { gte: 100 },                  // объект с оператором
-  title: { contains: "release" },       // только для строк
-  authorId: { in: ["u1", "u2"] },
-  deletedAt: { exists: false },
-  author: { role: "admin" },            // связь «к одному»
-  comments: { none: { spam: true } },   // «ко многим»: some | every | none
-  or: [{ pinned: true }, { views: { gt: 1000 } }],
+	status: "published",                  // eq
+	views: { gte: 100 },                  // объект с оператором
+	title: { contains: "release" },       // только для строк
+	authorId: { in: ["u1", "u2"] },
+	deletedAt: { exists: false },
+	author: { role: "admin" },            // связь «к одному»
+	comments: { none: { spam: true } },   // «ко многим»: some | every | none
+	or: [{ pinned: true }, { views: { gt: 1000 } }],
 }
 ```
 

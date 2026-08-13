@@ -20,23 +20,23 @@ import { defineAbilities, type, createRules, buildAbility } from "@vetojs/core";
 
 // 1. Declare the resource schema once. Every type below is inferred from this.
 const ac = defineAbilities({
-  resources: {
-    post: {
-      schema: type<{ id: string; authorId: string; status: "draft" | "published" }>(),
-      actions: ["read", "update", "publish"],
-      relations: { author: { resource: "user", kind: "one" } },
-    },
-    user: { schema: type<{ id: string; role: string }>(), actions: ["read"] },
-  },
+	resources: {
+		post: {
+			schema: type<{ id: string; authorId: string; status: "draft" | "published" }>(),
+			actions: ["read", "update", "publish"],
+			relations: { author: { resource: "user", kind: "one" } },
+		},
+		user: { schema: type<{ id: string; role: string }>(), actions: ["read"] },
+	},
 });
 
 // 2. A policy is a pure function of the actor returning an array of rules.
 const { allow, deny } = createRules(ac);
 
 const policyFor = (user: { id: string }) => [
-  allow("read", "post", { where: { status: "published" } }),
-  allow(["update", "publish"], "post", { where: { authorId: user.id } }),
-  deny("update", "post", { payload: { fields: ["featured"] } }),
+	allow("read", "post", { where: { status: "published" } }),
+	allow(["update", "publish"], "post", { where: { authorId: user.id } }),
+	deny("update", "post", { payload: { fields: ["featured"] } }),
 ];
 
 // 3. Build once per request, then check access.
@@ -86,7 +86,7 @@ import { Can } from "@vetojs/react/server";
 const ability = await getAbility();
 
 <Can ability={ability} I="update" a="post" this={post} fallback={<ReadOnly />}>
-  <EditForm post={post} />
+	<EditForm post={post} />
 </Can>
 ```
 
@@ -96,14 +96,14 @@ For client components, call the factory once:
 // src/veto.ts — call the factory once, import bindings from here
 import { createVetoContext } from "@vetojs/react";
 export const { AbilityProvider, useAbility, useCan, useSetRules, Can } =
-  createVetoContext(ac);
+	createVetoContext(ac);
 ```
 
 ```tsx
 <AbilityProvider rules={ability.rules}>
-  <Can I="update" a="post" this={post} fallback={<Disabled />}>
-    <EditButton />
-  </Can>
+	<Can I="update" a="post" this={post} fallback={<Disabled />}>
+		<EditButton />
+	</Can>
 </AbilityProvider>
 ```
 
@@ -125,14 +125,14 @@ Sibling keys are ANDed. A bare value means equals.
 
 ```ts
 where: {
-  status: "published",                  // eq
-  views: { gte: 100 },                  // operator object
-  title: { contains: "release" },        // strings only
-  authorId: { in: ["u1", "u2"] },
-  deletedAt: { exists: false },
-  author: { role: "admin" },            // to-one relation
-  comments: { none: { spam: true } },   // to-many: some | every | none
-  or: [{ pinned: true }, { views: { gt: 1000 } }],
+	status: "published",                  // eq
+	views: { gte: 100 },                  // operator object
+	title: { contains: "release" },       // strings only
+	authorId: { in: ["u1", "u2"] },
+	deletedAt: { exists: false },
+	author: { role: "admin" },            // to-one relation
+	comments: { none: { spam: true } },   // to-many: some | every | none
+	or: [{ pinned: true }, { views: { gt: 1000 } }],
 }
 ```
 
@@ -178,7 +178,7 @@ These compile-or-look fine and are wrong:
 **A bare array on an array field.** It compares against that array, and a comparison against an array or an object is always **unknown** — it grants nothing and fires every `deny`. The type rejects it; use an operator.
 
 ```ts
-where: { tags: ["a", "b"] }          // ✗ rejected by the type system
+where: { tags: ["a", "b"] }              // ✗ rejected by the type system
 where: { tags: { in: [["a"], ["b"]] } }  // ✓ membership
 ```
 

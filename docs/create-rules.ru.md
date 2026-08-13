@@ -24,11 +24,11 @@ const policyFor = (actor: User) => [
 ## Всё сверяется с вашими объявлениями
 
 ```ts
-allow("archive", "post");             // ✗ у "post" нет действия "archive"
-allow("read", "posts");               // ✗ такого ресурса нет
-allow("read", "post", { where: { bogus: 1 } });        // ✗ такого поля нет
-allow("read", "post", { where: { views: "many" } });   // ✗ views — число
-allow("read", "post", { where: { title: { gt: 5 } } });// ✗ gt не для строк
+allow("archive", "post");                               // ✗ у "post" нет действия "archive"
+allow("read", "posts");                                 // ✗ такого ресурса нет
+allow("read", "post", { where: { bogus: 1 } });         // ✗ такого поля нет
+allow("read", "post", { where: { views: "many" } });    // ✗ views — число
+allow("read", "post", { where: { title: { gt: 5 } } }); // ✗ gt не для строк
 ```
 
 Всё держится на аргументе с ресурсом: по `"post"` фабрика понимает, какие у него есть действия, какой формы строка и по каким связям можно пройти.
