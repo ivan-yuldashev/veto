@@ -5,6 +5,10 @@ import {
 	validatePayload,
 } from "../../src/api/mutation.js";
 import type { Rule } from "../../src/model/index.js";
+import {
+	CONDITION_OPERATORS,
+	type ConditionOperator,
+} from "../../src/shared/constants/operators.js";
 
 type Post = {
 	authorId: string;
@@ -444,6 +448,77 @@ describe("validatePayload — rule intersections & complex constraints", () => {
 			violations: [{ field: "status", reason: "value not permitted" }],
 		});
 	});
+
+	it("fails closed in both directions on an unreadable constraint node", () => {
+		const unreadable = {
+			relation: "author",
+			type: "one",
+			where: { field: "id", op: "eq", value: "u1" },
+		} as never;
+
+		const allowRules: Rule<Post>[] = [
+			{
+				effect: "allow",
+				action: "update",
+				resource: "post",
+				payload: { constraints: unreadable },
+			},
+		];
+
+		expect(
+			validatePayload(allowRules, "update", "post", row, { status: "draft" }),
+		).toEqual({
+			ok: false,
+			violations: [{ field: "status", reason: "value not permitted" }],
+		});
+
+		const denyRules: Rule<Post>[] = [
+			{ effect: "allow", action: "update", resource: "post" },
+			{
+				effect: "deny",
+				action: "update",
+				resource: "post",
+				payload: { constraints: unreadable },
+			},
+		];
+
+		expect(
+			validatePayload(denyRules, "update", "post", row, { status: "draft" }),
+		).toEqual({
+			ok: false,
+			violations: [{ field: "status", reason: "value denied" }],
+		});
+	});
+
+	it("fails closed when the unreadable node is nested inside an and", () => {
+		const rules: Rule<Post>[] = [
+			{ effect: "allow", action: "update", resource: "post" },
+			{
+				effect: "deny",
+				action: "update",
+				resource: "post",
+				payload: {
+					constraints: {
+						and: [
+							{ field: "status", op: "eq", value: "draft" },
+							{
+								relation: "author",
+								type: "one",
+								where: { field: "id", op: "eq", value: "u1" },
+							},
+						],
+					} as never,
+				},
+			},
+		];
+
+		expect(
+			validatePayload(rules, "update", "post", row, { title: "hello" }),
+		).toEqual({
+			ok: false,
+			violations: [{ field: "title", reason: "value denied" }],
+		});
+	});
 });
 
 describe("validatePayload — row-level & blanket deny veto (V2)", () => {
@@ -621,4 +696,86 @@ describe("permittedFields", () => {
 			permittedFields(rules, "update", "post", ["title", "status", "featured"]),
 		).toEqual(["title", "status"]);
 	});
+});
+
+type Probe = {
+	op: ConditionOperator;
+	value: unknown;
+	match: unknown;
+	miss: unknown;
+};
+
+const probes: Probe[] = [
+	{ op: "eq", value: "published", match: "published", miss: "draft" },
+	{ op: "ne", value: "published", match: "draft", miss: "published" },
+	{ op: "in", value: ["a", "b"], match: "a", miss: "z" },
+	{ op: "nin", value: ["a", "b"], match: "z", miss: "a" },
+	{ op: "gt", value: 1000, match: 5000, miss: 10 },
+	{ op: "gte", value: 1000, match: 1000, miss: 10 },
+	{ op: "lt", value: 1000, match: 10, miss: 5000 },
+	{ op: "lte", value: 1000, match: 1000, miss: 5000 },
+	{ op: "contains", value: "secret", match: "top secret", miss: "public" },
+	{ op: "exists", value: true, match: "anything", miss: null },
+	{ op: "has", value: "x", match: ["x", "y"], miss: ["y"] },
+	{ op: "hasAny", value: ["x", "z"], match: ["x", "y"], miss: ["y"] },
+	{ op: "hasAll", value: ["x", "y"], match: ["x", "y", "z"], miss: ["x"] },
+];
+
+describe("validatePayload — every operator, over sound and broken values", () => {
+	const allowValue = (probe: Probe): Rule[] => [
+		{
+			effect: "allow",
+			action: "update",
+			resource: "post",
+			payload: {
+				fields: ["value"],
+				constraints: { field: "value", op: probe.op, value: probe.value },
+			},
+		},
+	];
+
+	const denyValue = (probe: Probe): Rule[] => [
+		{ effect: "allow", action: "update", resource: "post" },
+		{
+			effect: "deny",
+			action: "update",
+			resource: "post",
+			payload: {
+				constraints: { field: "value", op: probe.op, value: probe.value },
+			},
+		},
+	];
+
+	const write = (rules: Rule[], value: unknown) =>
+		validatePayload(rules, "update", "post", { id: "p" }, { value }).ok;
+
+	const wrappings = [
+		{ name: "array-wrapped", wrap: (value: unknown) => [value] },
+		{ name: "object-wrapped", wrap: (value: unknown) => ({ value }) },
+	];
+
+	it("covers every operator exactly once", () => {
+		expect(probes.map((probe) => probe.op).sort()).toEqual(
+			[...CONDITION_OPERATORS].sort(),
+		);
+	});
+
+	for (const probe of probes) {
+		it(`${probe.op}: permits the matching value and refuses the missing one`, () => {
+			expect(write(allowValue(probe), probe.match)).toBe(true);
+			expect(write(allowValue(probe), probe.miss)).toBe(false);
+			expect(write(denyValue(probe), probe.match)).toBe(false);
+			expect(write(denyValue(probe), probe.miss)).toBe(true);
+		});
+
+		for (const { name, wrap } of wrappings) {
+			it(`${probe.op}: a ${name} value never slips past the gate`, () => {
+				expect(write(denyValue(probe), wrap(probe.match))).toBe(false);
+
+				if (probe.op !== "exists") {
+					expect(write(allowValue(probe), wrap(probe.match))).toBe(false);
+				}
+			});
+		}
+	}
 });

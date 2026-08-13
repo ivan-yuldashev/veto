@@ -48,8 +48,6 @@ describe("evaluateOperator", () => {
 		it("returns false for an empty array (Vacuous falsity)", () => {
 			expect(evaluateOperator("in", "draft", [])).toBe(false);
 		});
-		// An incomparable member (object against a scalar) is Kleene-unknown, not a
-		// plain miss: a decidable false here would disarm a deny built on `nin`.
 		it("returns undefined when no member matches but one is incomparable", () => {
 			expect(
 				evaluateOperator("in", "draft", [{}, "published"]),
@@ -136,7 +134,6 @@ describe("evaluateOperator", () => {
 			expect(evaluateOperator("gt", undefined, 5)).toBe(false);
 			expect(evaluateOperator("lt", null, 5)).toBe(false);
 		});
-		// Booleans and objects have no ordering at all — unknown, not a decidable miss.
 		it("returns undefined for operands that are not orderable at all", () => {
 			expect(evaluateOperator("gt", true, false)).toBeUndefined();
 			expect(evaluateOperator("lte", {}, {})).toBeUndefined();

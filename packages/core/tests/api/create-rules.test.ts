@@ -207,6 +207,23 @@ describe("createRules", () => {
 			where: { field: "publishedAt", op: "eq", value: moment.getTime() },
 		});
 	});
+
+	it("compiles unreadable payload constraints to no constraint at all", () => {
+		expect(
+			allow("update", "post", {
+				payload: { fields: ["status"], constraints: "garbage" as never },
+			}),
+		).toEqual({
+			effect: "allow",
+			action: "update",
+			resource: "post",
+			payload: { fields: ["status"], constraints: { and: [] } },
+		});
+
+		expect(
+			allow("update", "post", { payload: { constraints: {} } }).payload,
+		).toEqual({ constraints: { and: [] } });
+	});
 });
 
 describe("array-valued fields take membership operators only", () => {

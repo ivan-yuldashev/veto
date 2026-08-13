@@ -121,6 +121,19 @@ describe("parseRules", () => {
 			}
 		});
 
+		it("rejects a where that is not a condition object at all", () => {
+			for (const where of ["garbage", 42, true, null, [], () => true]) {
+				expect(
+					parseRules([
+						{ effect: "allow", action: "read", resource: "post", where },
+					]),
+				).toEqual({
+					ok: false,
+					errors: ["rules[0].where: expected a condition object"],
+				});
+			}
+		});
+
 		it("rejects a field node without a string field", () => {
 			expect(
 				parseRules([
@@ -185,6 +198,46 @@ describe("parseRules", () => {
 			).toBe(false);
 		});
 
+		it("rejects a relation of an unknown cardinality", () => {
+			const result = parseRules([
+				{
+					effect: "allow",
+					action: "read",
+					resource: "post",
+					where: {
+						relation: "comments",
+						type: "several",
+						where: { field: "id", op: "eq", value: 1 },
+					},
+				},
+			]);
+
+			expect(result.ok).toBe(false);
+			expect(result.ok === false && result.errors).toEqual([
+				'rules[0].where.type: expected "one" | "many"',
+			]);
+		});
+
+		it("rejects a relation whose name is not a string", () => {
+			const result = parseRules([
+				{
+					effect: "allow",
+					action: "read",
+					resource: "post",
+					where: {
+						relation: 42,
+						type: "one",
+						where: { field: "id", op: "eq", value: 1 },
+					},
+				},
+			]);
+
+			expect(result.ok).toBe(false);
+			expect(result.ok === false && result.errors).toEqual([
+				"rules[0].where.relation: expected a string",
+			]);
+		});
+
 		it("rejects a relation without where", () => {
 			expect(
 				parseRules([
@@ -211,6 +264,55 @@ describe("parseRules", () => {
 					},
 				]).ok,
 			).toBe(false);
+		});
+
+		it("rejects a payload that is not an object", () => {
+			for (const payload of ["garbage", 42, null, ["fields"]]) {
+				expect(
+					parseRules([
+						{
+							effect: "allow",
+							action: "update",
+							resource: "post",
+							payload,
+						},
+					]),
+				).toEqual({
+					ok: false,
+					errors: ["rules[0].payload: expected a payload object"],
+				});
+			}
+		});
+
+		it("rejects a non-array and inside constraints", () => {
+			expect(
+				parseRules([
+					{
+						effect: "allow",
+						action: "update",
+						resource: "post",
+						payload: { constraints: { and: "garbage" } },
+					},
+				]),
+			).toEqual({
+				ok: false,
+				errors: ["rules[0].payload.constraints.and: expected an array"],
+			});
+		});
+
+		it("rejects constraints that are not a condition at all", () => {
+			for (const constraints of ["garbage", 42, ["x"]]) {
+				expect(
+					parseRules([
+						{
+							effect: "allow",
+							action: "update",
+							resource: "post",
+							payload: { constraints },
+						},
+					]).ok,
+				).toBe(false);
+			}
 		});
 
 		it("accepts field constraints and rejects a relation inside constraints", () => {
@@ -281,8 +383,6 @@ describe("parseRules", () => {
 			expect(parseRules([makeRule("hasAny", ["a"])]).ok).toBe(true);
 			expect(parseRules([makeRule("hasAll", [])]).ok).toBe(true);
 
-			// `has` takes a single element, so any shape is a legal value here — a list
-			// simply becomes an element the engine cannot compare, and answers unknown.
 			expect(parseRules([makeRule("has", "a")]).ok).toBe(true);
 		});
 

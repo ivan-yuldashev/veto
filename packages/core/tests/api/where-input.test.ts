@@ -2,6 +2,10 @@ import { describe, expect, it } from "vitest";
 import { defineAbilities } from "../../src/api/define-abilities.js";
 import { type } from "../../src/api/schema.js";
 import { compileWhereInput } from "../../src/api/where-input.js";
+import {
+	evaluateCondition,
+	evaluateRules,
+} from "../../src/evaluation/index.js";
 
 const ac = defineAbilities({
 	resources: {
@@ -152,7 +156,6 @@ describe("compileWhereInput", () => {
 	});
 });
 
-// A never-matching node is `{ or: [] }`: an empty OR can never be satisfied.
 const NOTHING = { or: [] };
 
 describe("compileWhereInput — malformed input compiles fail-closed", () => {
@@ -167,8 +170,6 @@ describe("compileWhereInput — malformed input compiles fail-closed", () => {
 		expect(compileWhereInput({ or: 42 }, ac, "post")).toEqual(NOTHING);
 	});
 
-	// Garbage under `not` must not compile to a false node: negating it would
-	// turn the rule TRUE and hand out access.
 	it("compiles garbage under not to nothing, never to a negated falsehood", () => {
 		expect(compileWhereInput({ not: "garbage" }, ac, "post")).toEqual(NOTHING);
 		expect(compileWhereInput({ not: null }, ac, "post")).toEqual(NOTHING);
@@ -198,6 +199,32 @@ describe("compileWhereInput — malformed input compiles fail-closed", () => {
 			type: "one",
 			where: NOTHING,
 		});
+	});
+
+	it("compiles a two-operator field to an equality that grants nothing", () => {
+		const node = compileWhereInput({ views: { gt: 1, lt: 5 } }, ac, "post");
+
+		expect(node).toEqual({
+			field: "views",
+			op: "eq",
+			value: { gt: 1, lt: 5 },
+		});
+		expect(evaluateCondition(node, { views: 3 })).toBeUndefined();
+		expect(
+			evaluateRules(
+				[{ effect: "allow", action: "read", resource: "post", where: node }],
+				"read",
+				"post",
+				{ views: 3 },
+			),
+		).toBe(false);
+	});
+
+	it("compiles an empty operator object the same fail-closed way", () => {
+		const node = compileWhereInput({ views: {} }, ac, "post");
+
+		expect(node).toEqual({ field: "views", op: "eq", value: {} });
+		expect(evaluateCondition(node, { views: 3 })).toBeUndefined();
 	});
 
 	it("treats an unknown resource as having no relations", () => {
