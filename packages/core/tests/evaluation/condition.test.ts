@@ -301,6 +301,22 @@ describe("evaluateCondition", () => {
 					),
 				).toBe(false);
 			});
+
+			it("returns undefined for a quantifier it does not recognise", () => {
+				const node = {
+					relation: "comments",
+					type: "many",
+					match: "most",
+					where: { field: "spam", op: "eq", value: true },
+				} as unknown as ConditionNode<Post>;
+
+				expect(
+					evaluateCondition(
+						node,
+						createPost({ comments: [{ id: "c1", spam: true }] }),
+					),
+				).toBeUndefined();
+			});
 		});
 
 		describe("4. Vacuous Truths (Empty Collections)", () => {
