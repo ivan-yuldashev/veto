@@ -139,7 +139,33 @@ describe("parseRules", () => {
 			).toEqual({
 				ok: false,
 				errors: [
-					"rules[0].where: a condition names and and field at once — a node carries exactly one shape",
+					`rules[0].where: a condition names "and" and "field" at once — a node carries exactly one shape`,
+				],
+			});
+		});
+
+		it("rejects a payload constraint carrying two shapes", () => {
+			expect(
+				parseRules([
+					{
+						effect: "allow",
+						action: "update",
+						resource: "post",
+						payload: {
+							fields: ["status"],
+							constraints: {
+								and: [{ field: "views", op: "lt", value: 1000 }],
+								field: "status",
+								op: "eq",
+								value: "draft",
+							},
+						},
+					},
+				]),
+			).toEqual({
+				ok: false,
+				errors: [
+					`rules[0].payload.constraints: a condition names "and" and "field" at once — a node carries exactly one shape`,
 				],
 			});
 		});

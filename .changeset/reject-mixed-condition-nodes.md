@@ -15,4 +15,6 @@ where: {
 
 The engine looked for `and` first, so `views > 100` was never evaluated. In an `allow` that grants more than the rule says: a row with `views: 5` passed. This needed no cast — a policy loaded from a database or an admin UI reached it through the ordinary path.
 
+The same gate covers a rule's `payload.constraints`, where the hole was the mirror image: the mutation gate collects the `and` group and drops the field constraint beside it, so an allow validated a payload its own rule forbids.
+
 Rules built with `createRules` were never affected: sibling keys in the shorthand compile into a proper `and` group. If your stored JSON contains such a node, `parseRules` now returns `ok: false` naming both shapes, and the fix is to nest the field condition inside the group where it was meant to be.

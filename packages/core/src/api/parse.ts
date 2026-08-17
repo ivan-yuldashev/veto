@@ -121,6 +121,24 @@ const validateConditionList = (
 	});
 };
 
+const namesTwoShapes = (
+	node: Record<string, unknown>,
+	path: string,
+	errors: string[],
+): boolean => {
+	const shapes = CONDITION_SHAPES.filter((key) => key in node);
+
+	if (shapes.length < 2) {
+		return false;
+	}
+
+	errors.push(
+		`${path}: a condition names ${shapes.map((shape) => `"${shape}"`).join(" and ")} at once — a node carries exactly one shape`,
+	);
+
+	return true;
+};
+
 const validateCondition = (
 	node: unknown,
 	path: string,
@@ -139,12 +157,7 @@ const validateCondition = (
 		return;
 	}
 
-	const shapes = CONDITION_SHAPES.filter((key) => key in node);
-
-	if (shapes.length > 1) {
-		errors.push(
-			`${path}: a condition names ${shapes.join(" and ")} at once — a node carries exactly one shape`,
-		);
+	if (namesTwoShapes(node, path, errors)) {
 		return;
 	}
 
@@ -183,6 +196,10 @@ const validateFieldCondition = (
 
 	if (!isPlainObject(node)) {
 		errors.push(`${path}: expected a field condition`);
+		return;
+	}
+
+	if (namesTwoShapes(node, path, errors)) {
 		return;
 	}
 
