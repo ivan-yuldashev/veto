@@ -1,5 +1,14 @@
 # @vetojs-examples/react-spa
 
+## 0.0.7
+
+### Patch Changes
+
+- Updated dependencies [04a9005]
+  - @vetojs/core@0.6.0
+  - @vetojs-examples/shared@0.0.6
+  - @vetojs/react@0.3.0
+
 ## 0.0.6
 
 ### Patch Changes
