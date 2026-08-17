@@ -1,6 +1,6 @@
 # @vetojs/next
 
-Next.js guards built on the [`@vetojs`](https://github.com/ivan-yuldashev/veto#readme) engine — **[English](README.md) · [Русский](README.ru.md)**.
+Next.js guards built on the [`@vetojs`](https://github.com/ivan-yuldashev/vetojs#readme) engine — **[English](README.md) · [Русский](README.ru.md)**.
 
 A server action in Next.js is a public endpoint. However well hidden it is in your interface, anyone can call that action and pass absolutely any arguments.
 
@@ -91,8 +91,8 @@ Note that neither hook may return control to the caller. `notFound()`, `redirect
 
 ## What's next?
 
-- **[Full guide](https://github.com/ivan-yuldashev/veto/blob/main/docs/next.md)** — a detailed walk through every option, working with `useActionState`, route handlers, and an explanation of why lists are always filtered at the database level.
-- **[About the project](https://github.com/ivan-yuldashev/veto#readme)** — more on what `@vetojs` is and how the authorization engine itself is built.
+- **[Full guide](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/next.md)** — a detailed walk through every option, working with `useActionState`, route handlers, and an explanation of why lists are always filtered at the database level.
+- **[About the project](https://github.com/ivan-yuldashev/vetojs#readme)** — more on what `@vetojs` is and how the authorization engine itself is built.
 
 ## License
 

@@ -1,6 +1,6 @@
 # @vetojs/react
 
-Привязки к React для [`@vetojs`](https://github.com/ivan-yuldashev/veto/blob/main/README.ru.md) — **[English](README.md) · [Русский](README.ru.md)**.
+Привязки к React для [`@vetojs`](https://github.com/ivan-yuldashev/vetojs/blob/main/README.ru.md) — **[English](README.md) · [Русский](README.ru.md)**.
 
 Основная идея пакета проста: те же самые правила, которые надёжно защищают ваш сервер, решают, какие элементы интерфейса будут доступны пользователю на клиенте.
 
@@ -102,8 +102,8 @@ const onSwitchActor = async (id: string) => {
 
 ## Что дальше?
 
-- **[Полное руководство](https://github.com/ivan-yuldashev/veto/blob/main/docs/react.ru.md)** — глубокий разбор провайдера, `<Can>`, `useAbility` и нюансов работы с серверными компонентами.
-- **[О проекте](https://github.com/ivan-yuldashev/veto/blob/main/README.ru.md)** — общая концепция `@vetojs` и устройство его движка.
+- **[Полное руководство](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/react.ru.md)** — глубокий разбор провайдера, `<Can>`, `useAbility` и нюансов работы с серверными компонентами.
+- **[О проекте](https://github.com/ivan-yuldashev/vetojs/blob/main/README.ru.md)** — общая концепция `@vetojs` и устройство его движка.
 
 ## Лицензия
 

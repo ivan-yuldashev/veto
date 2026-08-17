@@ -4,7 +4,7 @@
 
 ## Reporting a vulnerability
 
-Use GitHub's [private vulnerability reporting](https://github.com/ivan-yuldashev/veto/security/advisories/new) — it opens a draft advisory visible only to the maintainers.
+Use GitHub's [private vulnerability reporting](https://github.com/ivan-yuldashev/vetojs/security/advisories/new) — it opens a draft advisory visible only to the maintainers.
 
 Please include the affected package and version, a minimal policy and data that reproduce the problem, and what you expected to happen instead. A failing test case is the fastest possible report.
 

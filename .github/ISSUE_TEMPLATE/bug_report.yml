@@ -6,7 +6,7 @@ body:
     attributes:
       value: |
         If the bug lets someone read or write more than the policy allows, please report it
-        privately instead — see [SECURITY.md](https://github.com/ivan-yuldashev/veto/blob/main/SECURITY.md).
+        privately instead — see [SECURITY.md](https://github.com/ivan-yuldashev/vetojs/blob/main/SECURITY.md).
 
   - type: input
     id: version
