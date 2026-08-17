@@ -2,6 +2,8 @@
 
 ## 0.6.0
 
+> Not published. These changes ship in the next release.
+
 ### Minor Changes
 
 - 04a9005: **`parseRules` rejects a condition node that carries more than one shape.** Such a node used to pass the gate, and the engine then answered only the first shape it recognised — silently discarding the rest of the condition.
