@@ -1,14 +1,16 @@
 # @vetojs/next
 
-Next.js guards for [`@vetojs`](https://github.com/ivan-yuldashev/veto#readme) — **[English](README.md) · [Русский](README.ru.md)**.
+Next.js guards built on the [`@vetojs`](https://github.com/ivan-yuldashev/veto#readme) engine — **[English](README.md) · [Русский](README.ru.md)**.
 
-A server action is a public endpoint. Whatever the UI shows, anyone can call it with any arguments, so every one needs the same steps: work out who is asking, load what they are acting on, check, then run. This package writes those steps once.
+A server action in Next.js is a public endpoint. However well hidden it is in your interface, anyone can call that action and pass absolutely any arguments.
+
+Because of that, developers end up duplicating the same routine in every action: work out the user first, then load the resource from the database, check the permissions, and only after all that run the actual business logic. `@vetojs/next` takes that work off your hands, letting you write the whole checking infrastructure exactly once.
 
 ```sh
-npm add @vetojs/next @vetojs/core
+npm install @vetojs/next @vetojs/core
 ```
 
-ESM only, Node 20+.
+The library ships as ESM only and requires Node.js 20 or newer.
 
 ## Configure once
 
@@ -40,33 +42,40 @@ export const updatePost = withPermission(
 );
 ```
 
-The actor is resolved, the policy built, the row loaded and checked, and the payload validated — all before your handler runs. If any of that fails, the handler is never reached.
+What happens under the hood? Before your handler starts, the guard has already worked out the user, assembled the policy, loaded the row and validated the incoming data. If even one of those checks fails, your business logic is never reached.
 
-Your handler receives a context first, then the original arguments untouched:
+Your handler receives the prepared context (`ctx`) as its first argument, and then all the original arguments unchanged:
 
-| `ctx` | |
-|---|---|
-| `actor` | whatever `getActor` returned |
-| `ability` | the built ability, if you need further checks |
-| `row` | what `load` returned |
-| `payload` | the **validated** data — write this, not the raw input |
+| `ctx` property | Description |
+| --- | --- |
+| `actor` | The current user (whatever `getActor` returned). |
+| `ability` | The assembled ability object (in case you need extra manual checks inside). |
+| `row` | The loaded resource (the result of calling `load`). |
+| `payload` | The **strictly validated** data — write this to the database, not the user's raw input. |
 
-Arguments pass through unchanged whatever their shape, so an action consumed by `useActionState` — which receives `(previousState, formData)` — needs no adapter, and route handlers work the same way with `(request, context)`.
+Because every original argument is passed straight through untouched, you need no extra adapters for actions under `useActionState` (which receive `(previousState, formData)`) or for route handlers with their `(request, context)` — it all works exactly the same way.
 
-## What gets checked
+## Checks that match your intent
 
-| You provide | The guard checks |
-|---|---|
-| `load` + `payload` | may this actor write this row, **and** are these fields and values permitted |
-| `load` only | may this actor perform the action on this row |
-| `payload` only | is the write permitted at all, and are these fields and values allowed |
-| neither | may this actor perform the action at all |
+Depending on what you declared in the configuration, the guard adjusts the strictness of its checks automatically:
 
-A `load` that resolves to anything but a row refuses the call rather than quietly falling back to the weaker row-less check.
+| What you declared | What gets checked |
+| --- | --- |
+| `load` + `payload` | Whether writing to this specific row is allowed **and** whether the given fields and values are permitted. |
+| `load` only | Whether this action on this row is allowed at all. |
+| `payload` only | Whether writing is allowed in general **and** whether these fields and values are permitted. |
+| Nothing | Whether the user may perform this action in principle. |
 
-## Denial
+**Important:** if `load` didn't return a row (the record wasn't found, say), the call is rejected. The guard will never quietly "slide" down to the weaker check that ignores the row.
 
-A failed check throws `ForbiddenError`, carrying `action`, `resource` and — for payload failures — the exact `violations`. Recognise it with `ForbiddenError.is(error)` rather than `instanceof`, which answers `false` if two copies of `@vetojs/core` ever meet in one tree. Or handle it centrally:
+## Handling denials
+
+When a check doesn't pass, a `ForbiddenError` is thrown. Inside it are the `action` and `resource` fields, plus the exact list of violations (`violations`) if the refusal happened while validating data.
+
+- Catch the error strictly through the `ForbiddenError.is(error)` method.
+- **Don't use `instanceof`** — it returns `false` if two different copies of `@vetojs/core` happen to end up in your dependency tree.
+
+For convenience, denials can be handled centrally, right where the guard is created:
 
 ```ts
 createGuard({
@@ -78,12 +87,12 @@ createGuard({
 });
 ```
 
-Neither hook may return; `notFound()`, `redirect()` and `throw` all satisfy that. If one does return, the guard still throws — a hook reports a denial, it never overturns one.
+Note that neither hook may return control to the caller. `notFound()`, `redirect()` and a plain `throw` all satisfy that rule nicely. If a hook does return control, the guard throws on its own — a hook is there to report the denial or redirect the user, but it cannot cancel that denial.
 
-## Documentation
+## What's next?
 
-- **[Full guide](https://github.com/ivan-yuldashev/veto/blob/main/docs/next.md)** — every option, `useActionState`, route handlers, and why lists belong in the database instead.
-- **[Project README](https://github.com/ivan-yuldashev/veto#readme)** — what `@vetojs` is and how the engine works.
+- **[Full guide](https://github.com/ivan-yuldashev/veto/blob/main/docs/next.md)** — a detailed walk through every option, working with `useActionState`, route handlers, and an explanation of why lists are always filtered at the database level.
+- **[About the project](https://github.com/ivan-yuldashev/veto#readme)** — more on what `@vetojs` is and how the authorization engine itself is built.
 
 ## License
 

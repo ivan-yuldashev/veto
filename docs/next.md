@@ -5,7 +5,7 @@
 A server action is a public endpoint. Whatever the UI shows, anyone can call it with any arguments — so every one needs the same three steps: work out who's asking, load what they're acting on, check, then run. This package writes those steps once.
 
 ```sh
-npm add @vetojs/next @vetojs/core
+npm install @vetojs/next @vetojs/core
 ```
 
 `@vetojs/core` is a peer dependency, so your app resolves it once and the guard shares that copy. The package imports neither `next` nor `react` — it is a wrapper around your own functions.

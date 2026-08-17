@@ -11,7 +11,7 @@
   Install core alongside the bindings:
 
   ```sh
-  npm add @vetojs/react @vetojs/core
+  npm install @vetojs/react @vetojs/core
   ```
 
   `ForbiddenError.is(error)` matches on a registered symbol, so it also holds where a duplicate copy does slip through:

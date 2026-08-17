@@ -50,7 +50,7 @@ These two cases are not symmetrical:
 - an unknown **allow** grants nothing — harmless in itself;
 - an unknown **deny** is a *protection that silently isn't there* — the dangerous one.
 
-So when you pass your registry as a vocabulary, the gate treats them differently:
+So when you pass your declarations as the vocabulary, the gate treats them differently:
 
 | Rule mentioning something unknown | What happens | Why |
 |---|---|---|
@@ -59,6 +59,8 @@ So when you pass your registry as a vocabulary, the gate treats them differently
 
 ```ts
 const result = parseRules(json, ac);
+
+if (!result.ok) throw new Error(result.errors.join(", "));
 
 result.unknown; // [{ rule, reasons, quarantined }]
 ```
@@ -85,6 +87,7 @@ Field names are deliberately **not** checked: a Standard Schema doesn't enumerat
 
 ```ts
 const rules: Rule[] = load();
+
 buildAbility(ac, rules);                                 // ✗ not checked
 buildAbility(ac, parseRules(JSON.parse(raw), ac).rules); // ✓
 ```

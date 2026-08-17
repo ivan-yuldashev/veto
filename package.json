@@ -41,6 +41,6 @@
 	},
 	"simple-git-hooks": {
 		"pre-commit": "pnpm exec biome check --staged --no-errors-on-unmatched",
-		"pre-push": "pnpm typecheck && pnpm test"
+		"pre-push": "pnpm build && pnpm typecheck && pnpm test"
 	}
 }

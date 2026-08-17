@@ -7,11 +7,12 @@
 ## Установка
 
 ```sh
-npm add @vetojs/core          # движок
-npm add @vetojs/react         # по желанию: <Can>, useAbility, AbilityProvider
+npm install @vetojs/core          # движок
+npm install @vetojs/react         # по желанию: <Can>, useAbility, AbilityProvider
+npm install @vetojs/next          # по желанию: createGuard для server actions и route handlers
 ```
 
-Только ESM, Node 20+. Для `@vetojs/react` нужен React 18+ как peer-зависимость.
+Только ESM, Node 20+. `@vetojs/core` — peer-зависимость обеих привязок, поэтому ставьте его рядом с ними, а не рассчитывайте, что он подтянется сам. Для `@vetojs/react` нужен ещё React 18+ как peer.
 
 ## Весь путь целиком
 
@@ -22,7 +23,7 @@ import { defineAbilities, type, createRules, buildAbility } from "@vetojs/core";
 const ac = defineAbilities({
 	resources: {
 		post: {
-			schema: type<{ id: string; authorId: string; status: "draft" | "published" }>(),
+			schema: type<{ id: string; authorId: string; status: "draft" | "published"; featured: boolean }>(),
 			actions: ["read", "update", "publish"],
 			relations: { author: { resource: "user", kind: "one" } },
 		},
@@ -52,14 +53,14 @@ ability.can("update", "post", post);
 | Экспорт | Сигнатура | Зачем |
 |---|---|---|
 | `defineAbilities` | `({ resources }) => AC` | объявляет ресурсы, действия, связи |
-| `type<T>()` | `() => Schema<T>` | несёт форму строки; замените на Standard Schema, чтобы проверять данные в рантайме |
+| `type<T>()` | `() => Schema<T>` | несёт форму строки и в рантайме не проверяет ничего. Передайте вместо неё схему Zod / Valibot / ArkType — и `ability.validate` начнёт проверять данные, а форма выведется из схемы. **Не Yup**: его реализация Standard Schema асинхронная, а асинхронная схема бросает исключение |
 | `createRules` | `(ac, { maxDepth? }?) => { allow, deny }` | типизированные фабрики правил |
 | `buildAbility` | `(ac, rules) => AbilitySet` | превращает политику в объект, который вы вызываете |
 | `parseRules` | `(json, vocabulary) => RuleParseResult` | проверяет недоверенный JSON с правилами |
 | `toVocabulary` | `(ac) => Vocabulary` | сериализуемые имена, если словарь хранится отдельно |
 | `markLoaded` | `(row, relation, value) => row` | сообщает, что связь загружена |
-| `ConditionOperator` | объект-константа | `eq ne in nin gt gte lt lte contains exists` |
-| `ForbiddenError` | класс | `.action`, `.resource`, `.violations?` |
+| `ConditionOperator` | объект-константа | `eq ne in nin gt gte lt lte contains exists has hasAny hasAll` |
+| `ForbiddenError` | класс | `.action`, `.resource`, `.violations?`; опознавать через `ForbiddenError.is(error)`, а не `instanceof` |
 | `RelationNotLoadedError` | класс | `.relation` |
 
 Методы `ability`:
@@ -130,13 +131,24 @@ where: {
 	title: { contains: "release" },       // только для строк
 	authorId: { in: ["u1", "u2"] },
 	deletedAt: { exists: false },
+	tags: { has: "release" },             // поле-массив: has | hasAny | hasAll
 	author: { role: "admin" },            // связь «к одному»
 	comments: { none: { spam: true } },   // «ко многим»: some | every | none
 	or: [{ pinned: true }, { views: { gt: 1000 } }],
 }
 ```
 
-Операторы по типу поля: любому доступны `eq ne in nin exists`; `number` и `Date` получают ещё `gt gte lt lte`; `string` — `contains`.
+Операторы предлагаются по типу поля, остальное система типов отклоняет:
+
+| Поле | Операторы |
+|---|---|
+| любой скаляр | `eq ne in nin exists`, плюс голое значение как `eq` |
+| `number`, `Date` | ещё `gt gte lt lte` |
+| `string` | ещё `contains` |
+| массив скаляров | `has` (один элемент), `hasAny`, `hasAll`, `exists` — **не** `eq` и не `in` |
+| объект или массив объектов | только `exists` |
+
+Запомнить стоит две последние строки: поле-массив принимает `has` / `hasAny` / `hasAll`, а всё нескалярное можно проверить только на наличие — сравнение по значению всегда даёт «неизвестно».
 
 ## Проверка записи
 
@@ -175,11 +187,14 @@ const ability = buildAbility(ac, result.rules);
 
 Всё перечисленное выглядит правдоподобно и при этом неверно.
 
-**Голый массив у поля-массива.** Он сравнивается с этим массивом, а сравнение с массивом или объектом всегда даёт **«неизвестно»**: оно ничего не разрешает и заставляет сработать любой `deny`. Типы это отклоняют — берите оператор.
+**Голый массив у поля-массива.** Он сравнивается с этим массивом, а сравнение с массивом или объектом всегда даёт **«неизвестно»**: оно ничего не разрешает и заставляет сработать любой `deny`. Типы это отклоняют — берите оператор вхождения.
 
 ```ts
-where: { tags: ["a", "b"] }              // ✗ типы отклонят
-where: { tags: { in: [["a"], ["b"]] } }  // ✓ вхождение
+where: { tags: ["a", "b"] }             // ✗ типы отклонят
+where: { tags: { in: ["a", "b"] } }     // ✗ `in` — для скалярных полей, не для массивов
+where: { tags: { has: "release" } }     // ✓ этот элемент есть
+where: { tags: { hasAny: ["a", "b"] } } // ✓ хотя бы один из них
+where: { tags: { hasAll: ["a", "b"] } } // ✓ все сразу
 ```
 
 **Передавать сырой JSON в `buildAbility`.** Всегда идите через `parseRules(json, ac)`.
@@ -206,6 +221,15 @@ const post = await db.query.posts.findFirst({ with: { author: true } });
 **Ждать, что `deny` отступит на плохих данных.** Запрет срабатывает и на «неизвестно»: значение неверного типа мимо него не проскользнёт. Битые данные способны только сузить доступ, но не расширить.
 
 **Искать настройку, чтобы поменять приоритет.** Запрет всегда сильнее, а всё неразрешённое запрещено; ни то ни другое не настраивается. Именно это позволяет тем же правилам компилироваться в SQL.
+
+**Ловить отказ через `instanceof`.** Пишите `ForbiddenError.is(error)`. Две копии `@vetojs/core` в дереве зависимостей дают ошибке две идентичности класса, и тогда `instanceof` отвечает `false` на совершенно законный отказ, тихо превращая 403 в 500.
+
+```ts
+catch (error) {
+	if (error instanceof ForbiddenError) { … }  // ✗ ломается на второй копии
+	if (ForbiddenError.is(error)) { … }         // ✓ сверяется по зарегистрированному символу
+}
+```
 
 ## Куда что класть
 

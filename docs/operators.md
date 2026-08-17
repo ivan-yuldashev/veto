@@ -2,7 +2,7 @@
 
 **[English](operators.md) · [Русский](operators.ru.md)**
 
-Every condition in a rule ends in a comparison: *is this field equal to that value, greater than it, one of these?* There are ten operators, and this page is what each one does — including the awkward cases (`null`, wrong types, `NaN`) where getting it wrong would quietly hand out access.
+Every condition in a rule ends in a comparison: *is this field equal to that value, greater than it, one of these?* There are thirteen operators, and this page is what each one does — including the awkward cases (`null`, wrong types, `NaN`) where getting it wrong would quietly hand out access.
 
 You write operators in the shorthand:
 
@@ -12,7 +12,7 @@ allow("read", "post", { where: { views: { gte: 100 } } });        // explicit op
 allow("read", "post", { where: { status: { in: ["draft", "review"] } } });
 ```
 
-## The ten operators
+## The thirteen operators
 
 | Operator | True when | Notes |
 |---|---|---|

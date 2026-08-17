@@ -7,11 +7,12 @@ Everything needed to write correct Veto code, in one page. If you are generating
 ## Install
 
 ```sh
-npm add @vetojs/core          # the engine
-npm add @vetojs/react         # optional: <Can>, useAbility, AbilityProvider
+npm install @vetojs/core          # the engine
+npm install @vetojs/react         # optional: <Can>, useAbility, AbilityProvider
+npm install @vetojs/next          # optional: createGuard for server actions and route handlers
 ```
 
-ESM only, Node 20+. `@vetojs/react` needs React 18+ as a peer.
+ESM only, Node 20+. `@vetojs/core` is a peer dependency of both bindings, so install it alongside them rather than relying on it being pulled in. `@vetojs/react` needs React 18+ as a peer as well.
 
 ## The whole flow
 
@@ -22,7 +23,7 @@ import { defineAbilities, type, createRules, buildAbility } from "@vetojs/core";
 const ac = defineAbilities({
 	resources: {
 		post: {
-			schema: type<{ id: string; authorId: string; status: "draft" | "published" }>(),
+			schema: type<{ id: string; authorId: string; status: "draft" | "published"; featured: boolean }>(),
 			actions: ["read", "update", "publish"],
 			relations: { author: { resource: "user", kind: "one" } },
 		},
@@ -52,14 +53,14 @@ ability.can("update", "post", post);
 | Export | Signature | Purpose |
 |---|---|---|
 | `defineAbilities` | `({ resources }) => AC` | declares resources, actions, relations |
-| `type<T>()` | `() => Schema<T>` | carries a row shape; swap for a Standard Schema to validate at runtime |
+| `type<T>()` | `() => Schema<T>` | carries a row shape and checks nothing at runtime. Pass a Zod / Valibot / ArkType schema instead and `ability.validate` starts checking data — the shape is then inferred from it. **Not Yup**: its Standard Schema implementation is async, and an async schema throws |
 | `createRules` | `(ac, { maxDepth? }?) => { allow, deny }` | typed rule factories |
 | `buildAbility` | `(ac, rules) => AbilitySet` | turns a policy into the object you call |
 | `parseRules` | `(json, vocabulary) => RuleParseResult` | validates untrusted rule JSON |
 | `toVocabulary` | `(ac) => Vocabulary` | serializable names for storing a vocabulary |
 | `markLoaded` | `(row, relation, value) => row` | states a relation is loaded |
-| `ConditionOperator` | const object | `eq ne in nin gt gte lt lte contains exists` |
-| `ForbiddenError` | class | `.action`, `.resource`, `.violations?` |
+| `ConditionOperator` | const object | `eq ne in nin gt gte lt lte contains exists has hasAny hasAll` |
+| `ForbiddenError` | class | `.action`, `.resource`, `.violations?`; recognise it with `ForbiddenError.is(error)`, not `instanceof` |
 | `RelationNotLoadedError` | class | `.relation` |
 
 Methods on `ability`:
@@ -130,13 +131,24 @@ where: {
 	title: { contains: "release" },       // strings only
 	authorId: { in: ["u1", "u2"] },
 	deletedAt: { exists: false },
+	tags: { has: "release" },             // array field: has | hasAny | hasAll
 	author: { role: "admin" },            // to-one relation
 	comments: { none: { spam: true } },   // to-many: some | every | none
 	or: [{ pinned: true }, { views: { gt: 1000 } }],
 }
 ```
 
-Operators by field type: any field gets `eq ne in nin exists`; `number` and `Date` also get `gt gte lt lte`; `string` also gets `contains`.
+Operators are offered by field type, and the type system rejects the rest:
+
+| Field | Operators |
+|---|---|
+| any scalar | `eq ne in nin exists`, plus a bare value for `eq` |
+| `number`, `Date` | also `gt gte lt lte` |
+| `string` | also `contains` |
+| array of scalars | `has` (one member), `hasAny`, `hasAll`, `exists` — **not** `eq` or `in` |
+| object, or array of objects | `exists` only |
+
+The last two rows are the ones worth remembering: an array field takes `has` / `hasAny` / `hasAll`, and anything non-scalar can only be tested for presence, because comparing it by value is always unknown.
 
 ## Checking writes
 
@@ -175,11 +187,14 @@ const ability = buildAbility(ac, result.rules);
 
 These compile-or-look fine and are wrong:
 
-**A bare array on an array field.** It compares against that array, and a comparison against an array or an object is always **unknown** — it grants nothing and fires every `deny`. The type rejects it; use an operator.
+**A bare array on an array field.** It compares against that array, and a comparison against an array or an object is always **unknown** — it grants nothing and fires every `deny`. The type rejects it; reach for a membership operator instead.
 
 ```ts
-where: { tags: ["a", "b"] }              // ✗ rejected by the type system
-where: { tags: { in: [["a"], ["b"]] } }  // ✓ membership
+where: { tags: ["a", "b"] }             // ✗ rejected by the type system
+where: { tags: { in: ["a", "b"] } }     // ✗ `in` is for scalar fields, not array ones
+where: { tags: { has: "release" } }     // ✓ this member is present
+where: { tags: { hasAny: ["a", "b"] } } // ✓ at least one of them
+where: { tags: { hasAll: ["a", "b"] } } // ✓ all of them
 ```
 
 **Passing raw JSON to `buildAbility`.** Always go through `parseRules(json, ac)`.
@@ -206,6 +221,15 @@ For hand-assembled objects use `markLoaded(post, "author", author)`; pass `null`
 **Expecting a deny to step aside on bad data.** A `deny` fires on "unknown" — a wrong-typed value cannot slip past a prohibition. Malformed data can only ever narrow access, never widen it.
 
 **Reaching for a config option to change precedence.** Deny always wins and everything not allowed is denied; neither is configurable. That is what lets the same rules compile to SQL.
+
+**Catching the refusal with `instanceof`.** Write `ForbiddenError.is(error)`. Two copies of `@vetojs/core` in one dependency tree give the error two class identities, and `instanceof` then answers `false` for a perfectly valid refusal — turning a 403 into a 500, silently.
+
+```ts
+catch (error) {
+	if (error instanceof ForbiddenError) { … }  // ✗ breaks on a duplicate copy
+	if (ForbiddenError.is(error)) { … }         // ✓ matches on a registered symbol
+}
+```
 
 ## Framework placement
 

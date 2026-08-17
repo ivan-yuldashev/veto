@@ -29,8 +29,8 @@ const rules = [
 	deny("update", "post", { where: { status: "published" } }),
 ];
 
-ability.can("update", "post", { status: "draft" });     // true
-ability.can("update", "post", { status: "published" }); // false — deny wins
+ability.can("update", "post", { ...post, status: "draft" });     // true
+ability.can("update", "post", { ...post, status: "published" }); // false — deny wins
 ```
 
 ## When the data doesn't fit the rule
