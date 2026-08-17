@@ -1,5 +1,41 @@
 # @vetojs/core
 
+## 0.7.0
+
+### Minor Changes
+
+- f63ad02: **The one-shape rule now covers `payload.constraints` too.** 0.6.0 taught `parseRules` to reject a condition node naming more than one shape, but a rule's payload constraints go through a second, narrower walker that had no such gate.
+
+  ```ts
+  payload: {
+  	fields: ["status"],
+  	constraints: {
+  		and: [{ field: "views", op: "lt", value: 1000 }],
+  		field: "status",
+  		op: "eq",
+  		value: "draft",
+  	},
+  }
+  ```
+
+  The mutation gate reads `and` first, so the field constraint beside it was silently dropped: `validatePayload` accepted `status: "published"` under a rule that permits only `"draft"`. As with the condition-node case this needed no cast — stored JSON reached it through the ordinary path, and rules built with `createRules` were never affected.
+
+  `parseRules` now returns `ok: false` naming both shapes, and the fix is to nest the field constraint inside the group.
+
+### Patch Changes
+
+- 86d9df7: **An operator the engine does not recognise now answers `undefined` instead of `false`.** `false` read the same in both effects: an `allow` granted nothing, but a `deny` also did nothing — so an unrecognised operator inside a `deny` handed back a row the rule was written to hide.
+
+  ```ts
+  deny("read", "post", {
+    where: { field: "secret", op: "bogus", value: true },
+  });
+  ```
+
+  The row used to pass. It is now hidden, matching how the engine already answers a relation quantifier it does not recognise: unknown grants nothing and denies everything it touches.
+
+  `parseRules` rejects an unrecognised operator, so this only reaches the engine when rules are cast past the gate — the same reach as the quantifier fix, and the same patch-sized blast radius.
+
 ## 0.6.0
 
 > Not published. These changes ship in the next release.
