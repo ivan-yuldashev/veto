@@ -1,9 +1,14 @@
 {
 	"extends": "./tsconfig.base.json",
 	"compilerOptions": {
-		"jsx": "react-jsx"
+		"jsx": "react-jsx",
+		"paths": {
+			"@vetojs/core": ["./packages/core/src/index.ts"],
+			"@vetojs/core/internal": ["./packages/core/src/internal.ts"]
+		}
 	},
 	"include": [
+		"vitest.alias.ts",
 		"vitest.config.ts",
 		"packages/**/*.ts",
 		"packages/**/*.tsx",

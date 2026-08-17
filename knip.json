@@ -4,5 +4,8 @@
 	"ignore": ["packages/core/type-bench/**", "examples/**", "internal/**"],
 	"workspaces": {
 		".": {}
+	},
+	"vitest": {
+		"entry": ["packages/*/tests/**/*.{test,test-d,bench}.{ts,tsx}"]
 	}
 }
