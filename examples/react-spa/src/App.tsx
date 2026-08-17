@@ -126,7 +126,7 @@ export const App = () => {
 	return (
 		<BrowserRouter>
 			<main>
-				<h1>@veto — one policy, gated UI and routes</h1>
+				<h1>@vetojs — one policy, gated UI and routes</h1>
 
 				<AbilityProvider rules={initial.parsed.rules}>
 					<ActorSwitch />

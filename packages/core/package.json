@@ -8,9 +8,9 @@
 		"access-control",
 		"abac",
 		"rbac",
+		"rsc",
 		"casl-alternative",
-		"typescript",
-		"rsc"
+		"typescript"
 	],
 	"homepage": "https://github.com/ivan-yuldashev/veto#readme",
 	"bugs": "https://github.com/ivan-yuldashev/veto/issues",
@@ -50,5 +50,8 @@
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"typecheck": "tsc --noEmit"
+	},
+	"devDependencies": {
+		"tsup": "^8.5.1"
 	}
 }

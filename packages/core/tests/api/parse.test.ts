@@ -121,6 +121,29 @@ describe("parseRules", () => {
 			}
 		});
 
+		it("rejects a node carrying two shapes, which would silently drop one", () => {
+			expect(
+				parseRules([
+					{
+						effect: "allow",
+						action: "read",
+						resource: "post",
+						where: {
+							field: "views",
+							op: "gt",
+							value: 100,
+							and: [{ field: "id", op: "eq", value: "p1" }],
+						},
+					},
+				]),
+			).toEqual({
+				ok: false,
+				errors: [
+					"rules[0].where: a condition names and and field at once — a node carries exactly one shape",
+				],
+			});
+		});
+
 		it("rejects a where that is not a condition object at all", () => {
 			for (const where of ["garbage", 42, true, null, [], () => true]) {
 				expect(

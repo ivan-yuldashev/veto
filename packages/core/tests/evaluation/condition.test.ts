@@ -63,6 +63,32 @@ describe("evaluateCondition", () => {
 		it("evaluates empty 'or' array to false", () => {
 			expect(evaluateCondition({ or: [] }, createPost())).toBe(false);
 		});
+
+		const unreadable: ConditionNode<Post> = {
+			field: "authorId",
+			op: "eq",
+			value: "u1",
+		};
+		const decidedFalse: ConditionNode<Post> = {
+			field: "status",
+			op: "eq",
+			value: "draft",
+		};
+		const confused = createPost({ authorId: ["u1"] as unknown as string });
+
+		it("keeps an unknown from overriding an already decided false in and", () => {
+			expect(evaluateCondition(unreadable, confused)).toBeUndefined();
+			expect(
+				evaluateCondition({ and: [decidedFalse, unreadable] }, confused),
+			).toBe(false);
+			expect(
+				evaluateCondition({ and: [unreadable, decidedFalse] }, confused),
+			).toBe(false);
+		});
+
+		it("keeps an unknown unknown under not", () => {
+			expect(evaluateCondition({ not: unreadable }, confused)).toBeUndefined();
+		});
 	});
 
 	describe("field node (additional cases)", () => {
@@ -192,6 +218,15 @@ describe("evaluateCondition", () => {
 				expect(() => evaluateCondition(node, createPost())).toThrow(
 					RelationNotLoadedError,
 				);
+			});
+
+			it("throws even when an earlier sibling already decided the and", () => {
+				expect(() =>
+					evaluateCondition(
+						{ and: [{ field: "status", op: "eq", value: "draft" }, node] },
+						createPost(),
+					),
+				).toThrow(RelationNotLoadedError);
 			});
 
 			it("carries the relation name on RelationNotLoadedError for audit", () => {

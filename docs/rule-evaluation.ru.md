@@ -29,8 +29,8 @@ const rules = [
 	deny("update", "post", { where: { status: "published" } }),
 ];
 
-ability.can("update", "post", { status: "draft" });     // true
-ability.can("update", "post", { status: "published" }); // false — запрет сильнее
+ability.can("update", "post", { ...post, status: "draft" });     // true
+ability.can("update", "post", { ...post, status: "published" }); // false — запрет сильнее
 ```
 
 ## Когда данные не сходятся с правилом

@@ -9,6 +9,7 @@
 		"nextjs",
 		"server-actions",
 		"rsc",
+		"casl-alternative",
 		"typescript"
 	],
 	"homepage": "https://github.com/ivan-yuldashev/veto/tree/main/packages/next#readme",

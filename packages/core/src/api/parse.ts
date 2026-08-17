@@ -15,6 +15,7 @@ import type { RuleParseResult, UnknownRule } from "./parse.types.js";
 import type { Vocabulary } from "./vocabulary.types.js";
 
 const MAX_CONDITION_DEPTH = 64;
+const CONDITION_SHAPES = ["and", "or", "not", "relation", "field"] as const;
 
 const isStringArray = (value: unknown): value is string[] => {
 	return (
@@ -135,6 +136,15 @@ const validateCondition = (
 
 	if (!isPlainObject(node)) {
 		errors.push(`${path}: expected a condition object`);
+		return;
+	}
+
+	const shapes = CONDITION_SHAPES.filter((key) => key in node);
+
+	if (shapes.length > 1) {
+		errors.push(
+			`${path}: a condition names ${shapes.join(" and ")} at once — a node carries exactly one shape`,
+		);
 		return;
 	}
 

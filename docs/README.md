@@ -4,7 +4,7 @@
 
 One page per concept, each describing how the shipped code actually behaves. Start with the [project README](../README.md) if you haven't met the library yet.
 
-> The source carries no comments by project convention — the reasoning lives here instead. Every page ends with a "why it works this way" section.
+> The source carries no comments by project convention — the reasoning lives here instead. Every concept page ends with a "why it works this way" section.
 
 ## Generating code with an assistant
 
@@ -25,7 +25,7 @@ One page per concept, each describing how the shipped code actually behaves. Sta
 
 - **[Conditions](./conditions.md)** — the tree behind `where`, and what "unknown" means.
 - **[Field shorthand](./condition-shorthand.md)** — how `{ views: { gt: 100 } }` is written and stored.
-- **[Operators](./operators.md)** — all ten, including the edge cases that matter for safety.
+- **[Operators](./operators.md)** — all thirteen, including the edge cases that matter for safety.
 - **[Relations](./relations.md)** — conditions across related resources, and the loaded-relation contract.
 
 ## Enforcement

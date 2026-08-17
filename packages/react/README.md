@@ -2,17 +2,17 @@
 
 React bindings for [`@vetojs`](https://github.com/ivan-yuldashev/veto#readme) — **[English](README.md) · [Русский](README.ru.md)**.
 
-The same rules that guard your server decide what the user can reach in the UI.
+The idea behind this package is simple: the very same rules that reliably guard your server decide which interface elements the user can reach on the client.
 
 ```sh
-npm add @vetojs/react @vetojs/core
+npm install @vetojs/react @vetojs/core
 ```
 
-React 18 or newer.
+React 18 or newer is required.
 
-## Create the bindings once
+## Create the strict bindings once
 
-`createVetoContext(ac)` closes over your resource schema and returns bindings that know it:
+`createVetoContext(ac)` closes over your resource schema and generates a set of React bindings that "know" all your resources and their particulars:
 
 ```ts
 // src/authz.ts
@@ -23,11 +23,11 @@ export const { AbilityProvider, useAbility, useCan, useSetRules, Can } =
 	createVetoContext(ac);
 ```
 
-A factory rather than a plain import, because typed bindings need your `ac` — and the payoff is that `<Can>` autocompletes actions per resource and rejects the ones that don't exist.
+Why a factory rather than an ordinary import? Strictly typed bindings need your `ac` object (the access schema). Thanks to it, `<Can>` autocompletes the actions available for each specific resource and, at compile time, rejects the ones that don't exist.
 
-## On the server, skip all of it
+## On the server (RSC) you don't need the context
 
-A server component already has an ability, so it needs no provider, no context and no client boundary:
+In a server component the `ability` object is already at hand, so you need neither a provider, nor a context, nor a client boundary:
 
 ```tsx
 import { Can } from "@vetojs/react/server";
@@ -39,9 +39,11 @@ const ability = await getAbility();
 </Can>
 ```
 
-No directive, no hooks, no factory — the resource map is inferred from the ability you pass. Both branches are decided while rendering, so neither reaches the browser.
+The server version carries no directives, no hooks and no factory — the resource schema is derived straight from the `ability` you pass in. Both render branches (allowed and denied) are resolved on the server, so not a single line of extra code is sent to the browser.
 
-## Use them
+## Using it on the client
+
+First wrap your application tree in the provider once, ideally near the root:
 
 ```tsx
 <AbilityProvider rules={rules}>
@@ -49,7 +51,9 @@ No directive, no hooks, no factory — the resource map is inferred from the abi
 </AbilityProvider>
 ```
 
-`rules` is the plain array from `ability.rules` — exactly what the server sends. Pass a prebuilt `ability` instead if you already have one; the two props are mutually exclusive.
+The `rules` prop takes the array of rules from `ability.rules` — exactly the flat data the server sent. If you already have an `ability` object on the client, you can pass that instead of the rules (but passing both at once is not allowed).
+
+### Declarative UI gating
 
 ```tsx
 <Can I="update" a="post" this={post} fallback={<DisabledButton />}>
@@ -57,7 +61,9 @@ No directive, no hooks, no factory — the resource map is inferred from the abi
 </Can>
 ```
 
-Reads as a sentence: *I* may **update** *a* **post**, this one. Drop `this` when there is no row yet — for a "New post" button the question is whether the action is possible at all.
+The code reads as a plain English sentence: *"I may update this particular post."* When the row itself doesn't exist yet — a "create" button, say — simply drop the `this` prop, and the engine will check whether the action is possible at all.
+
+### Hooks for logic
 
 ```tsx
 const ability = useAbility();
@@ -66,17 +72,19 @@ const visible = posts.filter((post) => ability.can("read", "post", post));
 const writable = ability.permittedFields("update", "post", ["title", "status"]);
 ```
 
-`useAbility` returns the full ability, so every check is available. Called outside a provider it throws rather than silently behaving as if nothing is permitted.
+`useAbility` returns the whole `ability` object, opening up every check there is. One important detail: called outside `AbilityProvider`, it won't pretend that "everything is forbidden" — it throws a clear error immediately.
 
-For a single yes-or-no, `useCan` subscribes to that one verdict and re-renders only when it flips — on a list of 50 gated rows where one verdict changes, `useAbility` wakes all 50 and `useCan` wakes 1. `<Can>` uses it internally.
+**Optimising renders with `useCan`:**
+
+When all you need is a yes-or-no answer, reach for `useCan` (the `<Can>` component uses it under the hood). It subscribes to that one verdict and re-renders the component only when the verdict flips. If you have a list of 50 gated rows on screen and the verdict changes for just one of them, `useAbility` forces all 50 elements to re-render, while `useCan` wakes up exactly the one row that matters.
 
 ```tsx
 const canEdit = useCan("update", "post", post);
 ```
 
-## Switching actors
+## Switching actors without extra renders
 
-Handing the provider new `rules` works, but the prop lives in an ancestor's state, so the switch re-renders that ancestor and everything under it. `useSetRules` writes straight to the store instead:
+You can of course pass new `rules` to the provider through props, but since that prop lives in an ancestor component's state, such a switch triggers a full re-render of the ancestor and of the whole tree beneath it. For a targeted update, use the `useSetRules` hook, which writes the data straight into the internal store:
 
 ```tsx
 const setRules = useSetRules();
@@ -86,16 +94,16 @@ const onSwitchActor = async (id: string) => {
 };
 ```
 
-Nothing above re-renders, and only the rows whose verdict moved update. Use the `rules` prop to seed from the server, `useSetRules` for changes without a new request.
+With this approach the components higher up the tree don't re-render, and only the rows whose verdict actually changed update. In short: the `rules` prop is for seeding the rules from the server initially, and `useSetRules` is for switching context dynamically without new heavy renders.
 
-## Hiding is not protecting
+## Hiding a button is not protecting the data
 
-A hidden button is a courtesy to the user, not a security boundary — the request it would have sent can still be made by hand. Every action still needs its check on the server. The value of sharing one array of rules is that both sides read the same source, so the UI can't drift out of step with what the server allows.
+Worth remembering: a hidden button in the interface is a courtesy to the user (UX), not real protection. The network request that button would have sent can still be sent by hand by an attacker. Every action still requires its own mandatory check on the server. The main value of `@vetojs/react` is that the server and the interface read one and the same array of rules — which guarantees the UI can never drift away from the permissions the server actually grants.
 
-## Documentation
+## What's next?
 
-- **[Full guide](https://github.com/ivan-yuldashev/veto/blob/main/docs/react.md)** — provider, `<Can>`, `useAbility`, and using it with React Server Components.
-- **[Project README](https://github.com/ivan-yuldashev/veto#readme)** — what `@vetojs` is and how the engine works.
+- **[Full guide](https://github.com/ivan-yuldashev/veto/blob/main/docs/react.md)** — an in-depth look at the provider, `<Can>`, `useAbility`, and the details of working with server components.
+- **[About the project](https://github.com/ivan-yuldashev/veto#readme)** — the general concept behind `@vetojs` and how its engine is built.
 
 ## License
 

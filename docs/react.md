@@ -5,7 +5,7 @@
 The same rules that guard your server decide what the user can reach in the UI. Rules travel to the client as flat data, and three bindings read them.
 
 ```sh
-npm add @vetojs/react @vetojs/core
+npm install @vetojs/react @vetojs/core
 ```
 
 React 18 or newer. `@vetojs/core` is a peer dependency, so your app resolves it once and the bindings share that copy.

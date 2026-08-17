@@ -1,118 +1,121 @@
 # @vetojs
 
-[English](README.md) | [Русский](README.ru.md)
+**[English](README.md) · [Русский](README.ru.md)**
 
-**Type-safe authorization with no classes and no hidden state.**
+**Type-safe authorization with no classes, no magic, and no hidden state.**
 
-A policy is a pure function that takes a user (and whatever else you need) and returns an array of rules — plain JSON. That array crosses the server/client boundary as-is. The same data checks access with full type inference and turns into a SQL `WHERE` for the database.
+A policy is a pure function. It takes a user (or any other context you need) and returns an array of rules as plain JSON. That array travels from server to client without ceremony. The same array is what checks permissions, with full type inference, and what turns elegantly into a safe `WHERE` clause for your database.
 
-- **Works with React Server Components.** Rules are flat data: ship them from server to client as-is.
-- **Compiles to SQL.** The same policy that answers `can()` becomes a `WHERE` clause, so the database returns exactly the rows the user may see.
-- **Safe on bad data.** A wrong-typed or missing value can only ever deny more, never grant.
-- **0 dependencies.**
+- **A perfect fit for React Server Components.** Rules are flat data you can hand to the client as-is.
+- **Compiles to SQL automatically.** The policy behind `can()` translates into a `WHERE` clause. The database returns exactly the rows the user is allowed to see.
+- **Safe on bad data.** A wrong-typed value or a missing field can narrow access, but will never widen it.
+- **4.1 kB gzipped.** That buys you validation of the rules arriving from the server, building an ability, and checking a row. If the rules are already trusted, the size drops to 2.9 kB. A check inside a server component costs a mere 98 bytes.
+- **0 dependencies.** There is exactly one thing to audit for security — the code that actually governs access.
+- **Runs anywhere JavaScript does.** No ties to Node built-ins, the filesystem, or dynamic evaluation. Workers, Deno, Bun and any edge runtime are supported natively.
 
 ```sh
-npm add @vetojs/core
+npm install @vetojs/core
 ```
 
-## In three steps
+## How it works: three simple steps
 
 ```ts
 import { defineAbilities, type, createRules, buildAbility } from "@vetojs/core";
 
 // 1. Declare your resource schema once.
 const ac = defineAbilities({
-  resources: {
-    post: {
-      schema: type<{ id: string; authorId: string; status: "draft" | "published" }>(),
-      actions: ["read", "update", "publish"],
-      relations: { author: { resource: "user", kind: "one" } },
-    },
-    user: { schema: type<{ id: string; role: string }>(), actions: ["read"] },
-  },
+	resources: {
+		post: {
+			schema: type<{ id: string; authorId: string; status: "draft" | "published" }>(),
+			actions: ["read", "update", "publish"],
+			relations: { author: { resource: "user", kind: "one" } },
+		},
+		user: { schema: type<{ id: string; role: string }>(), actions: ["read"] },
+	},
 });
 
-// 2. A policy is a function returning an array of rules.
+// 2. A policy is a function that returns an array of rules.
 const { allow, deny } = createRules(ac);
 
 const policyFor = (user: { id: string }) => [
-  allow("read", "post", { where: { status: "published" } }),
-  allow(["update", "publish"], "post", { where: { authorId: user.id } }),
+	allow("read", "post", { where: { status: "published" } }),
+	allow(["update", "publish"], "post", { where: { authorId: user.id } }),
 ];
 
-// 3. Hand the rules to the engine and check access.
+// 3. Hand the rules to the engine — and check access.
 const ability = buildAbility(ac, policyFor(currentUser));
 
 ability.can("update", "post", post);  // ✓ typed against your schema
 ability.can("delete", "post");        // ✗ compile error — "post" has no "delete"
 ```
 
-Typos don't reach production: an action, resource, field or operator that doesn't fit your declarations fails to compile.
+Typos no longer reach production: if an action, resource, field or operator doesn't match your types, the code simply won't compile.
 
 ## Why not CASL?
 
-CASL is the incumbent, and a good library. It is also older than React Server Components, and an ability there is a class instance — which is where the differences start. Checked against `@casl/ability@7.0.1`.
+CASL is an excellent tool and the acknowledged incumbent. But it was built before the era of React Server Components, and class instances sit at its foundation — which is where our architectures part ways. The comparison holds for `@casl/ability@7.0.1`.
 
 | | CASL | @vetojs |
 |---|---|---|
-| **Server → client** | an ability is a `PureAbility` instance, and RSC refuses it: *"Only plain objects… Classes or null prototypes are not supported"* ([#999](https://github.com/stalniy/casl/issues/999)) | `ability.rules` is plain JSON; the client rebuilds from it |
-| **Tagging an instance** | `subject("Post", post)` **mutates** `post`, and the tag it adds is non-enumerable — so `JSON.stringify` drops it and the type is lost silently | `can("update", "post", post)` — the resource name is an argument, nothing is wrapped or mutated |
-| **Types** | actions do narrow per subject, but you hand-write the union: `MongoAbility<["create" \| "manage", "campaign"] \| ["create" \| "delete", "user"]>`, and the shapes too | actions, resources and shapes all inferred from one `defineAbilities` declaration |
-| **Database queries** | `accessibleBy`, through an adapter per ORM — SQL has been [open since 2017](https://github.com/stalniy/casl/issues/8), and a new ORM major means waiting for a new adapter release | `ability.where()` returns a plain condition tree you can walk yourself; `@vetojs/drizzle` turns it into SQL, with a tested guarantee that the query returns exactly what `can()` allows |
+| **Server → client** | An ability is a `PureAbility` instance, and RSC refuses to pass it through: *"Only plain objects… Classes or null prototypes are not supported"* ([#999](https://github.com/stalniy/casl/issues/999)). | `ability.rules` is plain JSON. The client rebuilds the ability from it with ease. |
+| **Tagging an instance** | `subject("Post", post)` **mutates** `post` itself, adding a non-enumerable tag. `JSON.stringify` therefore drops it, and the type is lost silently. | `can("update", "post", post)` takes the resource name as a plain argument. No wrappers, no mutated data. |
+| **Types** | Actions do narrow per resource, but the unions are often hand-written (for example: `MongoAbility<["create" \| "manage", "campaign"] \| ["create" \| "delete", "user"]>`). | Actions, resources and shapes are all inferred automatically from one `defineAbilities` declaration. |
+| **Database queries** | `accessibleBy` needs a separate adapter per ORM. SQL support has been [open since 2017](https://github.com/stalniy/casl/issues/8), and each new ORM major means waiting for an adapter release. | `ability.where()` returns a standard condition tree that is easy to walk yourself. `@vetojs/drizzle` turns it straight into SQL, with a guarantee: the query returns exactly what `can()` allows. |
 | **Dependencies** | 4 | 0 |
-| **Bad data** | `views: "100"` satisfies `$gt: 50`, and a `deny` on `secret: true` does not fire for `secret: "true"` | a value that doesn't fit its condition is "unknown": an `allow` grants nothing and a `deny` still fires |
+| **Bundle size** | ~7.0 kB for the whole package (6.3 kB gzip to build and check). Code you never use ships anyway — `$elemMatch`, for instance, even if your policy never touches it. | 4.1 kB gzip for the same check with the incoming rules validated. 2.9 kB without validation. The whole package is 4.9 kB. |
+| **Bad data** | `$gt: 50` can let a `views: "100"` row through, and a `deny` on `secret: true` won't fire for `secret: "true"`. | A value that doesn't fit its condition is strictly "unknown". An `allow` won't fire, and a `deny` will fire reliably. |
 
-Coming from CASL? [Migrating from CASL](docs/migrate-from-casl.md) maps the API across, names the operators that have no equivalent, and covers the two behaviour differences that change what your policy does.
+Coming from CASL? [Migrating from CASL](docs/migrate-from-casl.md) maps the API across in detail, names the operators that have no equivalent, and covers the two behaviour differences that can change what your policy does.
 
-## Packages
+## The package ecosystem
 
 | Package | Status | What it does |
 |---|---|---|
-| [`@vetojs/core`](packages/core) | ✅ Ready | The engine: rules, evaluation, operators, query compilation. Zero dependencies. |
-| [`@vetojs/react`](packages/react) | ✅ Ready | [`<Can>`, `useAbility`, `AbilityProvider`](docs/react.md) — the same rules decide what the user can reach in the UI. |
-| [`@vetojs/next`](packages/next) | ✅ Ready | [`createGuard`](docs/next.md) — one wrapper resolves the actor, loads the row, checks it and validates the payload before your server action runs. |
+| [`@vetojs/core`](packages/core) | ✅ Ready | The core: rules, evaluation, operators, and building conditions for queries. No dependencies. |
+| [`@vetojs/react`](packages/react) | ✅ Ready | [`<Can>`, `useAbility`, `AbilityProvider`](docs/react.md) — the same rules decide which UI elements are available. |
+| [`@vetojs/next`](packages/next) | ✅ Ready | [`createGuard`](docs/next.md) — one wrapper for server actions: works out the user, loads the row, validates the payload, and only then lets the action run. |
 | `@vetojs/drizzle` | 🚧 In progress | Conditions → SQL `WHERE` (Postgres), relations → `EXISTS`. |
-| `@vetojs/prisma` · `@vetojs/kysely` | 🔜 Planned | Further adapters and dialects. |
+| `@vetojs/prisma` · `@vetojs/kysely` | 🔜 Planned | Support for further ORM adapters and dialects. |
 
-## One set of rules, every layer
+## One source of truth, from the database to the client
 
-Fetch only the rows the user may see — the evaluated rules become a `WHERE` clause:
+At the database level we ask only for what the user is permitted to see: the rules convert automatically into a `WHERE` clause.
 
 ```ts
 const rows = await db.select().from(posts)
-  .where(schema.filter(ability, "read", "post"));
+	.where(schema.filter(ability, "read", "post"));
 ```
 
-Guard a server component, then hand the same rules to the client as data:
+On the server — inside a server component — we check access to a specific row and safely hand the rules to the client as flat data:
 
 ```tsx
 const ability = buildAbility(ac, policyFor(user));
 if (!ability.can("read", "post", post)) notFound();
 
 return (
-  <AbilityProvider rules={ability.rules}>
-    <Toolbar post={post} />
-  </AbilityProvider>
+	<AbilityProvider rules={ability.rules}>
+		<Toolbar post={post} />
+	</AbilityProvider>
 );
 ```
 
-Gate the UI with the very same rules:
+On the client those very same rules drive the interface, hiding or showing the controls:
 
 ```tsx
 "use client";
 
 <Can I="update" a="post" this={post} fallback={<DisabledButton />}>
-  <EditButton />
+	<EditButton />
 </Can>
 ```
 
-Client and server read the same array of rules, so they can't drift apart.
+Server and client both rely on one and the same array of JSON rules, so the access logic simply cannot drift apart.
 
-## Learn more
+## What's next
 
-- **[Documentation](docs/README.md)** — a page per concept, from declaring resources to filtering in SQL.
-- **[For agents](docs/for-agents.md)** — the whole API in one page, for coding assistants (see also [llms.txt](llms.txt)).
-- **Examples** — runnable demos over one multi-tenant domain ship alongside the adapters.
+- **[Documentation](docs/README.md)** — a detailed page per concept: from declaring resources to SQL filtering.
+- **[For agents](docs/for-agents.md)** — the whole API on one page, sized to fit an AI assistant's context (plus the [llms.txt](llms.txt) file).
+- **Examples** — full runnable demos on a multi-tenant architecture are coming, alongside the ORM adapter releases.
 
 ## Development
 

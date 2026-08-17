@@ -29,11 +29,53 @@ At runtime this returns the `resources` object unchanged — it is a typed ident
 
 | Field | Meaning |
 |---|---|
-| `schema` | the row's own fields. `type<T>()` is a zero-runtime marker that only carries the type; pass a real [Standard Schema](https://standardschema.dev) (Zod, Valibot, ArkType) instead if you also want runtime validation |
+| `schema` | the row's own fields. `type<T>()` is a zero-runtime marker that only carries the type; pass a real [Standard Schema](https://standardschema.dev) instead if you also want runtime validation — [see below](#swapping-typet-for-a-real-schema) |
 | `actions` | what can be done to this resource, captured as literals |
 | `relations` | named links to other resources — `{ resource, kind }`, where `kind` is `"one"` or `"many"` |
 
 Relation **names** are yours to choose; the **target** must be a resource you declared. Names live in their own namespace, separate from schema fields — the same split your ORM makes between columns and `include`/`with`.
+
+## Swapping `type<T>()` for a real schema
+
+`type<T>()` is erased at build time — it carries the shape into the type system and checks nothing at runtime. Pass a [Standard Schema](https://standardschema.dev) instead and the same declaration also validates incoming data:
+
+```ts
+import { z } from "zod";
+
+const post = z.object({
+	id: z.string(),
+	authorId: z.string(),
+	status: z.enum(["draft", "published"]),
+	views: z.number(),
+});
+
+const ac = defineAbilities({
+	resources: { post: { schema: post, actions: ["read", "update"] } },
+});
+```
+
+`ShapeOf<AC, "post">` is now inferred from the schema, so nothing is declared twice, and `ability.validate` starts doing real work:
+
+```ts
+ability.validate("post", { id: "p1", authorId: "u1", status: "published", views: 10 });
+// → { ok: true, value: … }
+
+ability.validate("post", { id: 1, status: "archived" });
+// → { ok: false, issues: […] }
+```
+
+That is the other half of handling untrusted input, and the two halves answer different questions:
+
+| | Question |
+|---|---|
+| `validate` | is this even a valid post? |
+| `validatePayload` | may this actor write these fields and values? — see [writes](./mutations.md) |
+
+Running only one of them is the common mistake. A payload can be perfectly shaped and still touch a field the actor may not write; it can also be permitted by the policy and still be nonsense.
+
+> **The schema must validate synchronously.** Verified against Standard Schema v1: **Zod, Valibot and ArkType** work. **Yup does not** — it implements the standard, but its validation is async, and `validate` throws rather than return a promise you might forget to await.
+
+Nothing else changes. Rules, evaluation and `can()` never consult the schema — the engine reads fields structurally and is total on any input, so a schema only ever adds a check at the boundary.
 
 ## What you get back
 
