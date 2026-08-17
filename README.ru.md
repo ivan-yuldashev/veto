@@ -74,7 +74,7 @@ CASL — это отличный инструмент и признанный л
 | [`@vetojs/core`](packages/core) | ✅ Готов | Ядро: правила, вычисление, операторы и сборка условий для запросов. Без зависимостей. |
 | [`@vetojs/react`](packages/react) | ✅ Готов | [`<Can>`, `useAbility`, `AbilityProvider`](docs/react.ru.md) — те же правила определяют доступность UI-элементов. |
 | [`@vetojs/next`](packages/next) | ✅ Готов | [`createGuard`](docs/next.ru.md) — единая обёртка для server actions: узнаёт пользователя, загружает строку, валидирует данные и только потом разрешает действие. |
-| `@vetojs/drizzle` | 🚧 В работе | Условия → SQL `WHERE` (Postgres), связи → `EXISTS`. |
+| [`@vetojs/drizzle`](packages/drizzle) | ✅ Готов | [Условия → SQL `WHERE`](docs/drizzle.ru.md), связи → `EXISTS`. Пока Postgres. |
 | `@vetojs/prisma` · `@vetojs/kysely` | 🔜 В планах | Поддержка других ORM-адаптеров и диалектов. |
 
 ## Единый источник правды от БД до клиента
@@ -115,7 +115,7 @@ return (
 
 - **[Документация](docs/README.ru.md)** — подробные статьи по каждому концепту: от объявления ресурсов до SQL-фильтрации.
 - **[Для агентов](docs/for-agents.ru.md)** — весь API собран на одной странице для удобства контекста ИИ-ассистентов (плюс файл [llms.txt](llms.txt)).
-- **Примеры** — скоро появятся полноценные рабочие демо на базе мультитенантной архитектуры (вместе с релизом ORM-адаптеров).
+- **Примеры** — три рабочих демо на одной мультитенантной модели: [react-spa](examples/react-spa) (правила уезжают на клиент), [next-app](examples/next-app) (RSC, server actions, фильтрация в SQL) и [drizzle-pg](examples/drizzle-pg) (`can()` и `WHERE` сверяются построчно).
 
 ## Разработка
 

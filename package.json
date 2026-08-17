@@ -14,6 +14,7 @@
 		"demo:react": "pnpm --filter \"@vetojs-examples/react-spa^...\" run build && pnpm --filter @vetojs-examples/react-spa dev",
 		"demo:react:build": "pnpm --filter \"@vetojs-examples/react-spa...\" run build",
 		"demo:next": "pnpm --filter \"@vetojs-examples/next-app^...\" run build && pnpm --filter @vetojs-examples/next-app dev",
+		"demo:next:build": "pnpm --filter \"@vetojs-examples/next-app...\" run build",
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"test:coverage": "vitest run --coverage",

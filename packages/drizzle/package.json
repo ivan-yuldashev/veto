@@ -1,0 +1,59 @@
+{
+	"name": "@vetojs/drizzle",
+	"version": "0.0.3",
+	"description": "Drizzle ORM adapter for @vetojs — compiles rule conditions into SQL WHERE with engine-faithful fail-closed semantics.",
+	"keywords": [
+		"authorization",
+		"permissions",
+		"access-control",
+		"drizzle",
+		"drizzle-orm",
+		"sql",
+		"casl-alternative",
+		"typescript"
+	],
+	"homepage": "https://github.com/ivan-yuldashev/vetojs/tree/main/packages/drizzle#readme",
+	"bugs": "https://github.com/ivan-yuldashev/vetojs/issues",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/ivan-yuldashev/vetojs.git",
+		"directory": "packages/drizzle"
+	},
+	"license": "MIT",
+	"author": "Ivan Yuldashev <geekk@ya.ru>",
+	"type": "module",
+	"sideEffects": false,
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"types": "./dist/index.d.ts",
+	"files": [
+		"dist"
+	],
+	"engines": {
+		"node": ">=20"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"scripts": {
+		"build": "tsup",
+		"prepack": "pnpm build",
+		"dev": "tsup --watch",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"typecheck": "tsc --noEmit"
+	},
+	"peerDependencies": {
+		"@vetojs/core": ">=0.4.0 <1",
+		"drizzle-orm": ">=0.36.0"
+	},
+	"devDependencies": {
+		"@electric-sql/pglite": "^0.3.0",
+		"@vetojs/core": "workspace:^",
+		"drizzle-orm": "^0.44.0"
+	}
+}

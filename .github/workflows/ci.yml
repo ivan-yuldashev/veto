@@ -22,6 +22,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       - run: pnpm demo:react:build
+      - run: pnpm demo:next:build
       - run: pnpm check
       - run: pnpm typecheck
       - run: pnpm test
@@ -60,6 +61,8 @@ jobs:
       - run: npx --yes publint packages/core
       - run: npx --yes publint packages/react
       - run: npx --yes publint packages/next
+      - run: npx --yes publint packages/drizzle
       - run: npx --yes @arethetypeswrong/cli --pack packages/core --profile esm-only
       - run: npx --yes @arethetypeswrong/cli --pack packages/react --profile esm-only
       - run: npx --yes @arethetypeswrong/cli --pack packages/next --profile esm-only
+      - run: npx --yes @arethetypeswrong/cli --pack packages/drizzle --profile esm-only

@@ -1,0 +1,50 @@
+body {
+	font-family: system-ui, sans-serif;
+	margin: 2rem auto;
+	max-width: 720px;
+	color: #1a1a1a;
+}
+h1 {
+	font-size: 1.3rem;
+}
+h2 {
+	font-size: 1rem;
+	margin-top: 1.5rem;
+}
+.actor-switch button {
+	margin-right: 0.5rem;
+	padding: 0.3rem 0.9rem;
+	cursor: pointer;
+}
+.actor-switch button[data-active="true"] {
+	background: #1a1a1a;
+	color: #fff;
+}
+.card {
+	border: 1px solid #ddd;
+	border-radius: 8px;
+	padding: 0.8rem 1rem;
+	margin: 0.6rem 0;
+}
+.card header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 1rem;
+}
+.badge {
+	font-size: 0.75rem;
+	padding: 0.1rem 0.5rem;
+	border-radius: 999px;
+	background: #eee;
+}
+.badge[data-status="published"] {
+	background: #d9f2e3;
+}
+.muted {
+	color: #777;
+	font-size: 0.85rem;
+}
+button:disabled {
+	opacity: 0.45;
+}

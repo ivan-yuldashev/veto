@@ -74,7 +74,7 @@ Coming from CASL? [Migrating from CASL](docs/migrate-from-casl.md) maps the API 
 | [`@vetojs/core`](packages/core) | ✅ Ready | The core: rules, evaluation, operators, and building conditions for queries. No dependencies. |
 | [`@vetojs/react`](packages/react) | ✅ Ready | [`<Can>`, `useAbility`, `AbilityProvider`](docs/react.md) — the same rules decide which UI elements are available. |
 | [`@vetojs/next`](packages/next) | ✅ Ready | [`createGuard`](docs/next.md) — one wrapper for server actions: works out the user, loads the row, validates the payload, and only then lets the action run. |
-| `@vetojs/drizzle` | 🚧 In progress | Conditions → SQL `WHERE` (Postgres), relations → `EXISTS`. |
+| [`@vetojs/drizzle`](packages/drizzle) | ✅ Ready | [Conditions → SQL `WHERE`](docs/drizzle.md), relations → `EXISTS`. Postgres for now. |
 | `@vetojs/prisma` · `@vetojs/kysely` | 🔜 Planned | Support for further ORM adapters and dialects. |
 
 ## One source of truth, from the database to the client
@@ -115,7 +115,7 @@ Server and client both rely on one and the same array of JSON rules, so the acce
 
 - **[Documentation](docs/README.md)** — a detailed page per concept: from declaring resources to SQL filtering.
 - **[For agents](docs/for-agents.md)** — the whole API on one page, sized to fit an AI assistant's context (plus the [llms.txt](llms.txt) file).
-- **Examples** — full runnable demos on a multi-tenant architecture are coming, alongside the ORM adapter releases.
+- **Examples** — three runnable demos over one multi-tenant domain: [react-spa](examples/react-spa) (rules crossing to the client), [next-app](examples/next-app) (RSC, server actions, SQL filtering) and [drizzle-pg](examples/drizzle-pg) (`can()` and `WHERE` compared row by row).
 
 ## Development
 

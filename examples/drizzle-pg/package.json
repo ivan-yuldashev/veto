@@ -1,0 +1,23 @@
+{
+	"name": "@vetojs-examples/drizzle-pg",
+	"version": "0.0.4",
+	"private": true,
+	"description": "CLI demo: one policy, two enforcement paths — can() vs SQL WHERE, side by side.",
+	"type": "module",
+	"scripts": {
+		"start": "tsx src/main.ts",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@vetojs-examples/shared": "workspace:*",
+		"@vetojs/core": "workspace:*",
+		"@vetojs/drizzle": "workspace:*",
+		"@electric-sql/pglite": "^0.3.0",
+		"drizzle-orm": "^0.44.0",
+		"pg": "^8.16.0"
+	},
+	"devDependencies": {
+		"@types/pg": "^8.15.0",
+		"tsx": "^4.20.0"
+	}
+}

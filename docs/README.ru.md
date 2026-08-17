@@ -39,5 +39,4 @@
 
 - **[`@vetojs/react`](./react.ru.md)** — `<Can>`, `useAbility`, `AbilityProvider`: те же правила в интерфейсе.
 - **[`@vetojs/next`](./next.ru.md)** — `createGuard`: пользователь, строка и данные проверены до того, как отработает server action.
-
-Адаптер Drizzle, который превратит `ability.where()` в SQL, ещё в работе — документация выйдет вместе с пакетом.
+- **[`@vetojs/drizzle`](./drizzle.ru.md)** — `defineTables` и `filter`: политика как SQL `WHERE`, сверенная построчно с настоящим Postgres.

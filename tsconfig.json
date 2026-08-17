@@ -11,8 +11,7 @@
 		"vitest.alias.ts",
 		"vitest.config.ts",
 		"packages/**/*.ts",
-		"packages/**/*.tsx",
-		"internal/packages/**/*.ts"
+		"packages/**/*.tsx"
 	],
 	"exclude": ["node_modules", "**/dist", "**/type-bench"]
 }

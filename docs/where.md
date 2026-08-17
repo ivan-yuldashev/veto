@@ -8,7 +8,7 @@ Checking rows one by one only works once you have them. For a list you want the 
 const filter = ability.where("read", "post");
 ```
 
-The result is a plain condition tree, the same shape rules already use. A database adapter turns it into a real `WHERE` — with the Drizzle adapter that's one call:
+The result is a plain condition tree, the same shape rules already use. A database adapter turns it into a real `WHERE` — with the [Drizzle adapter](./drizzle.md) that's one call:
 
 ```ts
 const rows = await db.select().from(posts)

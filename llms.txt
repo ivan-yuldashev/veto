@@ -2,7 +2,7 @@
 
 > Type-safe authorization for TypeScript with no classes and no hidden state. A policy is a pure function of the user returning an array of rules — plain JSON. Rules cross the server/client boundary untouched, compile to a SQL `WHERE`, and fail closed on malformed data. The engine has no runtime dependencies.
 
-Install `@vetojs/core` for the engine; add `@vetojs/react` for `<Can>` / `useAbility` bindings. ESM only, Node 20+.
+Install `@vetojs/core` for the engine; add `@vetojs/react` for `<Can>` / `useAbility` bindings, `@vetojs/next` to guard a server action, or `@vetojs/drizzle` to filter a query in SQL. ESM only, Node 20+.
 
 The one page to read if you are generating code that uses this library is [For agents](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/for-agents.md) — it carries the whole API surface plus the mistakes that look plausible but are wrong.
 
@@ -40,6 +40,7 @@ The one page to read if you are generating code that uses this library is [For a
 ## In an app
 
 - [React](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/react.md): `createVetoContext(ac)` → `AbilityProvider`, `<Can>`, `useCan`, `useSetRules`; `@vetojs/react/server` gates a server component with no client boundary.
+- [Drizzle](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/drizzle.md): `defineTables` → `filter` — the policy as a SQL `WHERE` that returns exactly the rows `can()` allows. Postgres.
 
 ## Optional
 

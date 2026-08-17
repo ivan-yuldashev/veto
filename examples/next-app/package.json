@@ -1,0 +1,30 @@
+{
+	"name": "@vetojs-examples/next-app",
+	"version": "0.0.5",
+	"private": true,
+	"description": "Flagship demo: RSC can() with server <Can>, withPermission server actions, drizzle+PGlite data layer.",
+	"type": "module",
+	"scripts": {
+		"dev": "next dev",
+		"build": "next build",
+		"start": "next start",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@vetojs-examples/shared": "workspace:*",
+		"@vetojs/core": "workspace:*",
+		"@vetojs/drizzle": "workspace:*",
+		"@vetojs/next": "workspace:*",
+		"@vetojs/react": "workspace:*",
+		"@electric-sql/pglite": "^0.3.0",
+		"drizzle-orm": "^0.44.0",
+		"next": "^15.1.0",
+		"react": "^19.0.0",
+		"react-dom": "^19.0.0"
+	},
+	"devDependencies": {
+		"@types/node": "^26.0.0",
+		"@types/react": "^19.0.0",
+		"@types/react-dom": "^19.0.0"
+	}
+}

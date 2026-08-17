@@ -39,5 +39,4 @@ One page per concept, each describing how the shipped code actually behaves. Sta
 
 - **[`@vetojs/react`](./react.md)** — `<Can>`, `useAbility`, `AbilityProvider`: the same rules in the UI.
 - **[`@vetojs/next`](./next.md)** — `createGuard`: the actor, the row and the payload checked before a server action runs.
-
-A Drizzle adapter turning `ability.where()` into SQL is in progress; its docs land with the package.
+- **[`@vetojs/drizzle`](./drizzle.md)** — `defineTables` and `filter`: the policy as a SQL `WHERE`, verified row by row against real Postgres.
