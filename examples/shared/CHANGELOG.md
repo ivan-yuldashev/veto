@@ -1,5 +1,13 @@
 # @vetojs-examples/shared
 
+## 0.0.6
+
+### Patch Changes
+
+- Updated dependencies [7e4bcc3]
+- Updated dependencies [bad0f7f]
+  - @vetojs/core@0.6.0
+
 ## 0.0.5
 
 ### Patch Changes

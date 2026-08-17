@@ -1,5 +1,40 @@
 # @vetojs/core
 
+## 0.6.0
+
+### Minor Changes
+
+- 7e4bcc3: **`parseRules` rejects a node that carries more than one shape.** Such a node used to pass the gate, and every reader then answered the first shape it recognised and silently discarded the rest.
+
+  ```ts
+  where: {
+  	field: "views",
+  	op: "gt",
+  	value: 100,
+  	and: [{ field: "id", op: "eq", value: "p1" }],
+  }
+  ```
+
+  The engine looks for `and` first, so `views > 100` was never evaluated. In an `allow` that grants more than the rule says: a row with `views: 5` passed.
+
+  A rule's `payload.constraints` had the same hole. The mutation gate collects the `and` group and drops the field constraint beside it, so `validatePayload` accepted `status: "published"` under a rule permitting only `"draft"`.
+
+  Neither needed a cast — a policy loaded from a database or an admin UI reached both through the ordinary path. Rules built with `createRules` were never affected: sibling keys in the shorthand compile into a proper `and` group. If your stored JSON contains such a node, `parseRules` now returns `ok: false` naming both shapes, and the fix is to nest the field condition inside the group where it was meant to be.
+
+### Patch Changes
+
+- bad0f7f: **An operator the engine does not recognise now answers `undefined` instead of `false`.** `false` read the same in both effects: an `allow` granted nothing, but a `deny` also did nothing — so an unrecognised operator inside a `deny` handed back a row the rule was written to hide.
+
+  ```ts
+  deny("read", "post", {
+    where: { field: "secret", op: "bogus", value: true },
+  });
+  ```
+
+  The row used to pass. It is now hidden, matching how the engine already answers a relation quantifier it does not recognise: unknown grants nothing and denies everything it touches.
+
+  `parseRules` rejects an unrecognised operator, so this only reaches the engine when rules are cast past the gate — the same reach as the quantifier fix in 0.5.1, and the same patch-sized blast radius.
+
 ## 0.5.1
 
 ### Patch Changes
