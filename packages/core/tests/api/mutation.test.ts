@@ -200,6 +200,63 @@ describe("validatePayload — fields", () => {
 });
 
 describe("validatePayload — rule intersections & complex constraints", () => {
+	it("a constrained field is not freed by an allow that names other fields", () => {
+		const rules: Rule<Post>[] = [
+			{
+				effect: "allow",
+				action: "update",
+				resource: "post",
+				payload: { fields: ["title"] },
+			},
+			{
+				effect: "allow",
+				action: "update",
+				resource: "post",
+				payload: {
+					fields: ["status"],
+					constraints: { field: "status", op: "in", value: ["draft"] },
+				},
+			},
+		];
+
+		expect(
+			validatePayload(rules, "update", "post", row, { status: "published" }),
+		).toEqual({
+			ok: false,
+			violations: [{ field: "status", reason: "value not permitted" }],
+		});
+
+		expect(
+			validatePayload(rules, "update", "post", row, { status: "draft" }).ok,
+		).toBe(true);
+	});
+
+	it("a constraint whose field is not a string is unreadable, so it grants nothing", () => {
+		const rules: Rule<Post>[] = [
+			{
+				effect: "allow",
+				action: "update",
+				resource: "post",
+				payload: {
+					fields: ["status"],
+					constraints: {
+						field: 42,
+						op: "eq",
+						value: "published",
+					} as unknown as Rule<Post>["payload"] extends infer P
+						? P extends { constraints?: infer C }
+							? C
+							: never
+						: never,
+				},
+			},
+		];
+
+		expect(
+			validatePayload(rules, "update", "post", row, { status: "published" }).ok,
+		).toBe(false);
+	});
+
 	it("allows values when multiple rules permit different values for the same field (Logical OR across rules)", () => {
 		const rules: Rule<Post>[] = [
 			{
@@ -620,6 +677,22 @@ describe("validatePayload — invalid input (Zone 3 Fail-Closed)", () => {
 });
 
 describe("permittedFields", () => {
+	it("one unrestricted allow opens every field, whatever the narrow ones list", () => {
+		const rules: Rule<Post>[] = [
+			{
+				effect: "allow",
+				action: "update",
+				resource: "post",
+				payload: { fields: ["title"] },
+			},
+			{ effect: "allow", action: "update", resource: "post" },
+		];
+
+		expect(
+			permittedFields(rules, "update", "post", ["title", "status", "views"]),
+		).toEqual(["title", "status", "views"]);
+	});
+
 	it("returns explicitly allowed fields intersected with the universe", () => {
 		const rules: Rule<Post>[] = [
 			{
