@@ -27,7 +27,7 @@ The one page to read if you are generating code that uses this library is [For a
 
 - [Conditions](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/conditions.md): the tree behind `where`, and the third answer — "unknown".
 - [Field shorthand](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/condition-shorthand.md): how `{ views: { gte: 100 } }` is written and stored.
-- [Operators](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/operators.md): all ten, with the null and type-mismatch behaviour that keeps checks safe.
+- [Operators](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/operators.md): all thirteen, with the null and type-mismatch behaviour that keeps checks safe.
 - [Relations](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/relations.md): conditions across related resources, and why a relation you forgot to load throws.
 
 ## Enforcing
@@ -40,6 +40,7 @@ The one page to read if you are generating code that uses this library is [For a
 ## In an app
 
 - [React](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/react.md): `createVetoContext(ac)` → `AbilityProvider`, `<Can>`, `useCan`, `useSetRules`; `@vetojs/react/server` gates a server component with no client boundary.
+- [Next](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/next.md): `createGuard` → `withPermission` — the actor, the row and the payload checked before a server action runs.
 - [Drizzle](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/drizzle.md): `defineTables` → `filter` — the policy as a SQL `WHERE` that returns exactly the rows `can()` allows. Postgres.
 
 ## Optional

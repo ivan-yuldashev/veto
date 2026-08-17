@@ -29,7 +29,7 @@ For a union field such as `status: "draft" | "published"`, any member of the uni
 
 ## Values vs operator objects
 
-A value is treated as an operator object only if it is a plain object with exactly one key, and that key is one of the ten operators. Everything else is a value to compare against:
+A value is treated as an operator object only if it is a plain object with exactly one key, and that key is one of the thirteen operators. Everything else is a value to compare against:
 
 ```ts
 { tags: ["a", "b"] }         // compares against this array — always unknown

@@ -39,6 +39,7 @@ rules[2].effect: expected "allow" | "deny"
 - `effect` is exactly `allow` or `deny`;
 - `action` is a string or array of strings; `resource` is a string;
 - `where`, if present, is a well-formed condition — known operators, `in`/`nin` carrying real arrays, relations with a valid `one`/`many` shape;
+- every condition node carries **exactly one** shape: a node naming both `and` and `field` is refused, in a `where` and in `payload.constraints` alike;
 - `payload`, if present, has string `fields` and flat `constraints`.
 
 ## Names this deployment doesn't know

@@ -59,7 +59,7 @@ The single exception is a **relation the rule needs but you never loaded** — t
 
 ## Why it works this way
 
-- **Branches are recognised by key presence** (`"and" in node`), mirroring the type-level union. A node matching none of the known shapes falls through to operator evaluation, where an unrecognised operator answers "no".
+- **Branches are recognised by key presence** (`"and" in node`), mirroring the type-level union. The first shape a node names wins, so a node must carry exactly one — [`parseRules`](./parse.md) refuses a node naming two, which would otherwise have half of it silently dropped. A node matching no known shape falls through to operator evaluation, and an unrecognised operator answers **unknown**: an `allow` grants nothing, a `deny` still fires.
 - **All branches are evaluated, even after the answer is settled.** A `deny` whose first branch already matched still walks the rest — so an unloaded relation anywhere in the tree is reported rather than hidden by evaluation order. Diagnostics stay deterministic; the cost is a full walk of conditions that are, in practice, a handful of nodes.
 
 ## Source
