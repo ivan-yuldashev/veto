@@ -97,13 +97,13 @@ if (!result.ok) return badRequest(result.issues);
 
 This is the other half of handling untrusted input: `validate` answers *is this even a valid post?*, `validatePayload` answers *is this actor allowed to write it?* Both, in that order, is the complete story.
 
-It runs the resource's schema, so it only does something real when you passed a Standard Schema (Zod, Valibot, ArkType) to `defineAbilities`. A phantom `type<T>()` still rejects non-objects but can't check fields. Async schemas are not supported — a `validate` returning a promise throws.
+It runs the resource's schema, so it only does something real when you passed a Standard Schema (Zod, Valibot, ArkType) to `defineAbilities`. A phantom `type<T>()` still rejects non-objects but can't check fields. Async schemas are not supported — a `validate` returning a promise throws, which rules out Yup: it implements the standard, but only asynchronously. See [swapping in a real schema](./define-abilities.md#swapping-typet-for-a-real-schema).
 
 Unknown resources fail rather than pass through, as a gate should.
 
 ## Types are guidance; the engine is the guard
 
-Methods take typed rows so your editor autocompletes and typos don't compile. That typing expresses *intent* — it isn't what keeps you safe.
+Methods take typed arguments so your editor autocompletes and typos don't compile. That typing expresses *intent* — it isn't what keeps you safe.
 
 Safety comes from the engine being total: a non-object is denied, a wrong-typed field is "unknown" and fails closed both ways. So a row that doesn't match its declared shape can only ever cause *more* denial, never a crash and never a grant.
 
@@ -114,7 +114,7 @@ When data of unverified shape has to enter, use the gate for its kind rather tha
 | rule JSON from a database or network | [`parseRules(json, ac)`](./parse.md) |
 | a row or payload of unverified shape | `ability.validate(resource, data)` |
 
-## Rules the registry doesn't recognise
+## Rules your declarations don't mention
 
 `buildAbility` doesn't throw, drop, or warn on them — by the time rules reach it they are trusted, and the checking already happened upstream: at compile time via `createRules`, or at runtime via `parseRules` with a vocabulary. That's also why `buildAbility` only accepts checked rules — see [parse](./parse.md).
 
