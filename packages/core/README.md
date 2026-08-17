@@ -1,6 +1,6 @@
 # @vetojs/core
 
-The engine of [`@vetojs`](https://github.com/ivan-yuldashev/veto#readme) — **[English](README.md) · [Русский](README.ru.md)**.
+The engine of [`@vetojs`](https://github.com/ivan-yuldashev/vetojs#readme) — **[English](README.md) · [Русский](README.ru.md)**.
 
 **Type-safe authorization with no classes, no magic, and no hidden state.**
 
@@ -52,28 +52,28 @@ ability.can("delete", "post");        // ✗ compile error — "post" has no "de
 
 We designed the API to be intuitive.
 
-- [`defineAbilities`](https://github.com/ivan-yuldashev/veto/blob/main/docs/define-abilities.md): the single source of truth for your resource schema, and where every type is inferred from (shapes, actions, relations).
+- [`defineAbilities`](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/define-abilities.md): the single source of truth for your resource schema, and where every type is inferred from (shapes, actions, relations).
 - `type<T>()`: a helper for declaring a resource shape. For runtime validation, pass any schema compatible with [Standard Schema](https://standardschema.dev) here instead (Zod, Valibot or ArkType, for example).
-- [`createRules(ac)`](https://github.com/ivan-yuldashev/veto/blob/main/docs/create-rules.md): a generator for strictly typed `allow` and `deny` functions — your actions, resources and `where` are checked against the schema automatically.
-- [`buildAbility(ac, rules)`](https://github.com/ivan-yuldashev/veto/blob/main/docs/ability.md): turns an array of flat rules into a ready-to-use `ability` object.
-- [`parseRules(json, ac)`](https://github.com/ivan-yuldashev/veto/blob/main/docs/parse.md): safely validates rule JSON that arrived over the network or from a database.
-- [`markLoaded`](https://github.com/ivan-yuldashev/veto/blob/main/docs/relations.md): marks a relation as loaded (handy for data you assembled by hand rather than through an ORM).
+- [`createRules(ac)`](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/create-rules.md): a generator for strictly typed `allow` and `deny` functions — your actions, resources and `where` are checked against the schema automatically.
+- [`buildAbility(ac, rules)`](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/ability.md): turns an array of flat rules into a ready-to-use `ability` object.
+- [`parseRules(json, ac)`](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/parse.md): safely validates rule JSON that arrived over the network or from a database.
+- [`markLoaded`](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/relations.md): marks a relation as loaded (handy for data you assembled by hand rather than through an ORM).
 - `ConditionOperator`: the comparison operators available (`eq`, `ne`, `in`, `nin`, `gt`, `gte`, `lt`, `lte`, `contains`, `exists`, `has`, `hasAny`, `hasAll`).
 - `ForbiddenError`, `RelationNotLoadedError`: the only two classes in the library.
 
 What `ability` gives you:
 
 - **Permission checks:** `can`, `cannot` and `authorize` answer whether an action is allowed in general or for a specific row.
-- **Mutations:** `canMutate` and `validatePayload` decide [whether data may be written](https://github.com/ivan-yuldashev/veto/blob/main/docs/mutations.md) — and which fields and values in particular.
+- **Mutations:** `canMutate` and `validatePayload` decide [whether data may be written](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/mutations.md) — and which fields and values in particular.
 - **Interface:** `permittedFields` tells you which fields to leave editable for the user in a form.
-- **Database:** `where` produces a ready [condition for a database query](https://github.com/ivan-yuldashev/veto/blob/main/docs/where.md).
+- **Database:** `where` produces a ready [condition for a database query](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/where.md).
 - **Validation and export:** `validate` checks incoming data against the schema, and `rules` returns the underlying flat array of rules, ready to be sent to the client.
 
 ## Predictable behaviour on bad data
 
 Real databases hold `NULL`s, and the client may well send text where a number was expected. In situations like these, where no condition can be answered honestly, `@vetojs` doesn't guess — it returns the status **"unknown"**.
 
-That is safe in both directions: an `allow` rule simply grants nothing, while a `deny` fires reliably anyway. Bad data can only ever narrow access, never widen it ([more about operators](https://github.com/ivan-yuldashev/veto/blob/main/docs/operators.md)).
+That is safe in both directions: an `allow` rule simply grants nothing, while a `deny` fires reliably anyway. Bad data can only ever narrow access, never widen it ([more about operators](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/operators.md)).
 
 ### Strictness when working with relations
 
@@ -84,12 +84,12 @@ const post = await db.query.posts.findFirst({ with: { author: true } });
 ability.can("update", "post", post);
 ```
 
-The engine follows the same conventions your ORM does: `undefined` means the data was not loaded, and `null` means it was loaded and there is nothing there. If you assembled the data by hand, just say so explicitly with `markLoaded` ([more about relations](https://github.com/ivan-yuldashev/veto/blob/main/docs/relations.md)).
+The engine follows the same conventions your ORM does: `undefined` means the data was not loaded, and `null` means it was loaded and there is nothing there. If you assembled the data by hand, just say so explicitly with `markLoaded` ([more about relations](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/relations.md)).
 
 ## What's next?
 
-- **[Documentation](https://github.com/ivan-yuldashev/veto/blob/main/docs/README.md)** — detailed pages on every concept: from declaring resources to SQL filtering.
-- **[For agents](https://github.com/ivan-yuldashev/veto/blob/main/docs/for-agents.md)** — the whole API on one page, so it's easy to feed to an assistant.
+- **[Documentation](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/README.md)** — detailed pages on every concept: from declaring resources to SQL filtering.
+- **[For agents](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/for-agents.md)** — the whole API on one page, so it's easy to feed to an assistant.
 - **Examples** — runnable demos on a multi-tenant architecture will arrive with the adapters.
 
 ## License

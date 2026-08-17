@@ -12,11 +12,11 @@
 		"casl-alternative",
 		"typescript"
 	],
-	"homepage": "https://github.com/ivan-yuldashev/veto#readme",
-	"bugs": "https://github.com/ivan-yuldashev/veto/issues",
+	"homepage": "https://github.com/ivan-yuldashev/vetojs#readme",
+	"bugs": "https://github.com/ivan-yuldashev/vetojs/issues",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/ivan-yuldashev/veto.git",
+		"url": "git+https://github.com/ivan-yuldashev/vetojs.git",
 		"directory": "packages/core"
 	},
 	"license": "MIT",

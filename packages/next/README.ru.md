@@ -1,6 +1,6 @@
 # @vetojs/next
 
-Защита для Next.js на базе движка [`@vetojs`](https://github.com/ivan-yuldashev/veto/blob/main/README.ru.md) — **[English](README.md) · [Русский](README.ru.md)**.
+Защита для Next.js на базе движка [`@vetojs`](https://github.com/ivan-yuldashev/vetojs/blob/main/README.ru.md) — **[English](README.md) · [Русский](README.ru.md)**.
 
 Server action в Next.js — это публичная точка входа. Независимо от того, что именно скрыто в вашем интерфейсе, вызвать этот экшен может кто угодно, передав абсолютно любые аргументы.
 
@@ -91,8 +91,8 @@ createGuard({
 
 ## Что дальше?
 
-- **[Полное руководство](https://github.com/ivan-yuldashev/veto/blob/main/docs/next.ru.md)** — подробный разбор всех опций, работы с `useActionState`, Route Handlers и объяснение того, почему списки всегда фильтруются на уровне базы данных.
-- **[О проекте](https://github.com/ivan-yuldashev/veto/blob/main/README.ru.md)** — подробнее о том, что такое `@vetojs` и как устроен сам движок авторизации.
+- **[Полное руководство](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/next.ru.md)** — подробный разбор всех опций, работы с `useActionState`, Route Handlers и объяснение того, почему списки всегда фильтруются на уровне базы данных.
+- **[О проекте](https://github.com/ivan-yuldashev/vetojs/blob/main/README.ru.md)** — подробнее о том, что такое `@vetojs` и как устроен сам движок авторизации.
 
 ## Лицензия
 

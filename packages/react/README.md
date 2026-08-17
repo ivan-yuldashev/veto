@@ -1,6 +1,6 @@
 # @vetojs/react
 
-React bindings for [`@vetojs`](https://github.com/ivan-yuldashev/veto#readme) — **[English](README.md) · [Русский](README.ru.md)**.
+React bindings for [`@vetojs`](https://github.com/ivan-yuldashev/vetojs#readme) — **[English](README.md) · [Русский](README.ru.md)**.
 
 The idea behind this package is simple: the very same rules that reliably guard your server decide which interface elements the user can reach on the client.
 
@@ -102,8 +102,8 @@ Worth remembering: a hidden button in the interface is a courtesy to the user (U
 
 ## What's next?
 
-- **[Full guide](https://github.com/ivan-yuldashev/veto/blob/main/docs/react.md)** — an in-depth look at the provider, `<Can>`, `useAbility`, and the details of working with server components.
-- **[About the project](https://github.com/ivan-yuldashev/veto#readme)** — the general concept behind `@vetojs` and how its engine is built.
+- **[Full guide](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/react.md)** — an in-depth look at the provider, `<Can>`, `useAbility`, and the details of working with server components.
+- **[About the project](https://github.com/ivan-yuldashev/vetojs#readme)** — the general concept behind `@vetojs` and how its engine is built.
 
 ## License
 
