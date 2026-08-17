@@ -211,7 +211,7 @@ export const evaluateOperator = (
 			return overWanted(actual, expected, kleeneAndOver);
 		default: {
 			operator satisfies never;
-			return false;
+			return undefined;
 		}
 	}
 };

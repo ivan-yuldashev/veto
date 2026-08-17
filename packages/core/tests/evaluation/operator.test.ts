@@ -194,8 +194,8 @@ describe("evaluateOperator", () => {
 	});
 
 	describe("unknown operator", () => {
-		it("denies (returns false) instead of throwing", () => {
-			expect(evaluateOperator("bogus" as never, 1, 1)).toBe(false);
+		it("is unknown, so an allow grants nothing and a deny still fires", () => {
+			expect(evaluateOperator("bogus" as never, 1, 1)).toBeUndefined();
 		});
 	});
 
