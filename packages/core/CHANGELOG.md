@@ -2,6 +2,8 @@
 
 ## 0.6.0
 
+> Never published. The repository was renamed while this version was being released, so npm rejected it on a provenance mismatch. Everything below ships in the next release — install that instead.
+
 ### Minor Changes
 
 - 04a9005: **`parseRules` rejects a condition node that carries more than one shape.** Such a node used to pass the gate, and the engine then answered only the first shape it recognised — silently discarding the rest of the condition.
