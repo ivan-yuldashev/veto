@@ -8,10 +8,10 @@ Node 20+ and pnpm 10.
 
 ```sh
 pnpm install
-pnpm build     # dist/ is gitignored, and the cross-package tests import it
+pnpm test
 ```
 
-Build first. The React test suite resolves `@vetojs/core` from its built output, so a fresh clone can't run it until `pnpm build` has run once.
+No build needed first: inside the workspace `@vetojs/core` resolves to its source, so every package tests against the working tree rather than the last `dist/`. The one exception is `readme-size.test.ts`, which measures the bundle the README advertises — it skips with a message until `pnpm build` has run.
 
 ## The checks
 
@@ -25,11 +25,11 @@ pnpm type-bench  # inference cost of the public types
 
 All five run in CI, on Node 20 and 22. `pnpm test:coverage` is there when you want the numbers.
 
-To run one package's tests, go through the root — the projects are defined in the root `vitest.config.ts`, so `vitest` inside a package directory finds nothing:
+To run one package's tests, either form works:
 
 ```sh
-pnpm vitest run --project @vetojs/core   # ✓
-pnpm --filter @vetojs/core test          # ✗ "No projects were found"
+pnpm vitest run --project @vetojs/core
+pnpm --filter @vetojs/core test
 ```
 
 ## Conventions worth knowing
