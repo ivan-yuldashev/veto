@@ -789,3 +789,53 @@ describe("the context says exactly what the options loaded", () => {
 		await expect(reading()).resolves.toBeUndefined();
 	});
 });
+
+describe("the options are checked against the declarations", () => {
+	const guard = createGuard({
+		ac,
+		getActor: () => actor,
+		policy: () => [allow("read", "post")],
+	});
+	const row: Post = { id: "p1", authorId: "u1", status: "draft" };
+
+	it("refuses an action the resource does not declare", () => {
+		guard(
+			// @ts-expect-error "archive" is not one of post's actions
+			{ action: "archive", resource: "post" },
+			async () => "ok",
+		);
+	});
+
+	it("refuses a resource that is not declared", () => {
+		guard(
+			// @ts-expect-error "comment" is not a resource here
+			{ action: "read", resource: "comment" },
+			async () => "ok",
+		);
+	});
+
+	it("refuses a load that resolves to another shape", () => {
+		guard(
+			{
+				action: "read",
+				resource: "post",
+				// @ts-expect-error the loaded value is not a post
+				load: async () => ({ id: "p1", title: "not a post" }),
+			},
+			async () => "ok",
+		);
+	});
+
+	it("refuses a payload field the resource does not have", () => {
+		guard(
+			{
+				action: "read",
+				resource: "post",
+				load: async () => row,
+				// @ts-expect-error "nope" is not a field of post
+				payload: () => ({ nope: 1 }),
+			},
+			async (ctx) => ctx.payload,
+		);
+	});
+});

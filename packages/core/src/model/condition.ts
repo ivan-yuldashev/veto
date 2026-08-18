@@ -21,7 +21,7 @@ type ToOneRelationNode = {
 type RelationNode = ToManyRelationNode | ToOneRelationNode;
 
 type FieldNode<T> = {
-	field: keyof T & string;
+	field: keyof T;
 	op: ConditionOperator;
 	value: unknown;
 };
