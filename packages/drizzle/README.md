@@ -27,7 +27,7 @@ const rows = await db.select().from(posts)
 	.where(schema.filter(ability, "read", "post"));
 ```
 
-**The query returns exactly the rows `can()` would allow.** Not a superset you still have to re-check in JavaScript, not a subset that quietly hides legitimate rows. Relations compile to `EXISTS` subqueries, so `author.role` or `comments.some.spam` work the same way in SQL as they do in memory.
+**The query returns exactly the rows `can()` would allow.** Not a superset you still have to re-check in JavaScript, not a subset that quietly hides legitimate rows. Add your own predicates after the resource — `schema.filter(ability, "read", "post", eq(posts.id, id))` — and they narrow the result alongside the policy, never past it. Relations compile to `EXISTS` subqueries, so `author.role` or `comments.some.spam` work the same way in SQL as they do in memory.
 
 That equivalence is the whole point, so it is tested rather than asserted: a conformance grid runs both paths — `can()` over loaded rows and a real `SELECT` — against actual Postgres, over rows carrying `NULL`s in every column, and requires the two id sets to be identical.
 

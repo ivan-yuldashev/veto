@@ -88,3 +88,21 @@ it("type guarantees (checked by tsc)", () => {
 	// @ts-expect-error unknown action in the ability form
 	schema.filter(ability, "archive", "post");
 });
+
+it("takes the caller's own predicates and stays SQL", () => {
+	const schema = defineTables(ac, { post: posts, user: users });
+	const ability = buildAbility(ac, [allow("read", "post")]);
+
+	schema.filter(ability, "read", "post", eq(posts.id, "p1"));
+	schema.filter(
+		ability,
+		"read",
+		"post",
+		eq(posts.id, "p1"),
+		eq(posts.views, 1),
+	);
+	schema.filter("post", ability.where("read", "post"), eq(posts.id, "p1"));
+
+	// @ts-expect-error a narrowing predicate is SQL, not a condition shorthand
+	schema.filter(ability, "read", "post", { id: "p1" });
+});

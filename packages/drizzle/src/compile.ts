@@ -380,6 +380,20 @@ export const compileCondition = (
 	);
 };
 
+/**
+ * Compiles one condition against one table — the single-table form of
+ * {@link DrizzleSchema.filter}.
+ *
+ * Reach for {@link defineTables} instead when the policy crosses relations: without a table
+ * map there is nothing to join to, and a relation node throws rather than compile to
+ * something weaker.
+ *
+ * @throws when a rule has no honest two-valued SQL form — an unknown column, a relation, an
+ * operator the engine answers as unknown.
+ *
+ * @example
+ * db.select().from(posts).where(toDrizzle(ability.where("read", "post"), posts));
+ */
 export const toDrizzle = <T extends Record<string, unknown>>(
 	condition: ConditionNode<T>,
 	table: Table,

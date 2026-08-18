@@ -173,6 +173,12 @@ const filter = ability.where("read", "post"); // a plain condition tree
 
 The filter selects exactly the rows `can()` allows. Hand it to a database adapter; without an adapter, treat it as data — do not try to interpret it by hand.
 
+With `@vetojs/drizzle`, compile and compose in one call — your own predicates go after the resource and narrow the result alongside the policy:
+
+```ts
+db.select().from(posts).where(schema.filter(ability, "read", "post", eq(posts.id, id)));
+```
+
 ## Rules from outside
 
 ```ts

@@ -56,6 +56,14 @@ schema.filter("post", ability.where("read", "post")); // explicit condition
 
 Both are typed: the second form binds the condition to the resource's shape, so passing a condition compiled for a different resource is a compile error.
 
+Anything after those arguments is a predicate of your own, ANDed with the policy:
+
+```ts
+db.select().from(posts).where(schema.filter(ability, "read", "post", eq(posts.id, id)));
+```
+
+That can only narrow the result — a row the policy hides stays hidden however you filter for it. It also keeps the type `SQL`, where composing outside with Drizzle's `and` gives `SQL | undefined` and needs an assertion. Predicates are whatever Drizzle accepts, so a boolean column stands on its own.
+
 ### Resources without a table
 
 A resource that exists only to gate UI — an analytics screen, not rows — is declared explicitly:

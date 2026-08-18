@@ -4,7 +4,7 @@ import type {
 	RelationKind,
 	ResourceMap,
 } from "@vetojs/core";
-import type { SQL } from "drizzle-orm";
+import { and, type SQL, type SQLWrapper } from "drizzle-orm";
 import type { PgTable } from "drizzle-orm/pg-core";
 import {
 	type CompileEnv,
@@ -24,8 +24,25 @@ type WideJoins = Partial<
 type ResolvedJoins = Record<string, Record<string, JoinResolution>>;
 
 type FilterArgs<AC extends ResourceMap> =
-	| [resource: string, condition: ConditionNode<Record<string, unknown>>]
-	| [ability: AbilitySet<AC>, action: string, resource: string];
+	| [
+			resource: string,
+			condition: ConditionNode<Record<string, unknown>>,
+			...narrow: SQLWrapper[],
+	  ]
+	| [
+			ability: AbilitySet<AC>,
+			action: string,
+			resource: string,
+			...narrow: SQLWrapper[],
+	  ];
+
+const namesResourceFirst = <AC extends ResourceMap>(
+	args: FilterArgs<AC>,
+): args is [
+	resource: string,
+	condition: ConditionNode<Record<string, unknown>>,
+	...narrow: SQLWrapper[],
+] => typeof args[0] === "string";
 
 const resolveJoin = (
 	explicit: JoinPredicate | undefined,
@@ -80,6 +97,21 @@ const resolveJoins = (
 	return resolved;
 };
 
+/**
+ * Wires resources to Drizzle tables, once, so a policy can become SQL.
+ *
+ * Joins for relations are derived from the foreign keys your schema already declares; pass
+ * `joins` only for the predicates a key cannot express. Nothing runs here — the returned
+ * {@link DrizzleSchema.filter} compiles a condition when you call it.
+ *
+ * @param ac - your {@link defineAbilities} declarations
+ * @param tables - one table per resource, or `null` for a resource with no rows
+ * @param joins - join predicates a foreign key cannot express
+ *
+ * @example
+ * const schema = defineTables(ac, { post: posts, user: users, comment: comments });
+ * db.select().from(posts).where(schema.filter(ability, "read", "post"));
+ */
 export const defineTables = <AC extends ResourceMap, M extends TableMap<AC>>(
 	ac: AC,
 	tables: M,
@@ -155,24 +187,27 @@ export const defineTables = <AC extends ResourceMap, M extends TableMap<AC>>(
 	const compileFor = (
 		resource: string,
 		condition: ConditionNode<Record<string, unknown>>,
+		narrow: SQLWrapper[],
 	): SQL => {
 		const table = tableOrThrow(resource, "the filtered resource");
+		const policy = compileCondition(condition, table, buildEnv(), resource);
 
-		return compileCondition(condition, table, buildEnv(), resource);
+		return and(...narrow, policy) ?? policy;
 	};
 
 	const filter = (...args: FilterArgs<AC>): SQL => {
-		if (args.length === 2) {
-			const [resource, condition] = args;
+		if (namesResourceFirst(args)) {
+			const [resource, condition, ...narrow] = args;
 
-			return compileFor(resource, condition);
+			return compileFor(resource, condition, narrow);
 		}
 
-		const [ability, action, resource] = args;
+		const [ability, action, resource, ...narrow] = args;
 
 		return compileFor(
 			resource,
 			widenCondition(ability.where(action, resource)),
+			narrow,
 		);
 	};
 

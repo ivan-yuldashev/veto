@@ -575,3 +575,56 @@ describe("defineTables — joins derived from FK metadata (.references())", () =
 		);
 	});
 });
+
+describe("defineTables — narrowing with the caller's own predicates", () => {
+	it("intersects them with the policy instead of replacing it", async () => {
+		const ability = buildAbility(ac, [
+			allow("read", "post", { where: { status: "published" } }),
+		]);
+
+		const byPolicy = await db
+			.select({ id: posts.id })
+			.from(posts)
+			.where(schema.filter(ability, "read", "post"));
+
+		const narrowed = await db
+			.select({ id: posts.id })
+			.from(posts)
+			.where(schema.filter(ability, "read", "post", eq(posts.id, "by-lead")));
+
+		expect(byPolicy.map((row) => row.id).sort()).toEqual(["by-lead", "orphan"]);
+		expect(narrowed.map((row) => row.id)).toEqual(["by-lead"]);
+	});
+
+	it("cannot reach a row the policy hides", async () => {
+		const ability = buildAbility(ac, [
+			allow("read", "post", { where: { status: "published" } }),
+		]);
+
+		const forbidden = await db
+			.select({ id: posts.id })
+			.from(posts)
+			.where(schema.filter(ability, "read", "post", eq(posts.id, "by-writer")));
+
+		expect(forbidden).toEqual([]);
+	});
+
+	it("takes several predicates, and a bare column reads as one", async () => {
+		const ability = buildAbility(ac, [allow("read", "post")]);
+
+		const selected = await db
+			.select({ id: posts.id })
+			.from(posts)
+			.where(
+				schema.filter(
+					ability,
+					"read",
+					"post",
+					eq(posts.status, "published"),
+					eq(posts.authorId, "lead"),
+				),
+			);
+
+		expect(selected.map((row) => row.id)).toEqual(["by-lead"]);
+	});
+});
