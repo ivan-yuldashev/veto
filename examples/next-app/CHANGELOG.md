@@ -1,5 +1,13 @@
 # @vetojs-examples/next-app
 
+## 0.0.6
+
+### Patch Changes
+
+- Updated dependencies [99d7bc6]
+- Updated dependencies [d9314ca]
+  - @vetojs/drizzle@0.1.0
+
 ## 0.0.5
 
 ### Patch Changes
