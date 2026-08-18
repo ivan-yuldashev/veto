@@ -9,7 +9,7 @@
 ```sh
 npm install @vetojs/core          # движок
 npm install @vetojs/react         # по желанию: <Can>, useAbility, AbilityProvider
-npm install @vetojs/next          # по желанию: createGuard для server actions и route handlers
+# гвард лежит внутри @vetojs/core, под @vetojs/core/guard
 ```
 
 Только ESM, Node 20+. `@vetojs/core` — peer-зависимость обеих привязок, поэтому ставьте его рядом с ними, а не рассчитывайте, что он подтянется сам. Для `@vetojs/react` нужен ещё React 18+ как peer.
@@ -116,9 +116,9 @@ export const { AbilityProvider, useAbility, useCan, useSetRules, Can } =
 | `useAbility()` | всё сверх «да/нет» — `permittedFields`, `validate`, фильтрация списка |
 | `useSetRules()` | смена пользователя на клиенте без перерисовки страницы |
 
-### `@vetojs/next`
+### `@vetojs/core/guard`
 
-`createGuard({ ac, getActor, policy })` возвращает `withPermission(options, handler)`. Опишите `load` для строки и `payload` для записываемых данных; обработчик выполнится, только если пройдут обе проверки, а в `ctx.payload` окажется проверенная копия. См. [руководство](./next.ru.md).
+`createGuard({ ac, getActor, policy })` возвращает `withPermission(options, handler)`. Фреймворков он не знает — та же обёртка охраняет server action, HTTP-обработчик и вызов инструмента агентом. Опишите `load` для строки и `payload` для записываемых данных; обработчик выполнится, только если пройдут обе проверки. В `ctx.payload` окажется проверенная копия, а `ctx.row` при объявленном `load` — строка, а не «может быть строка». См. [руководство](./guard.ru.md).
 
 ## Как писать условия
 

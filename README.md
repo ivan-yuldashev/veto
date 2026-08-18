@@ -6,8 +6,10 @@
 
 A policy is a pure function. It takes a user (or any other context you need) and returns an array of rules as plain JSON. That array travels from server to client without ceremony. The same array is what checks permissions, with full type inference, and what turns elegantly into a safe `WHERE` clause for your database.
 
-- **A perfect fit for React Server Components.** Rules are flat data you can hand to the client as-is.
+- **Rules are flat data, so they cross any boundary.** A perfect fit for React Server Components — and equally for a SvelteKit `load`, a Nuxt payload, or an agent's tool call.
 - **Compiles to SQL automatically.** The policy behind `can()` translates into a `WHERE` clause. The database returns exactly the rows the user is allowed to see.
+- **Writes are checked field by field.** [`validatePayload`](docs/mutations.md) answers which fields and which values this actor may write, and names each violation — the sentence an API client, or a model, needs to fix its request.
+- **Rules can live in a database.** [`parseRules`](docs/parse.md) validates untrusted rule JSON at the boundary, and a rule the code doesn't recognise is dropped — so a database ahead of the deploy can only ever narrow access.
 - **Safe on bad data.** A wrong-typed value or a missing field can narrow access, but will never widen it.
 - **4.1 kB gzipped.** That buys you validation of the rules arriving from the server, building an ability, and checking a row. If the rules are already trusted, the size drops to 2.9 kB. A check inside a server component costs a mere 98 bytes.
 - **0 dependencies.** There is exactly one thing to audit for security — the code that actually governs access.
@@ -73,9 +75,20 @@ Coming from CASL? [Migrating from CASL](docs/migrate-from-casl.md) maps the API 
 |---|---|---|
 | [`@vetojs/core`](packages/core) | ✅ Ready | The core: rules, evaluation, operators, and building conditions for queries. No dependencies. |
 | [`@vetojs/react`](packages/react) | ✅ Ready | [`<Can>`, `useAbility`, `AbilityProvider`](docs/react.md) — the same rules decide which UI elements are available. |
-| [`@vetojs/next`](packages/next) | ✅ Ready | [`createGuard`](docs/next.md) — one wrapper for server actions: works out the user, loads the row, validates the payload, and only then lets the action run. |
+| `@vetojs/core/guard` | ✅ Ready | [`createGuard`](docs/guard.md) — one wrapper for a server action, an HTTP handler or an agent tool call: works out the user, loads the row, validates the payload, and only then runs it. |
 | [`@vetojs/drizzle`](packages/drizzle) | ✅ Ready | [Conditions → SQL `WHERE`](docs/drizzle.md), relations → `EXISTS`. Postgres for now. |
 | `@vetojs/prisma` · `@vetojs/kysely` | 🔜 Planned | Support for further ORM adapters and dialects. |
+
+## Where the same policy decides
+
+One policy function, checked in every place a decision is actually made — and none of them needs a package of its own.
+
+- **[Server actions and RSC](docs/guard.md)** — `createGuard` resolves the actor, loads the row, validates the payload, and only then runs the handler.
+- **[HTTP handlers](docs/http.md)** — Express, Fastify, Hono. A handler is a function, and the guard wraps functions; what differs per framework is where the actor sits on the request and how a refusal becomes a status.
+- **[Agent tool calls](docs/agents.md)** — the arguments are a model's guess, not a filled-in form. The same policy answers "may the person this agent acts for do this to *this* row", and the refusal names the field, which is what makes a model correct itself instead of retrying.
+- **[Server rendering beyond RSC](docs/ssr.md)** — SvelteKit's `load`, Nuxt's payload, Astro's island props, React Router's loaders. Rules are JSON, so they travel in whatever channel the framework already has.
+- **[The database](docs/where.md)** — the same rules as a `WHERE`, on reads and on writes alike, with the guarantee that the query returns exactly what `can()` allows.
+- **[Alongside Postgres RLS](docs/rls.md)** — how the two compose, and the three ways row-level security silently protects nothing.
 
 ## One source of truth, from the database to the client
 
@@ -84,6 +97,14 @@ At the database level we ask only for what the user is permitted to see: the rul
 ```ts
 const rows = await db.select().from(posts)
 	.where(schema.filter(ability, "read", "post"));
+```
+
+The same predicate belongs on a write. A row the policy hides does not match, so the statement touches nothing and there is no fetch-then-check window in between:
+
+```ts
+const [updated] = await db.update(posts).set(data)
+	.where(schema.filter(ability, "update", "post", eq(posts.id, "p1")))
+	.returning();
 ```
 
 On the server — inside a server component — we check access to a specific row and safely hand the rules to the client as flat data:

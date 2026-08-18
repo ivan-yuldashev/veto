@@ -9,7 +9,7 @@ Everything needed to write correct Veto code, in one page. If you are generating
 ```sh
 npm install @vetojs/core          # the engine
 npm install @vetojs/react         # optional: <Can>, useAbility, AbilityProvider
-npm install @vetojs/next          # optional: createGuard for server actions and route handlers
+# the guard ships inside @vetojs/core, under @vetojs/core/guard
 ```
 
 ESM only, Node 20+. `@vetojs/core` is a peer dependency of both bindings, so install it alongside them rather than relying on it being pulled in. `@vetojs/react` needs React 18+ as a peer as well.
@@ -116,9 +116,9 @@ export const { AbilityProvider, useAbility, useCan, useSetRules, Can } =
 | `useAbility()` | anything beyond yes/no — `permittedFields`, `validate`, filtering a list |
 | `useSetRules()` | switching actors on the client without re-rendering the page |
 
-### `@vetojs/next`
+### `@vetojs/core/guard`
 
-`createGuard({ ac, getActor, policy })` returns `withPermission(options, handler)`. Declare `load` for the row and `payload` for what is being written; the handler runs only if both pass, and `ctx.payload` is the validated copy. See [the guide](./next.md).
+`createGuard({ ac, getActor, policy })` returns `withPermission(options, handler)`. It knows no framework — the same wrapper guards a server action, an HTTP handler and an agent's tool call. Declare `load` for the row and `payload` for what is being written; the handler runs only if both pass. `ctx.payload` is the validated copy, and `ctx.row` is a row rather than a maybe-row whenever `load` is declared. See [the guide](./guard.md).
 
 ## Writing conditions
 

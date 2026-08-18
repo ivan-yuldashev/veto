@@ -1,20 +1,20 @@
-# `@vetojs/next` — защита server actions и маршрутов
+# `@vetojs/core/guard` — одна обёртка на любую границу
 
-**[English](next.md) · [Русский](next.ru.md)**
+**[English](guard.md) · [Русский](guard.ru.md)**
 
-Server Action — это публичная точка входа. Независимо от того, что показывает интерфейс, вызвать её может кто угодно с любыми аргументами. Поэтому в каждом экшене приходится повторять одни и те же шаги: определить пользователя, загрузить нужный ресурс, проверить доступ — и только потом выполнить логику. Этот пакет берёт всю эту рутину на себя.
+Server action, обработчик маршрута, инструмент, который может вызвать агент, — каждый из них публичная точка входа. Что бы ни показывал интерфейс, вызвать её может кто угодно с любыми аргументами, поэтому везде повторяются одни и те же шаги: определить пользователя, загрузить то, над чем действуют, проверить — и только потом выполнить. Гвард пишет эти шаги один раз.
 
 ```sh
-npm install @vetojs/next @vetojs/core
+npm install @vetojs/core
 ```
 
-`@vetojs/core` — peer-зависимость: приложение резолвит его один раз, и защита работает с той же копией. Сам пакет не импортирует ни `next`, ни `react` — это обёртка вокруг ваших собственных функций.
+Гвард живёт в `@vetojs/core` под собственной точкой входа, поэтому браузерная сборка, которая его не импортирует, за него и не платит. Он не знает ни одного фреймворка — он оборачивает ваши функции и вызывает их.
 
 ## Настройте один раз
 
 ```ts
 // lib/permissions.ts
-import { createGuard } from "@vetojs/next";
+import { createGuard } from "@vetojs/core/guard";
 import { ac, policyFor } from "./abilities";
 import { getActor } from "./auth";
 
@@ -72,6 +72,24 @@ export const updatePost = withPermission(
 
 Для всего, что пишет, указывайте `payload`. Тогда в `ctx.payload` окажется проверенный результат, и поле, которое пользователю писать нельзя, не доедет до запроса к базе даже случайно.
 
+**Проверено — значит разрешено, а не корректно.** Гвард отвечает на вопрос *можно ли этому пользователю писать такие поля и такие значения*; схему ресурса он не запускает, поэтому `{ title: "no" }` при `z.string().min(3)` пройдёт. Это намеренно: неверная форма поля — плохой запрос, а не запрет, и отвечать на неё 403 было бы неправильно.
+
+Проверяйте форму там, где ей место, — в `payload`, это ваша функция:
+
+```ts
+const updatePost = withPermission(
+	{
+		action: "update",
+		resource: "post",
+		load: (form: FormData) => loadPost(form.get("id")),
+		payload: (form: FormData) => postSchema.parse({ title: form.get("title") }),
+	},
+	async (ctx) => ctx.payload,
+);
+```
+
+Всё, что бросит `payload`, уходит наружу как есть, поэтому ошибка вашего валидатора доедет до вашего обработчика ошибок и станет 400. Большинство хостов проверяют форму раньше — обработчик маршрута со схемой, вызов инструмента по входной схеме, — и тогда добавлять нечего. Тот же разбор вне гварда — у [`ability.validate`](./ability.ru.md).
+
 Строка «только `payload`» — про создание, когда загружать ещё нечего. Условия по строке не проверить на том, чего пока не существует, поэтому защита опирается на то, что *способна* решить: `deny`, ограничивающий строки, отклоняет запись, а не пропускает её, — без строки нельзя выяснить, применим ли он. А `deny`, называющий только поля или ограничения `payload`, о строках не говорит ничего и здесь не отказывает: его разбирает проверка данных, поле за полем. И поскольку эта проверка отвечает на вопрос «что этому пользователю можно писать», запись, не покрытая ни одним `allow`, тоже отклоняется: пустая политика запрещает создание, а не пропускает его.
 
 ## Отказ
@@ -102,23 +120,71 @@ createGuard({
 
 `onDeny` не должен возвращать управление; `notFound()`, `redirect()` и `throw` этому условию удовлетворяют — поэтому дальше поток остаётся линейным. Если он всё-таки вернёт, защита сама бросит `ForbiddenError`: хук сообщает об отказе, но не отменяет его. С `onUnauthenticated` то же самое.
 
-## Работает с `useActionState`
+## Куда он подключается
 
-Обёртка передаёт аргументы как есть, какой бы формы они ни были. Поэтому действию, которое `useActionState` вызывает парой `(previousState, formData)`, переходник не нужен:
+Обёртка не смотрит в аргументы — их читают ваши `load` и `payload`, — поэтому она подходит любому хосту, у которого обработчик это функция. Хост решает две вещи: откуда берётся пользователь и как выглядит отказ.
+
+**Server action под `useActionState`** получает `(previousState, formData)`, обработчик маршрута — `(request, context)`. Ни тому, ни другому переходник не нужен:
 
 ```ts
-export const updatePost = withPermission(
+export const publishPost = withPermission(
 	{
-		action: "update",
+		action: "publish",
 		resource: "post",
-		load: (_state, formData) => loadPost(formData.get("id")),
-		payload: (_state, formData) => ({ title: String(formData.get("title")) }),
+		load: (_state: unknown, form: FormData) => loadPost(form.get("id")),
+		payload: (_state: unknown, form: FormData) => ({
+			title: String(form.get("title")),
+		}),
 	},
-	async (ctx, _state, formData) => { /* … */ },
+	async (ctx, _state: unknown, _form: FormData) => ctx.row.id,
 );
 ```
 
-Route handlers работают так же, с парой `(request, context)`.
+**HTTP-обработчику** — Hono, Express, Fastify — отдельный пакет не нужен. Пользователь достаётся из запроса, а отказ превращается в статус:
+
+```ts
+const update = withPermission(
+	{
+		action: "update",
+		resource: "post",
+		load: (id: string, _body: Partial<Post>) => loadPost(id),
+		payload: (_id: string, body: Partial<Post>) => body,
+	},
+	async (ctx) => ctx.payload,
+);
+
+const respond = async (id: string, body: Partial<Post>) => {
+	try {
+		return { status: 200, body: await update(id, body) };
+	} catch (error) {
+		if (ForbiddenError.is(error)) {
+			return { status: 403, body: { violations: error.violations } };
+		}
+
+		throw error;
+	}
+};
+```
+
+**Вызов инструмента** агентом устроен так же, только аргументы — догадка, а не заполненная форма: модель попросит строку, принадлежащую кому-то другому, раз в схеме написано `id: string`:
+
+```ts
+type PublishArgs = { id: string; status: "draft" | "published" };
+
+const publish = withPermission(
+	{
+		action: "publish",
+		resource: "post",
+		load: (args: PublishArgs) => loadPost(args.id),
+		payload: (args: PublishArgs) => ({ status: args.status }),
+	},
+	async (ctx) => `published ${ctx.row.id}`,
+);
+```
+
+Строка, названная в `args.id`, будет загружена и проверена по политике пользователя, поэтому пост из чужого воркспейса отклонят до вашего обработчика, — а отказ принесёт `violations` по полям, и это позволяет модели исправиться, а не повторять вслепую. Подробно — на странице [как охранять то, что делает агент](./agents.ru.md), вместе с двумя ловушками: инструмент без строки и схема, которую гвард не проверяет.
+
+Инструмент, у которого есть аргументы, но нечего загрузить, идёт по пути «только `payload`» из таблицы выше. Прочитайте ту строку, прежде чем на него опираться: против политики с условным `deny` гвард откажет — и это по замыслу, потому что неизвестная строка не может доказать, что запрет не сработал.
 
 ## Списки
 
@@ -131,7 +197,7 @@ const rows = await db.select().from(posts)
 	.where(schema.filter(ability, "read", "post"));
 ```
 
-См. [фильтрацию в базе](./where.ru.md). Адаптер Drizzle, превращающий это условие в SQL, в работе.
+См. [фильтрацию в базе](./where.ru.md) и [адаптер Drizzle](./drizzle.ru.md).
 
 ## Почему так устроено
 
@@ -142,4 +208,4 @@ const rows = await db.select().from(posts)
 
 ## Исходники
 
-[`guard.ts`](../packages/next/src/guard.ts) · [`types.ts`](../packages/next/src/types.ts) · [тесты](../packages/next/tests/guard.test.ts)
+[`guard/guard.ts`](../packages/core/src/guard/guard.ts) · [`guard/guard.types.ts`](../packages/core/src/guard/guard.types.ts) · [тесты](../packages/core/tests/guard/guard.test.ts)

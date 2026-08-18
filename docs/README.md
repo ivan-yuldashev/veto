@@ -38,5 +38,9 @@ One page per concept, each describing how the shipped code actually behaves. Sta
 ## Using it in an app
 
 - **[`@vetojs/react`](./react.md)** — `<Can>`, `useAbility`, `AbilityProvider`: the same rules in the UI.
-- **[`@vetojs/next`](./next.md)** — `createGuard`: the actor, the row and the payload checked before a server action runs.
+- **[`@vetojs/core/guard`](./guard.md)** — `createGuard`: the actor, the row and the payload checked before a server action, an HTTP handler or an agent's tool call runs.
 - **[`@vetojs/drizzle`](./drizzle.md)** — `defineTables` and `filter`: the policy as a SQL `WHERE`, verified row by row against real Postgres.
+- **[Express, Fastify, Hono](./http.md)** — the guard in a plain HTTP handler, and the few lines each framework actually adds.
+- **[Server rendering](./ssr.md)** — shipping rules to the client beyond RSC, and why a static page cannot carry a verdict.
+- **[Agents](./agents.md)** — tool calls guarded by the same policy, and the refusal a model can act on.
+- **[Postgres row-level security](./rls.md)** — running both, and the three ways RLS silently protects nothing.

@@ -23,7 +23,7 @@ allow("update", "post", {
 ```ts
 type ConditionNode<T> =
 	| { field: keyof T; op: ConditionOperator; value: unknown }
-	| RelationNode
+	| { relation: string; type: "one" | "many"; match?: MatchQuantifier; where: ConditionNode<T> }
 	| { and: ConditionNode<T>[] }
 	| { or: ConditionNode<T>[] }
 	| { not: ConditionNode<T> };
