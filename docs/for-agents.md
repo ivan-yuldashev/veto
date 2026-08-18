@@ -183,6 +183,38 @@ const ability = buildAbility(ac, result.rules);
 
 `buildAbility` expects rules that passed a check — from `createRules` or from `parseRules` **with a vocabulary**. The type system enforces this wherever the value still has a type (see the note below about `any`).
 
+## Emitting rules as JSON
+
+When you are producing a policy rather than calling one — filling an admin UI, writing to a database — emit the stored form and let the gate check it. `toVocabulary(ac)` is the contract to write against: names only, no schemas, a few hundred bytes for a typical domain.
+
+```ts
+const proposed = [
+	{
+		effect: "allow",
+		action: ["update", "publish"],
+		resource: "post",
+		where: { field: "authorId", op: "eq", value: "u1" },
+		payload: {
+			fields: ["status"],
+			constraints: { field: "status", op: "in", value: ["draft"] },
+		},
+	},
+];
+
+const result = parseRules(proposed, toVocabulary(ac));
+```
+
+Two failure modes, and they want different responses:
+
+| Result | Meaning | What to do |
+|---|---|---|
+| `ok: false` | the shape is wrong | fix and retry — every error carries a path, like `rules[0].where.op: unknown operator "regex"` |
+| `ok: true` with a non-empty `unknown` | a name this deployment doesn't know | an `allow` was **quarantined** and grants nothing; a `deny` was **kept**, because a prohibition must keep protecting |
+
+Reading only `result.rules` hides the second one: an invented action or resource makes an `allow` vanish without a word. Check `unknown` and report it.
+
+**One shape per node.** A condition node names exactly one of `and` / `or` / `not` / `relation` / a field. Writing a field *and* an `and` in the same object is rejected — nothing merges them, and the reader would take one and drop the other.
+
 ## Mistakes to avoid
 
 These compile-or-look fine and are wrong:
