@@ -1,5 +1,6 @@
 ---
 "@vetojs/core": minor
+"@vetojs/next": minor
 ---
 
 **`ctx.row` and `ctx.payload` are optional only when the action left them out.**
