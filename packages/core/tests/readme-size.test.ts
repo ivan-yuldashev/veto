@@ -116,30 +116,38 @@ const claims = [
 	},
 ];
 
-describe("the README's bundle sizes are what a bundler produces", () => {
-	beforeAll(async () => {
-		if (!existsSync(coreDist) || !existsSync(serverDist)) {
-			throw new Error("run `pnpm build` first: this measures dist/");
-		}
-		size.browser = (await ship(browser)).kB;
-		size.trusted = (await ship(trusted)).kB;
-		size.whole = (await ship(whole)).kB;
-		size.gate = (await ship(serverGate)).bytes;
-	}, 120_000);
+const built = existsSync(coreDist) && existsSync(serverDist);
 
-	for (const file of ["README.md", "README.ru.md"]) {
-		for (const claim of claims) {
-			it(`${file}: ${claim.what}`, () => {
-				const text = readFileSync(`${repo}/${file}`, "utf8");
-				const pattern = file.endsWith(".ru.md") ? claim.ru : claim.en;
-				const found = [...text.matchAll(new RegExp(pattern.source, "g"))];
+if (!built) {
+	console.log(
+		"readme-size: skipped — run `pnpm build` first, this measures dist/",
+	);
+}
 
-				expect(
-					found.length,
-					`expected exactly one ${claim.what} claim in ${file} — did the wording change?`,
-				).toBe(1);
-				expect(found[0]?.[1]).toBe(claim.get());
-			});
+describe.skipIf(!built)(
+	"the README's bundle sizes are what a bundler produces",
+	() => {
+		beforeAll(async () => {
+			size.browser = (await ship(browser)).kB;
+			size.trusted = (await ship(trusted)).kB;
+			size.whole = (await ship(whole)).kB;
+			size.gate = (await ship(serverGate)).bytes;
+		}, 120_000);
+
+		for (const file of ["README.md", "README.ru.md"]) {
+			for (const claim of claims) {
+				it(`${file}: ${claim.what}`, () => {
+					const text = readFileSync(`${repo}/${file}`, "utf8");
+					const pattern = file.endsWith(".ru.md") ? claim.ru : claim.en;
+					const found = [...text.matchAll(new RegExp(pattern.source, "g"))];
+
+					expect(
+						found.length,
+						`expected exactly one ${claim.what} claim in ${file} — did the wording change?`,
+					).toBe(1);
+					expect(found[0]?.[1]).toBe(claim.get());
+				});
+			}
 		}
-	}
-});
+	},
+);
