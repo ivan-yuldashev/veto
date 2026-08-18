@@ -6,6 +6,8 @@ import {
 } from "@vetojs/core";
 import {
 	and,
+	arrayContains,
+	arrayOverlaps,
 	type Column,
 	eq,
 	exists,
@@ -16,6 +18,7 @@ import {
 	inArray,
 	isNotNull,
 	isNull,
+	like,
 	lt,
 	lte,
 	ne,
@@ -113,14 +116,9 @@ const arrayMembership = (
 		return op === ConditionOperator.HasAll ? isNotNull(column) : FALSE;
 	}
 
-	const literal = sql`array[${sql.join(
-		members.map((member) => sql`${member}`),
-		sql`, `,
-	)}]`;
-
 	return op === ConditionOperator.HasAny
-		? totalize(sql`${column} && ${literal}`)
-		: totalize(sql`${column} @> ${literal}`);
+		? totalize(arrayOverlaps(column, members))
+		: totalize(arrayContains(column, members));
 };
 
 const membership = (
@@ -200,7 +198,7 @@ const SCALAR_COMPARISONS: Record<
 		totalize(lte(column, scalar)),
 	[ConditionOperator.Contains]: (column, scalar) =>
 		typeof scalar === "string"
-			? totalize(sql`${column} like ${`%${escapeLike(scalar)}%`} escape '\\'`)
+			? totalize(like(column, `%${escapeLike(scalar)}%`))
 			: FALSE,
 };
 

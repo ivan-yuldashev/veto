@@ -125,7 +125,7 @@ The grid covers every operator, deny interaction, empty and null-carrying `in` l
 
 ## Limitations
 
-- **Postgres only** for now — `IS DISTINCT FROM`, `ESCAPE` and the aliasing come from `pg-core`. MySQL and SQLite are follow-ups.
+- **Postgres only** for now — `IS DISTINCT FROM`, the array operators and the aliasing come from `pg-core`. MySQL and SQLite are follow-ups.
 - **String ordering follows the database collation**, which for non-ASCII text can differ from JavaScript's UTF-16 comparison.
 
 ## Source
