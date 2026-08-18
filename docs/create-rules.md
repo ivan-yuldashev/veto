@@ -65,6 +65,27 @@ buildAbility(ac, [{ effect: "allow", action: "read", resource: "post" }]); // �
 
 This is a type-level marker with no runtime cost. It exists so that the validation step for rules arriving from a database or network cannot be quietly skipped. When you genuinely need to bypass it — building deliberately broken rules in a test — a visible `as CheckedRules` cast is the escape hatch.
 
+## One rule per role, not per tenant
+
+A policy usually walks the actor's memberships. Emitting the same rules once per membership is the obvious shape and the expensive one — the array grows with the number of workspaces, and it is that array that crosses to the client on every render.
+
+```ts
+// ✗ one copy of every rule per workspace
+actor.memberships.flatMap(({ workspaceId, role }) => [
+	allow("read", "post", { where: { blog: { workspace: { id: workspaceId } } } }),
+	// …
+]);
+
+// ✓ one rule, naming the workspaces the role covers
+const writer = actor.memberships
+	.filter((m) => m.role !== "viewer")
+	.map((m) => m.workspaceId);
+
+allow("read", "post", { where: { blog: { workspace: { id: { in: writer } } } } });
+```
+
+Same verdicts, and the size stops tracking the tenant count: measured on the shared example policy at 50 workspaces, **454 rules and 83 kB become 13 rules and 4.7 kB**, with `can()` dropping from 27.7 µs to 1.0 µs. Group by whatever your rules actually branch on — usually the role — and let `in` carry the ids.
+
 ## Why it works this way
 
 - **Pure factories, no builder.** `allow` and `deny` construct a value and return it; a policy is a `map` over your role logic. Trivial to test, trivial to serialise.

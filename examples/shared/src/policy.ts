@@ -11,54 +11,63 @@ export type Actor = {
 const { allow, deny } = createRules(ac);
 
 export const policyFor = (actor: Actor): CheckedRules => {
-	const rules = actor.memberships.flatMap(({ workspaceId, role }) => {
-		const membershipRules: CheckedRules = [
-			allow("read", "workspace", { where: { id: workspaceId } }),
-			allow("read", "blog", { where: { workspace: { id: workspaceId } } }),
+	const workspacesWhere = (...roles: Role[]) =>
+		actor.memberships
+			.filter((membership) => roles.includes(membership.role))
+			.map((membership) => membership.workspaceId);
+
+	const member = workspacesWhere("viewer", "editor", "admin");
+	const writer = workspacesWhere("editor", "admin");
+	const admin = workspacesWhere("admin");
+
+	const rules: CheckedRules = [];
+
+	if (member.length > 0) {
+		rules.push(
+			allow("read", "workspace", { where: { id: { in: member } } }),
+			allow("read", "blog", { where: { workspace: { id: { in: member } } } }),
 			allow("read", "post", {
 				where: {
 					status: "published",
-					blog: { workspace: { id: workspaceId } },
+					blog: { workspace: { id: { in: member } } },
 				},
 			}),
 			allow("read", "post", {
 				where: {
 					views: { gte: 100 },
-					blog: { workspace: { id: workspaceId } },
+					blog: { workspace: { id: { in: member } } },
 				},
 			}),
-		];
+		);
+	}
 
-		if (role === "editor" || role === "admin") {
-			membershipRules.push(
-				allow("view", "analytics", { where: { workspaceId } }),
-				allow("read", "post", {
-					where: { blog: { workspace: { id: workspaceId } } },
-				}),
-				allow(["update", "publish"], "post", {
-					where: {
-						authorId: actor.id,
-						blog: { workspace: { id: workspaceId } },
-					},
-					payload: {
-						fields: ["title", "status"],
-						constraints: { status: { in: ["draft"] } },
-					},
-				}),
-			);
-		}
+	if (writer.length > 0) {
+		rules.push(
+			allow("view", "analytics", { where: { workspaceId: { in: writer } } }),
+			allow("read", "post", {
+				where: { blog: { workspace: { id: { in: writer } } } },
+			}),
+			allow(["update", "publish"], "post", {
+				where: {
+					authorId: actor.id,
+					blog: { workspace: { id: { in: writer } } },
+				},
+				payload: {
+					fields: ["title", "status"],
+					constraints: { status: { in: ["draft"] } },
+				},
+			}),
+		);
+	}
 
-		if (role === "admin") {
-			membershipRules.push(
-				allow("manage", "post", {
-					where: { blog: { workspace: { id: workspaceId } } },
-				}),
-				allow("update", "workspace", { where: { id: workspaceId } }),
-			);
-		}
-
-		return membershipRules;
-	});
+	if (admin.length > 0) {
+		rules.push(
+			allow("manage", "post", {
+				where: { blog: { workspace: { id: { in: admin } } } },
+			}),
+			allow("update", "workspace", { where: { id: { in: admin } } }),
+		);
+	}
 
 	return [
 		...rules,
