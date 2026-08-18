@@ -10,13 +10,11 @@ import type { ForbiddenError } from "../errors/index.js";
 
 export type Awaitable<T> = T | Promise<T>;
 
-export type Row = Record<string, unknown>;
-
 export type GuardOptions = {
 	action: string;
 	resource: string;
 	load?: (...args: unknown[]) => unknown;
-	payload?: (...args: unknown[]) => Row;
+	payload?: (...args: unknown[]) => Record<string, unknown>;
 };
 
 /**

@@ -15,6 +15,7 @@ import type { RuleParseResult, UnknownRule } from "./parse.types.js";
 import type { Vocabulary } from "./vocabulary.types.js";
 
 const MAX_CONDITION_DEPTH = 64;
+
 export const CONDITION_SHAPES = [
 	"and",
 	"or",
@@ -35,6 +36,7 @@ type ShapeValidator = (
 type ConditionGrammar = {
 	nesting: string;
 	expected: string;
+	expectedList: string;
 	shapes: Record<ConditionShape, ShapeValidator>;
 };
 
@@ -123,22 +125,29 @@ const validateRelation = (
 		return;
 	}
 
-	validateCondition(node.where, `${path}.where`, errors, depth + 1);
+	walkCondition(
+		node.where,
+		`${path}.where`,
+		errors,
+		depth + 1,
+		conditionGrammar,
+	);
 };
 
-const validateConditionList = (
+const walkList = (
 	list: unknown,
 	path: string,
 	errors: string[],
 	depth: number,
+	grammar: ConditionGrammar,
 ): void => {
 	if (!Array.isArray(list)) {
-		errors.push(`${path}: expected an array of conditions`);
+		errors.push(`${path}: ${grammar.expectedList}`);
 		return;
 	}
 
 	list.forEach((child, index) => {
-		validateCondition(child, `${path}[${index}]`, errors, depth + 1);
+		walkCondition(child, `${path}[${index}]`, errors, depth + 1, grammar);
 	});
 };
 
@@ -153,6 +162,7 @@ const shapeOf = (
 		errors.push(
 			`${path}: a condition names ${named.map((shape) => `"${shape}"`).join(" and ")} at once — a node carries exactly one shape`,
 		);
+
 		return undefined;
 	}
 
@@ -190,11 +200,12 @@ const walkCondition = (
 const conditionGrammar: ConditionGrammar = {
 	nesting: "condition",
 	expected: "a condition object",
+	expectedList: "expected an array of conditions",
 	shapes: {
 		and: (node, path, errors, depth) =>
-			validateConditionList(node.and, `${path}.and`, errors, depth),
+			walkList(node.and, `${path}.and`, errors, depth, conditionGrammar),
 		or: (node, path, errors, depth) =>
-			validateConditionList(node.or, `${path}.or`, errors, depth),
+			walkList(node.or, `${path}.or`, errors, depth, conditionGrammar),
 		not: (node, path, errors, depth) =>
 			walkCondition(
 				node.not,
@@ -219,37 +230,15 @@ const outsideConstraints =
 const constraintGrammar: ConditionGrammar = {
 	nesting: "constraint",
 	expected: "a field condition",
+	expectedList: "expected an array",
 	shapes: {
-		and: (node, path, errors, depth) => {
-			if (!Array.isArray(node.and)) {
-				errors.push(`${path}.and: expected an array`);
-				return;
-			}
-
-			node.and.forEach((child, index) => {
-				walkCondition(
-					child,
-					`${path}.and[${index}]`,
-					errors,
-					depth + 1,
-					constraintGrammar,
-				);
-			});
-		},
+		and: (node, path, errors, depth) =>
+			walkList(node.and, `${path}.and`, errors, depth, constraintGrammar),
 		or: outsideConstraints("or"),
 		not: outsideConstraints("not"),
 		relation: outsideConstraints("relation"),
 		field: validateFieldNode,
 	},
-};
-
-const validateCondition = (
-	node: unknown,
-	path: string,
-	errors: string[],
-	depth = 0,
-): void => {
-	walkCondition(node, path, errors, depth, conditionGrammar);
 };
 
 const validatePayload = (
@@ -300,7 +289,7 @@ const validateRule = (rule: unknown, path: string, errors: string[]): void => {
 	}
 
 	if ("where" in rule && rule.where !== undefined) {
-		validateCondition(rule.where, `${path}.where`, errors);
+		walkCondition(rule.where, `${path}.where`, errors, 0, conditionGrammar);
 	}
 
 	if ("payload" in rule && rule.payload !== undefined) {
@@ -403,6 +392,7 @@ const vocabularyReasons = (
 	}
 
 	const actions = Array.isArray(rule.action) ? rule.action : [rule.action];
+
 	for (const action of actions) {
 		if (action !== MANAGE_ACTION && !definition.actions.includes(action)) {
 			reasons.push(
