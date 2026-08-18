@@ -31,6 +31,7 @@ type ShapeValidator = (
 	path: string,
 	errors: string[],
 	depth: number,
+	grammar: ConditionGrammar,
 ) => void;
 
 type ConditionGrammar = {
@@ -113,6 +114,7 @@ const validateRelation = (
 	path: string,
 	errors: string[],
 	depth: number,
+	grammar: ConditionGrammar,
 ): void => {
 	if (typeof node.relation !== "string") {
 		errors.push(`${path}.relation: expected a string`);
@@ -125,13 +127,7 @@ const validateRelation = (
 		return;
 	}
 
-	walkCondition(
-		node.where,
-		`${path}.where`,
-		errors,
-		depth + 1,
-		conditionGrammar,
-	);
+	walkCondition(node.where, `${path}.where`, errors, depth + 1, grammar);
 };
 
 const walkList = (
@@ -194,30 +190,24 @@ const walkCondition = (
 		return;
 	}
 
-	grammar.shapes[shape](node, path, errors, depth);
+	grammar.shapes[shape](node, path, errors, depth, grammar);
 };
 
-const conditionGrammar: ConditionGrammar = {
+const conditionGrammar = (): ConditionGrammar => ({
 	nesting: "condition",
 	expected: "a condition object",
 	expectedList: "expected an array of conditions",
 	shapes: {
-		and: (node, path, errors, depth) =>
-			walkList(node.and, `${path}.and`, errors, depth, conditionGrammar),
-		or: (node, path, errors, depth) =>
-			walkList(node.or, `${path}.or`, errors, depth, conditionGrammar),
-		not: (node, path, errors, depth) =>
-			walkCondition(
-				node.not,
-				`${path}.not`,
-				errors,
-				depth + 1,
-				conditionGrammar,
-			),
+		and: (node, path, errors, depth, grammar) =>
+			walkList(node.and, `${path}.and`, errors, depth, grammar),
+		or: (node, path, errors, depth, grammar) =>
+			walkList(node.or, `${path}.or`, errors, depth, grammar),
+		not: (node, path, errors, depth, grammar) =>
+			walkCondition(node.not, `${path}.not`, errors, depth + 1, grammar),
 		relation: validateRelation,
 		field: validateFieldNode,
 	},
-};
+});
 
 const outsideConstraints =
 	(shape: ConditionShape) =>
@@ -227,19 +217,19 @@ const outsideConstraints =
 		);
 	};
 
-const constraintGrammar: ConditionGrammar = {
+const constraintGrammar = (): ConditionGrammar => ({
 	nesting: "constraint",
 	expected: "a field condition",
 	expectedList: "expected an array",
 	shapes: {
-		and: (node, path, errors, depth) =>
-			walkList(node.and, `${path}.and`, errors, depth, constraintGrammar),
+		and: (node, path, errors, depth, grammar) =>
+			walkList(node.and, `${path}.and`, errors, depth, grammar),
 		or: outsideConstraints("or"),
 		not: outsideConstraints("not"),
 		relation: outsideConstraints("relation"),
 		field: validateFieldNode,
 	},
-};
+});
 
 const validatePayload = (
 	payload: unknown,
@@ -265,7 +255,7 @@ const validatePayload = (
 			`${path}.constraints`,
 			errors,
 			0,
-			constraintGrammar,
+			constraintGrammar(),
 		);
 	}
 };
@@ -289,7 +279,7 @@ const validateRule = (rule: unknown, path: string, errors: string[]): void => {
 	}
 
 	if ("where" in rule && rule.where !== undefined) {
-		walkCondition(rule.where, `${path}.where`, errors, 0, conditionGrammar);
+		walkCondition(rule.where, `${path}.where`, errors, 0, conditionGrammar());
 	}
 
 	if ("payload" in rule && rule.payload !== undefined) {
