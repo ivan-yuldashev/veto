@@ -1,5 +1,5 @@
 import { buildAbility } from "@vetojs/core";
-import { createGuard } from "@vetojs/next";
+import { createGuard } from "@vetojs/core/guard";
 import { ac, policyFor } from "@vetojs-examples/shared";
 import { cache } from "react";
 import { getActor } from "./auth";

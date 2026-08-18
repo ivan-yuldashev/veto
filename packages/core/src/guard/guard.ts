@@ -1,16 +1,15 @@
-import type { AbilitySet, ResourceMap, Rule } from "@vetojs/core";
-import { buildAbility, ForbiddenError, RuleEffect } from "@vetojs/core";
-import {
-	isPayloadScoped,
-	isPlainObject,
-	ruleMatches,
-} from "@vetojs/core/internal";
+import type { AbilitySet, ResourceMap } from "../api/index.js";
+import { buildAbility } from "../api/index.js";
+import { ForbiddenError } from "../errors/index.js";
+import { ruleMatches } from "../evaluation/index.js";
+import type { Rule } from "../model/index.js";
+import { isPayloadScoped, isPlainObject, RuleEffect } from "../shared/index.js";
 import type {
 	GuardConfig,
 	GuardOptions,
 	Row,
 	WithPermission,
-} from "./types.js";
+} from "./guard.types.js";
 
 const hasMatchingDeny = (
 	rules: Rule[],

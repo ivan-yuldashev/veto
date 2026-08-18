@@ -18,10 +18,10 @@ type ToOneRelationNode = {
 	where: ConditionNode<Record<string, unknown>>;
 };
 
-export type RelationNode = ToManyRelationNode | ToOneRelationNode;
+type RelationNode = ToManyRelationNode | ToOneRelationNode;
 
 type FieldNode<T> = {
-	field: keyof T;
+	field: keyof T & string;
 	op: ConditionOperator;
 	value: unknown;
 };

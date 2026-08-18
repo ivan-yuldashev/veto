@@ -43,12 +43,10 @@
 		"build": "tsup",
 		"prepack": "pnpm build",
 		"dev": "tsup --watch",
-		"test": "vitest run",
-		"test:watch": "vitest",
 		"typecheck": "tsc --noEmit"
 	},
 	"peerDependencies": {
-		"@vetojs/core": ">=0.4.0 <1"
+		"@vetojs/core": ">=0.7.0 <1"
 	},
 	"devDependencies": {
 		"@vetojs/core": "workspace:^"

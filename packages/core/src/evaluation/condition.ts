@@ -103,9 +103,5 @@ export const evaluateCondition = <T extends Record<string, unknown>>(
 		}
 	}
 
-	return evaluateOperator(
-		node.op,
-		ownField(instance, node.field as string),
-		node.value,
-	);
+	return evaluateOperator(node.op, ownField(instance, node.field), node.value);
 };
