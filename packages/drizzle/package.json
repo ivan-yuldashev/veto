@@ -8,6 +8,7 @@
 		"access-control",
 		"drizzle",
 		"drizzle-orm",
+		"postgres",
 		"sql",
 		"casl-alternative",
 		"typescript"
