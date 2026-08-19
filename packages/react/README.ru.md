@@ -68,7 +68,7 @@ const ability = await getAbility();
 ```tsx
 const ability = useAbility();
 
-const visible = posts.filter((post) => ability.can("read", "post", post));
+const visible = postList.filter((post) => ability.can("read", "post", post));
 const writable = ability.permittedFields("update", "post", ["title", "status"]);
 ```
 

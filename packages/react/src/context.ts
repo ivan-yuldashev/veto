@@ -34,8 +34,7 @@ const MISSING_PROVIDER = "useAbility must be used within <AbilityProvider>";
 const neverNotifies = () => () => {};
 
 const isReactNative =
-	typeof navigator !== "undefined" &&
-	(navigator as { product?: string }).product === "ReactNative";
+	typeof navigator !== "undefined" && navigator.product === "ReactNative";
 
 const useIsomorphicLayoutEffect =
 	typeof document !== "undefined" || isReactNative

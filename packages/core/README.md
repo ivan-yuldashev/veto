@@ -61,6 +61,18 @@ We designed the API to be intuitive.
 - `ConditionOperator`: the comparison operators available (`eq`, `ne`, `in`, `nin`, `gt`, `gte`, `lt`, `lte`, `contains`, `exists`, `has`, `hasAny`, `hasAll`).
 - `ForbiddenError`, `RelationNotLoadedError`: the only two classes in the library.
 
+The package has a second entry point, [`@vetojs/core/guard`](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/guard.md). `createGuard` configures the actor and the policy once, and the wrapper it returns resolves the actor, loads the row, validates the payload and only then runs your handler — the same wrapper for a server action, an [HTTP handler](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/http.md) and an [agent's tool call](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/agents.md).
+
+```ts
+import { createGuard } from "@vetojs/core/guard";
+
+export const withPermission = createGuard({
+	ac: accessControl,
+	getActor: currentActor,
+	policy: policyFor,
+});
+```
+
 What `ability` gives you:
 
 - **Permission checks:** `can`, `cannot` and `authorize` answer whether an action is allowed in general or for a specific row.
@@ -90,7 +102,7 @@ The engine follows the same conventions your ORM does: `undefined` means the dat
 
 - **[Documentation](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/README.md)** — detailed pages on every concept: from declaring resources to SQL filtering.
 - **[For agents](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/for-agents.md)** — the whole API on one page, so it's easy to feed to an assistant.
-- **Examples** — runnable demos on a multi-tenant architecture will arrive with the adapters.
+- **Examples** — three runnable demos over one multi-tenant domain: [react-spa](https://github.com/ivan-yuldashev/vetojs/tree/main/examples/react-spa), [next-app](https://github.com/ivan-yuldashev/vetojs/tree/main/examples/next-app) and [drizzle-pg](https://github.com/ivan-yuldashev/vetojs/tree/main/examples/drizzle-pg), where `can()` and the compiled `WHERE` are compared row by row.
 
 ## License
 

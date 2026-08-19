@@ -85,7 +85,7 @@ For lists, disabled states, and any check that isn't "render or don't":
 ```tsx
 const ability = useAbility();
 
-const visible = posts.filter((post) => ability.can("read", "post", post));
+const visible = postList.filter((post) => ability.can("read", "post", post));
 const writable = ability.permittedFields("update", "post", ["title", "status"]);
 
 <input disabled={!writable.includes("title")} />

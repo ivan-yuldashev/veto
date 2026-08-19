@@ -91,20 +91,30 @@ const scalarOrThrow = (
 	return columnValue(column, value);
 };
 
+const membersOrThrow = (
+	column: Column,
+	value: unknown,
+	op: ConditionOperator,
+): unknown[] => {
+	if (!Array.isArray(value)) {
+		throw new Error(
+			`@vetojs/drizzle: operator "${op}" on column "${column.name}" requires an array value in the rule — received ${typeof value}. parseRules rejects such rules; fix the hand-built one.`,
+		);
+	}
+
+	return value.map((member) => scalarOrThrow(column, member, op));
+};
+
 const arrayMembership = (
 	column: Column,
 	raw: unknown,
 	op: ConditionOperator,
 ): SQL => {
-	const wanted = op === ConditionOperator.Has ? [raw] : raw;
-
-	if (!Array.isArray(wanted)) {
-		throw new Error(
-			`@vetojs/drizzle: operator "${op}" on column "${column.name}" requires an array value in the rule — received ${typeof raw}.`,
-		);
-	}
-
-	const members = wanted.map((member) => scalarOrThrow(column, member, op));
+	const members = membersOrThrow(
+		column,
+		op === ConditionOperator.Has ? [raw] : raw,
+		op,
+	);
 
 	if (members.some((member) => member === null)) {
 		throw new Error(
@@ -126,13 +136,7 @@ const membership = (
 	raw: unknown,
 	op: ConditionOperator,
 ): SQL => {
-	if (!Array.isArray(raw)) {
-		throw new Error(
-			`@vetojs/drizzle: operator "${op}" on column "${column.name}" requires an array value in the rule — received ${typeof raw}. parseRules rejects such rules; fix the hand-built one.`,
-		);
-	}
-
-	const members = raw.map((member) => scalarOrThrow(column, member, op));
+	const members = membersOrThrow(column, raw, op);
 
 	const present = members.filter(
 		(member) => member !== null && typeMatches(column, member),

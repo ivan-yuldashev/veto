@@ -1,11 +1,11 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-	entry: ["src/index.ts", "src/internal.ts"],
+	entry: ["src/index.ts", "src/guard/index.ts"],
 	format: ["esm"],
 	target: "es2022",
 	dts: true,
-	splitting: false,
+	splitting: true,
 	sourcemap: true,
 	clean: true,
 });

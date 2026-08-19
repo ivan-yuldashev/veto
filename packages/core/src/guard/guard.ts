@@ -1,16 +1,14 @@
-import type { AbilitySet, ResourceMap, Rule } from "@vetojs/core";
-import { buildAbility, ForbiddenError, RuleEffect } from "@vetojs/core";
-import {
-	isPayloadScoped,
-	isPlainObject,
-	ruleMatches,
-} from "@vetojs/core/internal";
+import type { AbilitySet, ResourceMap } from "../api/index.js";
+import { buildAbility } from "../api/index.js";
+import { ForbiddenError } from "../errors/index.js";
+import { ruleMatches } from "../evaluation/index.js";
+import type { Rule } from "../model/index.js";
+import { isPayloadScoped, isPlainObject, RuleEffect } from "../shared/index.js";
 import type {
 	GuardConfig,
 	GuardOptions,
-	Row,
 	WithPermission,
-} from "./types.js";
+} from "./guard.types.js";
 
 const hasMatchingDeny = (
 	rules: Rule[],
@@ -29,8 +27,8 @@ const mutationRowAllowed = (
 	ability: AbilitySet,
 	action: string,
 	resource: string,
-	row: Row | undefined,
-	base: Row,
+	row: Record<string, unknown> | undefined,
+	base: Record<string, unknown>,
 ): boolean => {
 	if (row === undefined) {
 		return !hasMatchingDeny(ability.rules, action, resource);
@@ -62,9 +60,9 @@ export const createGuard = <AC extends ResourceMap, Actor>(
 		ability: AbilitySet,
 		action: string,
 		resource: string,
-		row: Row | undefined,
-		payload: Row,
-	): Row => {
+		row: Record<string, unknown> | undefined,
+		payload: Record<string, unknown>,
+	): Record<string, unknown> => {
 		const base = row ?? {};
 
 		if (!mutationRowAllowed(ability, action, resource, row, base)) {
@@ -84,9 +82,9 @@ export const createGuard = <AC extends ResourceMap, Actor>(
 		ability: AbilitySet,
 		action: string,
 		resource: string,
-		row: Row | undefined,
-		payload: Row | undefined,
-	): Row | undefined => {
+		row: Record<string, unknown> | undefined,
+		payload: Record<string, unknown> | undefined,
+	): Record<string, unknown> | undefined => {
 		if (payload !== undefined) {
 			return authorizeMutation(ability, action, resource, row, payload);
 		}
@@ -119,12 +117,12 @@ export const createGuard = <AC extends ResourceMap, Actor>(
 
 			const { action, resource } = options;
 
-			let row: Row | undefined;
+			let row: Record<string, unknown> | undefined;
 
 			if (options.load) {
 				const loaded = await options.load(...args);
 
-				if (!isPlainObject<Row>(loaded)) {
+				if (!isPlainObject<Record<string, unknown>>(loaded)) {
 					return deny(new ForbiddenError(action, resource));
 				}
 

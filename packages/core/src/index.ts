@@ -1,13 +1,13 @@
 export type {
 	AbilitySet,
 	ActionFor,
-	CheckedRule,
 	CheckedRules,
 	PayloadResult,
 	PayloadViolation,
 	ResourceMap,
 	ResourceName,
 	RuleParseResult,
+	Schema,
 	ShapeOf,
 	UnknownRule,
 	ValidateResult,
@@ -23,12 +23,7 @@ export {
 } from "./api/index.js";
 export { ForbiddenError, RelationNotLoadedError } from "./errors/index.js";
 export { markLoaded } from "./evaluation/index.js";
-export type {
-	ConditionNode,
-	RelationNode,
-	Rule,
-	RulePayload,
-} from "./model/index.js";
+export type { ConditionNode, Rule, RulePayload } from "./model/index.js";
 export {
 	ConditionOperator,
 	MatchQuantifier,

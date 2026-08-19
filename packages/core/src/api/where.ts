@@ -1,6 +1,7 @@
 import { ruleMatches } from "../evaluation/index.js";
 import type { ConditionNode, Rule } from "../model/index.js";
 import { isPayloadScoped, RuleEffect } from "../shared/index.js";
+import { everything, nothing } from "./vacuous.js";
 
 export const compileWhere = <T extends Record<string, unknown>>(
 	rules: Rule<T>[],
@@ -13,15 +14,12 @@ export const compileWhere = <T extends Record<string, unknown>>(
 		(rule) => rule.effect === RuleEffect.Deny && !isPayloadScoped(rule),
 	);
 
-	const nothing: ConditionNode<T> = { or: [] };
-	const everything: ConditionNode<T> = { and: [] };
-
 	if (allows.length === 0) {
-		return nothing;
+		return nothing<ConditionNode<T>>();
 	}
 
 	if (denies.some((rule) => rule.where === undefined)) {
-		return nothing;
+		return nothing<ConditionNode<T>>();
 	}
 
 	const orOf = (subset: Rule<T>[]): ConditionNode<T> => {
@@ -37,7 +35,9 @@ export const compileWhere = <T extends Record<string, unknown>>(
 	};
 
 	const allowUnconditional = allows.some((rule) => rule.where === undefined);
-	const allowGroup = allowUnconditional ? everything : orOf(allows);
+	const allowGroup = allowUnconditional
+		? everything<ConditionNode<T>>()
+		: orOf(allows);
 	const denyGroup = denies.length === 0 ? undefined : orOf(denies);
 
 	if (denyGroup === undefined) {

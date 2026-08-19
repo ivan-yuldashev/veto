@@ -23,7 +23,7 @@ Sibling keys mean **and**. The shorthand compiles to the tree below at rule-cons
 ```ts
 type ConditionNode<T> =
 	| { field: keyof T; op: ConditionOperator; value: unknown }
-	| RelationNode
+	| { relation: string; type: "one" | "many"; match?: MatchQuantifier; where: ConditionNode<T> }
 	| { and: ConditionNode<T>[] }
 	| { or: ConditionNode<T>[] }
 	| { not: ConditionNode<T> };

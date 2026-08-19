@@ -78,9 +78,6 @@ importers:
       '@vetojs/drizzle':
         specifier: workspace:*
         version: link:../../packages/drizzle
-      '@vetojs/next':
-        specifier: workspace:*
-        version: link:../../packages/next
       '@vetojs/react':
         specifier: workspace:*
         version: link:../../packages/react

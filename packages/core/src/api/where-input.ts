@@ -12,6 +12,7 @@ import {
 	normalizeConditionValue,
 } from "./condition-shorthand.js";
 import type { Relation, ResourceMap } from "./define-abilities.js";
+import { nothing } from "./vacuous.js";
 
 type Node = ConditionNode<Record<string, unknown>>;
 
@@ -19,8 +20,6 @@ const relationsOf = (
 	ac: ResourceMap,
 	resource: string,
 ): Record<string, Relation> => ac[resource]?.relations ?? {};
-
-const nothing = (): Node => ({ or: [] });
 
 const isMatchQuantifier = (match: string): match is MatchQuantifier => {
 	return MATCH_QUANTIFIERS.includes(match);
@@ -34,7 +33,7 @@ const quantifierNode = (
 	resource: string,
 ): Node => {
 	if (!isMatchQuantifier(match) || !isPlainObject(nested)) {
-		return nothing();
+		return nothing<Node>();
 	}
 
 	return {
@@ -62,7 +61,7 @@ const relationNodes = (
 	}
 
 	if (!isPlainObject(value)) {
-		return [nothing()];
+		return [nothing<Node>()];
 	}
 
 	return Object.entries(value)
@@ -78,7 +77,7 @@ export const compileWhereInput = (
 	resource: string,
 ): Node => {
 	if (!isPlainObject(shorthand)) {
-		return nothing();
+		return nothing<Node>();
 	}
 
 	const relations = relationsOf(ac, resource);
@@ -91,7 +90,7 @@ export const compileWhereInput = (
 
 		if (key === "and" || key === "or") {
 			if (!Array.isArray(value)) {
-				nodes.push(nothing());
+				nodes.push(nothing<Node>());
 				continue;
 			}
 
@@ -108,7 +107,7 @@ export const compileWhereInput = (
 			nodes.push(
 				isPlainObject(value)
 					? { not: compileWhereInput(value, ac, resource) }
-					: nothing(),
+					: nothing<Node>(),
 			);
 
 			continue;

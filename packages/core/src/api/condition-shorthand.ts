@@ -4,6 +4,7 @@ import {
 	isOperator,
 	isPlainObject,
 } from "../shared/index.js";
+import { everything } from "./vacuous.js";
 
 export const normalizeConditionValue = (value: unknown): unknown => {
 	if (value instanceof Date) {
@@ -40,7 +41,7 @@ export const asOperator = (
 
 export const combineNodes = <N>(nodes: N[]): N | { and: N[] } => {
 	if (nodes.length === 0) {
-		return { and: [] };
+		return everything<N>();
 	}
 
 	if (nodes.length === 1 && nodes[0] !== undefined) {
@@ -81,7 +82,7 @@ export const compilePayloadConstraints = (
 	condition: unknown,
 ): FieldConditionNode<Record<string, unknown>> => {
 	if (!isPlainObject(condition)) {
-		return { and: [] };
+		return everything<FieldConditionNode<Record<string, unknown>>>();
 	}
 
 	const nodes: FieldConditionNode<Record<string, unknown>>[] = [];

@@ -15,7 +15,31 @@ import type { RuleParseResult, UnknownRule } from "./parse.types.js";
 import type { Vocabulary } from "./vocabulary.types.js";
 
 const MAX_CONDITION_DEPTH = 64;
-const CONDITION_SHAPES = ["and", "or", "not", "relation", "field"] as const;
+
+export const CONDITION_SHAPES = [
+	"and",
+	"or",
+	"not",
+	"relation",
+	"field",
+] as const;
+
+type ConditionShape = (typeof CONDITION_SHAPES)[number];
+
+type ShapeValidator = (
+	node: Record<string, unknown>,
+	path: string,
+	errors: string[],
+	depth: number,
+	grammar: ConditionGrammar,
+) => void;
+
+type ConditionGrammar = {
+	nesting: string;
+	expected: string;
+	expectedList: string;
+	shapes: Record<ConditionShape, ShapeValidator>;
+};
 
 const isStringArray = (value: unknown): value is string[] => {
 	return (
@@ -90,6 +114,7 @@ const validateRelation = (
 	path: string,
 	errors: string[],
 	depth: number,
+	grammar: ConditionGrammar,
 ): void => {
 	if (typeof node.relation !== "string") {
 		errors.push(`${path}.relation: expected a string`);
@@ -102,122 +127,109 @@ const validateRelation = (
 		return;
 	}
 
-	validateCondition(node.where, `${path}.where`, errors, depth + 1);
+	walkCondition(node.where, `${path}.where`, errors, depth + 1, grammar);
 };
 
-const validateConditionList = (
+const walkList = (
 	list: unknown,
 	path: string,
 	errors: string[],
 	depth: number,
+	grammar: ConditionGrammar,
 ): void => {
 	if (!Array.isArray(list)) {
-		errors.push(`${path}: expected an array of conditions`);
+		errors.push(`${path}: ${grammar.expectedList}`);
 		return;
 	}
 
 	list.forEach((child, index) => {
-		validateCondition(child, `${path}[${index}]`, errors, depth + 1);
+		walkCondition(child, `${path}[${index}]`, errors, depth + 1, grammar);
 	});
 };
 
-const namesTwoShapes = (
+const shapeOf = (
 	node: Record<string, unknown>,
 	path: string,
 	errors: string[],
-): boolean => {
-	const shapes = CONDITION_SHAPES.filter((key) => key in node);
+): ConditionShape | undefined => {
+	const named = CONDITION_SHAPES.filter((shape) => shape in node);
 
-	if (shapes.length < 2) {
-		return false;
+	if (named.length > 1) {
+		errors.push(
+			`${path}: a condition names ${named.map((shape) => `"${shape}"`).join(" and ")} at once — a node carries exactly one shape`,
+		);
+
+		return undefined;
 	}
 
-	errors.push(
-		`${path}: a condition names ${shapes.map((shape) => `"${shape}"`).join(" and ")} at once — a node carries exactly one shape`,
-	);
-
-	return true;
+	return named[0] ?? "field";
 };
 
-const validateCondition = (
+const walkCondition = (
 	node: unknown,
 	path: string,
 	errors: string[],
-	depth = 0,
+	depth: number,
+	grammar: ConditionGrammar,
 ): void => {
 	if (depth > MAX_CONDITION_DEPTH) {
 		errors.push(
-			`${path}: condition nesting too deep (max ${MAX_CONDITION_DEPTH})`,
+			`${path}: ${grammar.nesting} nesting too deep (max ${MAX_CONDITION_DEPTH})`,
 		);
 		return;
 	}
 
 	if (!isPlainObject(node)) {
-		errors.push(`${path}: expected a condition object`);
+		errors.push(`${path}: expected ${grammar.expected}`);
 		return;
 	}
 
-	if (namesTwoShapes(node, path, errors)) {
+	const shape = shapeOf(node, path, errors);
+
+	if (shape === undefined) {
 		return;
 	}
 
-	if ("and" in node) {
-		validateConditionList(node.and, `${path}.and`, errors, depth);
-		return;
-	}
-	if ("or" in node) {
-		validateConditionList(node.or, `${path}.or`, errors, depth);
-		return;
-	}
-	if ("not" in node) {
-		validateCondition(node.not, `${path}.not`, errors, depth + 1);
-		return;
-	}
-	if ("relation" in node) {
-		validateRelation(node, path, errors, depth);
-		return;
-	}
-
-	validateFieldNode(node, path, errors);
+	grammar.shapes[shape](node, path, errors, depth, grammar);
 };
 
-const validateFieldCondition = (
-	node: unknown,
-	path: string,
-	errors: string[],
-	depth = 0,
-): void => {
-	if (depth > MAX_CONDITION_DEPTH) {
+const conditionGrammar = (): ConditionGrammar => ({
+	nesting: "condition",
+	expected: "a condition object",
+	expectedList: "expected an array of conditions",
+	shapes: {
+		and: (node, path, errors, depth, grammar) =>
+			walkList(node.and, `${path}.and`, errors, depth, grammar),
+		or: (node, path, errors, depth, grammar) =>
+			walkList(node.or, `${path}.or`, errors, depth, grammar),
+		not: (node, path, errors, depth, grammar) =>
+			walkCondition(node.not, `${path}.not`, errors, depth + 1, grammar),
+		relation: validateRelation,
+		field: validateFieldNode,
+	},
+});
+
+const outsideConstraints =
+	(shape: ConditionShape) =>
+	(_node: Record<string, unknown>, path: string, errors: string[]): void => {
 		errors.push(
-			`${path}: constraint nesting too deep (max ${MAX_CONDITION_DEPTH})`,
+			`${path}: "${shape}" is not allowed in payload constraints — they take a field condition or "and"`,
 		);
-		return;
-	}
+	};
 
-	if (!isPlainObject(node)) {
-		errors.push(`${path}: expected a field condition`);
-		return;
-	}
-
-	if (namesTwoShapes(node, path, errors)) {
-		return;
-	}
-
-	if ("and" in node) {
-		if (!Array.isArray(node.and)) {
-			errors.push(`${path}.and: expected an array`);
-			return;
-		}
-
-		node.and.forEach((child, index) => {
-			validateFieldCondition(child, `${path}.and[${index}]`, errors, depth + 1);
-		});
-
-		return;
-	}
-
-	validateFieldNode(node, path, errors);
-};
+const constraintGrammar = (): ConditionGrammar => ({
+	nesting: "constraint",
+	expected: "a field condition",
+	expectedList: "expected an array",
+	shapes: {
+		and: (node, path, errors, depth, grammar) =>
+			walkList(node.and, `${path}.and`, errors, depth, grammar),
+		or: outsideConstraints("or"),
+		not: outsideConstraints("not"),
+		relation: outsideConstraints("relation"),
+		field: validateFieldNode,
+	},
+});
 
 const validatePayload = (
 	payload: unknown,
@@ -238,7 +250,13 @@ const validatePayload = (
 	}
 
 	if ("constraints" in payload && payload.constraints !== undefined) {
-		validateFieldCondition(payload.constraints, `${path}.constraints`, errors);
+		walkCondition(
+			payload.constraints,
+			`${path}.constraints`,
+			errors,
+			0,
+			constraintGrammar(),
+		);
 	}
 };
 
@@ -261,7 +279,7 @@ const validateRule = (rule: unknown, path: string, errors: string[]): void => {
 	}
 
 	if ("where" in rule && rule.where !== undefined) {
-		validateCondition(rule.where, `${path}.where`, errors);
+		walkCondition(rule.where, `${path}.where`, errors, 0, conditionGrammar());
 	}
 
 	if ("payload" in rule && rule.payload !== undefined) {
@@ -344,7 +362,10 @@ const conditionVocabularyReasons = (
 			`${path}.where`,
 			reasons,
 		);
+		return;
 	}
+
+	node satisfies { field: unknown };
 };
 
 const vocabularyReasons = (
@@ -361,6 +382,7 @@ const vocabularyReasons = (
 	}
 
 	const actions = Array.isArray(rule.action) ? rule.action : [rule.action];
+
 	for (const action of actions) {
 		if (action !== MANAGE_ACTION && !definition.actions.includes(action)) {
 			reasons.push(

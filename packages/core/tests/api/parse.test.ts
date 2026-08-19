@@ -2,9 +2,9 @@ import { describe, expect, expectTypeOf, it } from "vitest";
 import { buildAbility } from "../../src/api/ability.js";
 import { createRules } from "../../src/api/create-rules.js";
 import { defineAbilities } from "../../src/api/define-abilities.js";
-import { parseRules } from "../../src/api/parse.js";
+import { type CONDITION_SHAPES, parseRules } from "../../src/api/parse.js";
 import { type } from "../../src/api/schema.js";
-import type { Rule } from "../../src/model/index.js";
+import type { ConditionNode, Rule } from "../../src/model/index.js";
 
 describe("parseRules", () => {
 	describe("valid input", () => {
@@ -543,5 +543,91 @@ describe("parseRules", () => {
 			expect(before.can("complete", "task", upcoming)).toBe(true);
 			expect(after.can("complete", "task", upcoming)).toBe(true);
 		});
+	});
+});
+
+describe("one grammar, one dispatcher", () => {
+	type Unnamed<N> = N extends unknown
+		? [Extract<keyof N, (typeof CONDITION_SHAPES)[number]>] extends [never]
+			? N
+			: never
+		: never;
+
+	it("names every shape a condition node can take", () => {
+		expectTypeOf<Unnamed<ConditionNode<Record<string, unknown>>>>().toBeNever();
+	});
+
+	const constrained = (constraints: unknown) => [
+		{
+			effect: "allow",
+			action: "update",
+			resource: "post",
+			payload: { constraints },
+		},
+	];
+
+	it("refuses the shapes payload constraints do not take, and says which", () => {
+		for (const shape of ["or", "not", "relation"] as const) {
+			const result = parseRules(
+				constrained({ [shape]: { field: "status", op: "eq", value: "draft" } }),
+			);
+
+			expect(result).toEqual({
+				ok: false,
+				errors: [
+					`rules[0].payload.constraints: "${shape}" is not allowed in payload constraints — they take a field condition or "and"`,
+				],
+			});
+		}
+	});
+
+	it("refuses a constraint naming two shapes at once", () => {
+		const result = parseRules(
+			constrained({
+				and: [{ field: "status", op: "eq", value: "draft" }],
+				field: "views",
+			}),
+		);
+
+		expect(result).toEqual({
+			ok: false,
+			errors: [
+				'rules[0].payload.constraints: a condition names "and" and "field" at once — a node carries exactly one shape',
+			],
+		});
+	});
+
+	it("validates children inside a constraint's and, not just its own shape", () => {
+		const result = parseRules(
+			constrained({ and: [{ field: "status", op: "nope", value: "draft" }] }),
+		);
+
+		expect(result).toEqual({
+			ok: false,
+			errors: [
+				'rules[0].payload.constraints.and[0].op: unknown operator "nope"',
+			],
+		});
+	});
+
+	it("stops a constraint that nests past the limit, and says constraint", () => {
+		let node: Record<string, unknown> = {
+			field: "status",
+			op: "eq",
+			value: "draft",
+		};
+
+		for (let i = 0; i < 70; i++) {
+			node = { and: [node] };
+		}
+
+		const result = parseRules(constrained(node));
+
+		expect(result.ok).toBe(false);
+		expect(
+			result.ok ? [] : result.errors.filter((e) => e.includes("too deep")),
+		).toEqual([
+			expect.stringContaining("constraint nesting too deep (max 64)"),
+		]);
 	});
 });

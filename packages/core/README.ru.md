@@ -61,6 +61,18 @@ ability.can("delete", "post");        // ✗ ошибка компиляции �
 - `ConditionOperator`: Доступные операторы сравнения (`eq`, `ne`, `in`, `nin`, `gt`, `gte`, `lt`, `lte`, `contains`, `exists`, `has`, `hasAny`, `hasAll`).
 - `ForbiddenError`, `RelationNotLoadedError`: Те самые два единственных класса в библиотеке.
 
+У пакета есть вторая точка входа — [`@vetojs/core/guard`](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/guard.ru.md). `createGuard` один раз настраивает, как найти пользователя и какую политику ему собрать, а возвращённая обёртка находит пользователя, загружает строку, проверяет payload и только потом запускает ваш обработчик — одна и та же для server action, [HTTP-обработчика](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/http.ru.md) и [вызова инструмента агентом](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/agents.ru.md).
+
+```ts
+import { createGuard } from "@vetojs/core/guard";
+
+export const withPermission = createGuard({
+	ac: accessControl,
+	getActor: currentActor,
+	policy: policyFor,
+});
+```
+
 Что умеет `ability`:
 
 - **Проверка прав:** `can`, `cannot` и `authorize` проверяют, разрешено ли действие в целом или для конкретной строки.
@@ -90,7 +102,7 @@ ability.can("update", "post", post);
 
 - **[Документация](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/README.ru.md)** — подробные страницы по каждому концепту: от объявления ресурсов до SQL-фильтрации.
 - **[Для агентов](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/for-agents.ru.md)** — весь API собран на одной странице, чтобы его было удобно скармливать ассистентам.
-- **Примеры** — рабочие демо на базе мультитенантной архитектуры появятся вместе с выходом адаптеров.
+- **Примеры** — три рабочих демо на одной мультитенантной модели: [react-spa](https://github.com/ivan-yuldashev/vetojs/tree/main/examples/react-spa), [next-app](https://github.com/ivan-yuldashev/vetojs/tree/main/examples/next-app) и [drizzle-pg](https://github.com/ivan-yuldashev/vetojs/tree/main/examples/drizzle-pg), где `can()` и скомпилированный `WHERE` сверяются построчно.
 
 ## Лицензия
 

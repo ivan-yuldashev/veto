@@ -31,6 +31,18 @@ const rows = await db.select().from(posts)
 
 That equivalence is the whole point, so it is tested rather than asserted: a conformance grid runs both paths — `can()` over loaded rows and a real `SELECT` — against actual Postgres, over rows carrying `NULL`s in every column, and requires the two id sets to be identical.
 
+## The same predicate on a write
+
+A `WHERE` belongs on an `UPDATE` and a `DELETE` too:
+
+```ts
+const [updated] = await db.update(posts).set(data)
+	.where(schema.filter(ability, "update", "post", eq(posts.id, "p1")))
+	.returning();
+```
+
+A row the policy hides does not match, so the statement touches nothing and an empty result is your 404 — no fetch-then-check round trip, and no window in between where the row could change.
+
 ## Where SQL and JavaScript disagree
 
 A direct translation would break the guarantee. `NOT (amount > 1000)` with a `NULL` amount is `UNKNOWN` in SQL, so `WHERE` drops the row — while the engine treats the missing value as a decidable non-match and allows it. A deny-filtered query would then hide a row the user is entitled to see.

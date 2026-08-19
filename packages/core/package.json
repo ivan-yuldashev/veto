@@ -1,7 +1,7 @@
 {
 	"name": "@vetojs/core",
 	"version": "0.6.0",
-	"description": "Type-safe authorization for TypeScript with no classes and no hidden state. Rules are plain JSON, cross the server/client boundary as-is, and compile to SQL. Zero dependencies.",
+	"description": "Type-safe authorization for TypeScript with no classes and no hidden state. Rules are plain JSON, cross the server/client boundary as-is, and compile to SQL. The guard checks a server action, an HTTP handler or an agent tool call. Zero dependencies.",
 	"keywords": [
 		"authorization",
 		"permissions",
@@ -9,6 +9,9 @@
 		"abac",
 		"rbac",
 		"rsc",
+		"guard",
+		"mcp",
+		"ai-agents",
 		"casl-alternative",
 		"typescript"
 	],
@@ -28,9 +31,9 @@
 			"types": "./dist/index.d.ts",
 			"default": "./dist/index.js"
 		},
-		"./internal": {
-			"types": "./dist/internal.d.ts",
-			"default": "./dist/internal.js"
+		"./guard": {
+			"types": "./dist/guard/index.d.ts",
+			"default": "./dist/guard/index.js"
 		}
 	},
 	"types": "./dist/index.d.ts",

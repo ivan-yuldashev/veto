@@ -42,7 +42,10 @@ const relationItems = (
 	return items;
 };
 
-const ownField = (instance: Record<string, unknown>, key: string): unknown => {
+const ownField = <T extends Record<string, unknown>>(
+	instance: T,
+	key: keyof T,
+): unknown => {
 	return Object.hasOwn(instance, key) ? instance[key] : undefined;
 };
 
@@ -103,9 +106,5 @@ export const evaluateCondition = <T extends Record<string, unknown>>(
 		}
 	}
 
-	return evaluateOperator(
-		node.op,
-		ownField(instance, node.field as string),
-		node.value,
-	);
+	return evaluateOperator(node.op, ownField(instance, node.field), node.value);
 };

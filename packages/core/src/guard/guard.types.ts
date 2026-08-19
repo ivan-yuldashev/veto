@@ -2,21 +2,19 @@ import type {
 	AbilitySet,
 	ActionFor,
 	CheckedRules,
-	ForbiddenError,
 	ResourceMap,
 	ResourceName,
 	ShapeOf,
-} from "@vetojs/core";
+} from "../api/index.js";
+import type { ForbiddenError } from "../errors/index.js";
 
 export type Awaitable<T> = T | Promise<T>;
-
-export type Row = Record<string, unknown>;
 
 export type GuardOptions = {
 	action: string;
 	resource: string;
 	load?: (...args: unknown[]) => unknown;
-	payload?: (...args: unknown[]) => Row;
+	payload?: (...args: unknown[]) => Record<string, unknown>;
 };
 
 /**
@@ -54,6 +52,13 @@ export type GuardConfig<AC extends ResourceMap, Actor> = {
 	onDeny?: (error: ForbiddenError) => never;
 };
 
+/**
+ * What one guarded action declares: the decision to make, and how to get the row and the
+ * payload out of the arguments it is called with.
+ *
+ * Both callbacks receive the wrapped function's own arguments, so they take the same
+ * parameter list even when one of them ignores part of it.
+ */
 export type ActionOptions<
 	AC extends ResourceMap,
 	R extends ResourceName<AC>,
@@ -65,25 +70,44 @@ export type ActionOptions<
 	payload?: (...args: Args) => Partial<ShapeOf<AC, R>>;
 };
 
+type Provided = (...args: never) => unknown;
+
+/**
+ * What the handler is handed once the check has passed.
+ *
+ * `row` and `payload` are optional only when the action left `load` or `payload` out:
+ * declare one and the handler gets the value itself, not a maybe-value. `payload` is the
+ * validated copy, so a field the actor may not write cannot reach your database call.
+ */
 export type GuardContext<
 	AC extends ResourceMap,
 	R extends ResourceName<AC>,
 	Actor,
+	O = ActionOptions<AC, R, never[]>,
 > = {
 	actor: Actor;
 	ability: AbilitySet<AC>;
-	row: ShapeOf<AC, R> | undefined;
-	payload: Partial<ShapeOf<AC, R>> | undefined;
+	row: O extends { load: Provided }
+		? ShapeOf<AC, R>
+		: ShapeOf<AC, R> | undefined;
+	payload: O extends { payload: Provided }
+		? Partial<ShapeOf<AC, R>>
+		: Partial<ShapeOf<AC, R>> | undefined;
 };
 
+/**
+ * What {@link createGuard} returns: wrap a handler, get a function with the same signature
+ * that checks before it runs.
+ */
 export type WithPermission<AC extends ResourceMap, Actor> = <
 	R extends ResourceName<AC>,
 	Args extends unknown[],
 	Result,
+	O extends ActionOptions<AC, R, Args>,
 >(
-	options: ActionOptions<AC, R, Args>,
+	options: O & ActionOptions<AC, R, Args>,
 	handler: (
-		ctx: GuardContext<AC, R, Actor>,
+		ctx: GuardContext<AC, R, Actor, O>,
 		...args: Args
 	) => Awaitable<Result>,
 ) => (...args: Args) => Promise<Result>;

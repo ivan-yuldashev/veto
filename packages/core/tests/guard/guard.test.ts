@@ -1,11 +1,9 @@
-import {
-	createRules,
-	defineAbilities,
-	ForbiddenError,
-	type,
-} from "@vetojs/core";
-import { describe, expect, it } from "vitest";
-import { createGuard } from "../src/guard.js";
+import { describe, expect, expectTypeOf, it } from "vitest";
+import { createRules } from "../../src/api/create-rules.js";
+import { defineAbilities } from "../../src/api/define-abilities.js";
+import { type } from "../../src/api/schema.js";
+import { ForbiddenError } from "../../src/errors/index.js";
+import { createGuard } from "../../src/guard/index.js";
 
 type Post = {
 	id: string;
@@ -518,5 +516,326 @@ describe("no actor signed in", () => {
 		);
 
 		await expect(action()).rejects.toThrow(ForbiddenError);
+	});
+});
+
+describe("one actor's decision never reaches another", () => {
+	const guardFor = (actors: { id: string }[]) => {
+		let call = 0;
+
+		return createGuard({
+			ac,
+			getActor: () => actors[call++] ?? null,
+			policy: (current: { id: string }) => [
+				allow("update", "post", { where: { authorId: current.id } }),
+			],
+		});
+	};
+
+	it("rebuilds the policy per call rather than reusing the first actor's", async () => {
+		const guard = guardFor([{ id: "u1" }, { id: "u2" }]);
+		const action = guard(
+			{
+				action: "update",
+				resource: "post",
+				load: async () => ({
+					id: "p1",
+					authorId: "u1",
+					status: "draft" as const,
+				}),
+			},
+			async (ctx) => ctx.actor.id,
+		);
+
+		await expect(action()).resolves.toBe("u1");
+		await expect(action()).rejects.toThrow(ForbiddenError);
+	});
+
+	it("hands the handler the actor of its own call", async () => {
+		const guard = guardFor([{ id: "u2" }, { id: "u1" }]);
+		const action = guard(
+			{
+				action: "update",
+				resource: "post",
+				load: async () => ({
+					id: "p1",
+					authorId: "u2",
+					status: "draft" as const,
+				}),
+			},
+			async (ctx) => ctx.actor.id,
+		);
+
+		await expect(action()).resolves.toBe("u2");
+		await expect(action()).rejects.toThrow(ForbiddenError);
+	});
+});
+
+describe("attempts to smuggle data past the gate", () => {
+	const guard = createGuard({
+		ac,
+		getActor: () => actor,
+		policy: () => [
+			allow("update", "post", {
+				where: { authorId: "u1" },
+				payload: { fields: ["status"] },
+			}),
+		],
+	});
+
+	const row = { id: "p1", authorId: "u1", status: "draft" as const };
+
+	it("refuses a payload carrying __proto__ and leaves Object.prototype alone", async () => {
+		const action = guard(
+			{
+				action: "update",
+				resource: "post",
+				load: async () => row,
+				payload: () =>
+					JSON.parse('{"status":"draft","__proto__":{"polluted":true}}'),
+			},
+			async (ctx) => ctx.payload,
+		);
+
+		await expect(action()).rejects.toThrow(ForbiddenError);
+		expect(({} as { polluted?: boolean }).polluted).toBeUndefined();
+	});
+
+	it("ignores a field mutated after the payload was validated", async () => {
+		const draft: Record<string, unknown> = { status: "draft" };
+		const action = guard(
+			{
+				action: "update",
+				resource: "post",
+				load: async () => row,
+				payload: () => draft,
+			},
+			async (ctx) => {
+				draft.status = "published";
+
+				return ctx.payload;
+			},
+		);
+
+		await expect(action()).resolves.toEqual({ status: "draft" });
+	});
+
+	it("does not let a deny on another action decide this one", async () => {
+		const permissive = createGuard({
+			ac,
+			getActor: () => actor,
+			policy: () => [
+				allow("update", "post", { where: { authorId: "u1" } }),
+				deny("read", "post"),
+			],
+		});
+		const action = permissive(
+			{ action: "update", resource: "post", load: async () => row },
+			async () => "ok",
+		);
+
+		await expect(action()).resolves.toBe("ok");
+	});
+});
+
+describe("failures that are not denials", () => {
+	const guard = createGuard({
+		ac,
+		getActor: () => actor,
+		policy: () => [allow("update", "post")],
+	});
+
+	it("lets an error from load through instead of turning it into a denial", async () => {
+		const action = guard(
+			{
+				action: "update",
+				resource: "post",
+				load: async () => {
+					throw new Error("database is down");
+				},
+			},
+			async () => "ok",
+		);
+
+		await expect(action()).rejects.toThrow("database is down");
+	});
+
+	it("lets an error from getActor through", async () => {
+		const failing = createGuard({
+			ac,
+			getActor: async () => {
+				throw new Error("session store unreachable");
+			},
+			policy: () => [],
+		});
+		const action = failing(
+			{ action: "read", resource: "post" },
+			async () => "ok",
+		);
+
+		await expect(action()).rejects.toThrow("session store unreachable");
+	});
+
+	it("lets an error from the handler through untouched", async () => {
+		const action = guard({ action: "update", resource: "post" }, async () => {
+			throw new Error("write failed");
+		});
+
+		await expect(action()).rejects.toThrow("write failed");
+	});
+});
+
+describe("shape validation is the caller's, and its errors stay its own", () => {
+	const guard = createGuard({
+		ac,
+		getActor: () => actor,
+		policy: () => [
+			allow("update", "post", { payload: { fields: ["status"] } }),
+		],
+	});
+	const row = { id: "p1", authorId: "u1", status: "draft" as const };
+
+	it("does not run the resource's schema — permissions are a different question", async () => {
+		// The value arrives past the types, the way JSON or a tool call does.
+		const fromTheWire = JSON.parse(
+			'{"status":"neither draft nor published"}',
+		) as {
+			status: Post["status"];
+		};
+		const action = guard(
+			{
+				action: "update",
+				resource: "post",
+				load: async () => row,
+				payload: () => fromTheWire,
+			},
+			async (ctx) => ctx.payload,
+		);
+
+		await expect(action()).resolves.toEqual({
+			status: "neither draft nor published",
+		});
+	});
+
+	it("lets a rejection from payload through as itself, not as a denial", async () => {
+		const action = guard(
+			{
+				action: "update",
+				resource: "post",
+				load: async () => row,
+				payload: () => {
+					throw new TypeError("status must be draft or published");
+				},
+			},
+			async (ctx) => ctx.payload,
+		);
+
+		await expect(action()).rejects.toBeInstanceOf(TypeError);
+		await expect(action()).rejects.not.toBeInstanceOf(ForbiddenError);
+	});
+});
+
+describe("the context says exactly what the options loaded", () => {
+	const guard = createGuard({
+		ac,
+		getActor: () => actor,
+		policy: () => [allow("update", "post"), allow("read", "post")],
+	});
+	const row: Post = { id: "p1", authorId: "u1", status: "draft" };
+
+	it("gives the handler a row when load is there and nothing when it is not", async () => {
+		const loaded = guard(
+			{ action: "read", resource: "post", load: async () => row },
+			async (ctx) => {
+				expectTypeOf(ctx.row).toEqualTypeOf<Post>();
+
+				return ctx.row.id;
+			},
+		);
+		const blanket = guard({ action: "read", resource: "post" }, async (ctx) => {
+			expectTypeOf(ctx.row).toEqualTypeOf<Post | undefined>();
+
+			return ctx.row;
+		});
+
+		await expect(loaded()).resolves.toBe("p1");
+		await expect(blanket()).resolves.toBeUndefined();
+	});
+
+	it("gives the handler a payload when payload is there and nothing when it is not", async () => {
+		const writing = guard(
+			{
+				action: "update",
+				resource: "post",
+				load: async () => row,
+				payload: (): Partial<Post> => ({ status: "published" }),
+			},
+			async (ctx) => {
+				expectTypeOf(ctx.payload).toEqualTypeOf<Partial<Post>>();
+
+				return ctx.payload.status;
+			},
+		);
+		const reading = guard(
+			{ action: "read", resource: "post", load: async () => row },
+			async (ctx) => {
+				expectTypeOf(ctx.payload).toEqualTypeOf<Partial<Post> | undefined>();
+
+				return ctx.payload;
+			},
+		);
+
+		await expect(writing()).resolves.toBe("published");
+		await expect(reading()).resolves.toBeUndefined();
+	});
+});
+
+describe("the options are checked against the declarations", () => {
+	const guard = createGuard({
+		ac,
+		getActor: () => actor,
+		policy: () => [allow("read", "post")],
+	});
+	const row: Post = { id: "p1", authorId: "u1", status: "draft" };
+
+	it("refuses an action the resource does not declare", () => {
+		guard(
+			// @ts-expect-error "archive" is not one of post's actions
+			{ action: "archive", resource: "post" },
+			async () => "ok",
+		);
+	});
+
+	it("refuses a resource that is not declared", () => {
+		guard(
+			// @ts-expect-error "comment" is not a resource here
+			{ action: "read", resource: "comment" },
+			async () => "ok",
+		);
+	});
+
+	it("refuses a load that resolves to another shape", () => {
+		guard(
+			{
+				action: "read",
+				resource: "post",
+				// @ts-expect-error the loaded value is not a post
+				load: async () => ({ id: "p1", title: "not a post" }),
+			},
+			async () => "ok",
+		);
+	});
+
+	it("refuses a payload field the resource does not have", () => {
+		guard(
+			{
+				action: "read",
+				resource: "post",
+				load: async () => row,
+				// @ts-expect-error "nope" is not a field of post
+				payload: () => ({ nope: 1 }),
+			},
+			async (ctx) => ctx.payload,
+		);
 	});
 });
