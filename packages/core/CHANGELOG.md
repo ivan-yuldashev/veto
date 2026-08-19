@@ -1,5 +1,64 @@
 # @vetojs/core
 
+## 0.7.0
+
+### Minor Changes
+
+- a8c2bba: **`ctx.row` and `ctx.payload` are optional only when the action left them out.**
+
+  Give the action a `load` and the handler gets a row, not a row-or-`undefined`:
+
+  ```ts
+  const publish = withPermission(
+    { action: "publish", resource: "post", load: (id: string) => loadPost(id) },
+    async (ctx) => ctx.row.title
+  );
+  ```
+
+  `ctx.payload` narrows the same way from `payload`. An action with neither keeps `undefined` in the type, because that is what the handler receives.
+
+- a8c2bba: **The guard is now `@vetojs/core/guard`, and it is not tied to Next.js.**
+
+  ```ts
+  import { createGuard } from "@vetojs/core/guard";
+
+  export const withPermission = createGuard({
+    ac,
+    getActor,
+    policy: policyFor,
+  });
+  ```
+
+  The same wrapper guards a server action, a Hono or Express handler, and an MCP tool call — see [the guard](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/guard.md), [HTTP handlers](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/http.md) and [agents](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/agents.md).
+
+  `@vetojs/next` re-exports `createGuard` from its new home and is no longer maintained; move the import when convenient.
+
+  `@vetojs/core/internal` is gone. It carried the pieces `@vetojs/next` needed to build the guard, which core now does itself.
+
+- a8c2bba: **Two types are no longer exported: `RelationNode` and `CheckedRule`.**
+
+  Neither was reachable in practice. `RelationNode` named one of the five shapes `ConditionNode` can take, and the other four were never exported — even the Drizzle adapter narrows with `Extract<ConditionNode<…>, { relation: string }>` rather than naming it. `CheckedRule` is the singular of `CheckedRules`, which stays.
+
+  Nothing changes in what you can write: `allow()` and `deny()` return the same values, conditions have the same shape, and both types are still inferred wherever they appear. If you named one explicitly, use `Extract<ConditionNode<T>, { relation: string }>` or `CheckedRules[number]`.
+
+### Patch Changes
+
+- 275a6f0: **A payload constraint that is not flat now says so.**
+
+  `payload.constraints` takes a field condition or an `and` of them. Given an `or`, a `not` or a `relation`, `parseRules` used to report the field it could not find:
+
+  ```
+  rules[0].payload.constraints.field: expected a string
+  ```
+
+  It now names what it refused:
+
+  ```
+  rules[0].payload.constraints: "or" is not allowed in payload constraints — they take a field condition or "and"
+  ```
+
+  The rules accepted are unchanged; "this value is forbidden" is still a `deny` rule rather than an expression buried in a constraint.
+
 ## 0.6.0
 
 ### Minor Changes
