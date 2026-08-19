@@ -1,6 +1,6 @@
 {
 	"name": "@vetojs/core",
-	"version": "0.6.0",
+	"version": "0.7.0",
 	"description": "Type-safe authorization for TypeScript with no classes and no hidden state. Rules are plain JSON, cross the server/client boundary as-is, and compile to SQL. The guard checks a server action, an HTTP handler or an agent tool call. Zero dependencies.",
 	"keywords": [
 		"authorization",

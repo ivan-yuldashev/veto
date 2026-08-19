@@ -1,6 +1,6 @@
 {
 	"name": "@vetojs/next",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"description": "Deprecated — the guard now ships as @vetojs/core/guard and works with any framework. This package re-exports it and receives no further changes.",
 	"keywords": [
 		"authorization",

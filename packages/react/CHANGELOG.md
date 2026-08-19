@@ -1,5 +1,13 @@
 # @vetojs/react
 
+## 0.3.1
+
+### Patch Changes
+
+- 275a6f0: **The binding's types document themselves in your editor.**
+
+  `CanProps`, `ServerCanProps`, `AbilityProviderProps`, `UseCan` and `VetoContext` now carry TSDoc, so hovering `<Can>` says what `this` is for and hovering the provider says that `rules` and `ability` are alternatives rather than a pair.
+
 ## 0.3.0
 
 ### Minor Changes
