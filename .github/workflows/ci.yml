@@ -6,7 +6,7 @@ on:
   pull_request:
 
 jobs:
-  ci:
+  test:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -21,13 +21,24 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-      - run: pnpm demo:react:build
-      - run: pnpm demo:next:build
+      - run: pnpm test
+
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
       - run: pnpm check
       - run: pnpm typecheck
-      - run: pnpm test
       - run: pnpm knip
       - run: pnpm type-bench
+      - run: pnpm --filter "./examples/*" --fail-if-no-match run build
 
   react-compat:
     runs-on: ubuntu-latest
@@ -58,11 +69,9 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-      - run: npx --yes publint packages/core
-      - run: npx --yes publint packages/react
-      - run: npx --yes publint packages/next
-      - run: npx --yes publint packages/drizzle
-      - run: npx --yes @arethetypeswrong/cli --pack packages/core --profile esm-only
-      - run: npx --yes @arethetypeswrong/cli --pack packages/react --profile esm-only
-      - run: npx --yes @arethetypeswrong/cli --pack packages/next --profile esm-only
-      - run: npx --yes @arethetypeswrong/cli --pack packages/drizzle --profile esm-only
+      - name: Publishable as declared
+        run: |
+          for pkg in core react next drizzle; do
+            npx --yes publint "packages/$pkg"
+            npx --yes @arethetypeswrong/cli --pack "packages/$pkg" --profile esm-only
+          done

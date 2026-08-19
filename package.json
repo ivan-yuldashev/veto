@@ -10,7 +10,7 @@
 		"node": ">=20"
 	},
 	"scripts": {
-		"build": "pnpm --filter \"./packages/*\" run build",
+		"build": "pnpm --filter \"./packages/*\" --fail-if-no-match run build",
 		"demo:react": "pnpm --filter \"@vetojs-examples/react-spa^...\" run build && pnpm --filter @vetojs-examples/react-spa dev",
 		"demo:react:build": "pnpm --filter \"@vetojs-examples/react-spa...\" run build",
 		"demo:next": "pnpm --filter \"@vetojs-examples/next-app^...\" run build && pnpm --filter @vetojs-examples/next-app dev",
@@ -43,6 +43,6 @@
 	},
 	"simple-git-hooks": {
 		"pre-commit": "pnpm exec biome check --staged --no-errors-on-unmatched",
-		"pre-push": "pnpm build && pnpm typecheck && pnpm test"
+		"pre-push": "pnpm typecheck:packages && pnpm test"
 	}
 }
