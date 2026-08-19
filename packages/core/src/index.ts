@@ -1,7 +1,9 @@
 export type {
+	AbilityOptions,
 	AbilitySet,
 	ActionFor,
 	CheckedRules,
+	DecisionReport,
 	PayloadResult,
 	PayloadViolation,
 	ResourceMap,

@@ -2,6 +2,7 @@ import type {
 	AbilitySet,
 	ActionFor,
 	CheckedRules,
+	DecisionReport,
 	ResourceMap,
 	ResourceName,
 	ShapeOf,
@@ -50,6 +51,15 @@ export type GuardConfig<AC extends ResourceMap, Actor> = {
 
 	/** What to do when the actor is known but not allowed. Must not return. */
 	onDeny?: (error: ForbiddenError) => never;
+
+	/**
+	 * Called after every access decision the guarded action makes, with what was asked,
+	 * what was answered and the rule that settled it — see {@link DecisionReport}.
+	 *
+	 * The actor comes second because this hook is configured once while the actor is
+	 * resolved per call, so a closure could not have it.
+	 */
+	onDecision?: (decision: DecisionReport, actor: Actor) => void;
 };
 
 /**

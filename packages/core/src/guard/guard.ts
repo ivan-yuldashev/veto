@@ -113,7 +113,14 @@ export const createGuard = <AC extends ResourceMap, Actor>(
 				return deny(new ForbiddenError(options.action, options.resource));
 			}
 
-			const typedAbility = buildAbility(config.ac, config.policy(actor));
+			const watch = config.onDecision;
+			const typedAbility = buildAbility(
+				config.ac,
+				config.policy(actor),
+				watch === undefined
+					? {}
+					: { onDecision: (decision) => watch(decision, actor) },
+			);
 
 			const { action, resource } = options;
 

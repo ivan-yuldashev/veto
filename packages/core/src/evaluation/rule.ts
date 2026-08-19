@@ -19,6 +19,8 @@ const actionMatches = (
 	return ruleAction === MANAGE_ACTION || ruleAction === action;
 };
 
+export type Settled<T extends Record<string, unknown>> = { rule?: Rule<T> };
+
 export const ruleMatches = <T extends Record<string, unknown>>(
 	rule: Rule<T>,
 	action: string,
@@ -47,6 +49,7 @@ export const evaluateRules = <T extends Record<string, unknown>>(
 	action: string,
 	resource: string,
 	instance: unknown,
+	settled?: Settled<T>,
 ): boolean => {
 	let allowed = false;
 
@@ -68,11 +71,19 @@ export const evaluateRules = <T extends Record<string, unknown>>(
 		const verdict = ruleWhereVerdict(rule, action, resource, instance);
 
 		if (isDeny && verdict !== false) {
+			if (settled) {
+				settled.rule = rule;
+			}
+
 			return false;
 		}
 
 		if (!isDeny && verdict === true) {
 			allowed = true;
+
+			if (settled) {
+				settled.rule ??= rule;
+			}
 		}
 	}
 
@@ -83,6 +94,7 @@ export const mightAllow = <T extends Record<string, unknown>>(
 	rules: Rule<T>[],
 	action: string,
 	resource: string,
+	settled?: Settled<T>,
 ): boolean => {
 	let hasAllow = false;
 
@@ -96,11 +108,19 @@ export const mightAllow = <T extends Record<string, unknown>>(
 			rule.where === undefined &&
 			!isPayloadScoped(rule)
 		) {
+			if (settled) {
+				settled.rule = rule;
+			}
+
 			return false;
 		}
 
 		if (rule.effect !== RuleEffect.Deny) {
 			hasAllow = true;
+
+			if (settled) {
+				settled.rule ??= rule;
+			}
 		}
 	}
 

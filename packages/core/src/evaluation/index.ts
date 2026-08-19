@@ -6,5 +6,6 @@ export {
 	mightAllow,
 	ruleMatches,
 	ruleWhereVerdict,
+	type Settled,
 } from "./rule.js";
 export { kleeneAndOver, type Verdict } from "./verdict.js";

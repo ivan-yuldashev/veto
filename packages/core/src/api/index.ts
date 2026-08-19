@@ -1,5 +1,9 @@
 export { buildAbility } from "./ability.js";
-export type { AbilitySet } from "./ability.types.js";
+export type {
+	AbilityOptions,
+	AbilitySet,
+	DecisionReport,
+} from "./ability.types.js";
 export type { CheckedRules } from "./checked-rules.types.js";
 export { createRules } from "./create-rules.js";
 export { defineAbilities } from "./define-abilities.js";

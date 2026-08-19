@@ -4,6 +4,7 @@ import {
 	kleeneAndOver,
 	ruleMatches,
 	ruleWhereVerdict,
+	type Settled,
 	type Verdict,
 } from "../evaluation/index.js";
 import type { ConditionNode, Rule } from "../model/index.js";
@@ -20,7 +21,8 @@ export const canMutate = <T extends Record<string, unknown>>(
 	action: string,
 	resource: string,
 	row: unknown,
-): boolean => evaluateRules(rules, action, resource, row);
+	settled?: Settled<T>,
+): boolean => evaluateRules(rules, action, resource, row, settled);
 
 export const permittedFields = <T extends Record<string, unknown>>(
 	rules: Rule<T>[],
