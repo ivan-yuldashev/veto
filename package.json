@@ -31,15 +31,15 @@
 		"release": "pnpm build && changeset publish"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "^2.5.0",
-		"@changesets/cli": "^2.31.0",
+		"@biomejs/biome": "^2.5.8",
+		"@changesets/cli": "^3.0.0",
 		"@types/node": "^26.2.0",
 		"@vitest/coverage-v8": "^4.1.10",
-		"knip": "^6.23.0",
+		"knip": "^6.32.2",
 		"simple-git-hooks": "^2.13.1",
 		"tsup": "^8.5.1",
-		"typescript": "^6.0.3",
-		"vitest": "^4.1.9"
+		"typescript": "^7.0.2",
+		"vitest": "^4.1.10"
 	},
 	"simple-git-hooks": {
 		"pre-commit": "pnpm exec biome check --staged --no-errors-on-unmatched",
