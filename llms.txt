@@ -40,7 +40,7 @@ The one page to read if you are generating code that uses this library is [For a
 
 ## In an app
 
-- [React](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/react.md): `createVetoContext(ac)` → `AbilityProvider`, `<Can>`, `useCan`, `useSetRules`; `@vetojs/react/server` gates a server component with no client boundary.
+- [React](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/react.md): `createVetoContext(ac)` → `AbilityProvider`, `<Can>`, `useCan`, `useSetRules`; `@vetojs/react/server` gates a server component with no client boundary. A screen or tab with no rows behind it is a resource too — gate it on the route parameters, and pass them as the row.
 - [Guard](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/guard.md): `createGuard` → `withPermission` — the actor, the row and the payload checked before a server action, an HTTP handler or an agent's tool call runs.
 - [Drizzle](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/drizzle.md): `defineTables` → `filter` — the policy as a SQL `WHERE` that returns exactly the rows `can()` allows. Postgres.
 - [Express, Fastify, Hono](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/http.md): the guard in a plain HTTP handler; no framework package needed.

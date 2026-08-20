@@ -72,7 +72,7 @@ A resource that exists only to gate UI — an analytics screen, not rows — is 
 defineTables(ac, { post: posts, analytics: null });
 ```
 
-The map stays total, so a forgotten table is still caught, while "there is nothing to query here" is a conscious statement. Filtering on it, or reaching it through a relation, throws when you build the query.
+The map stays total, so a forgotten table is still caught, while "there is nothing to query here" is a conscious statement. Filtering on it, or reaching it through a relation, throws when you build the query. Gating such a screen in the interface is [its own short story](./react.md#screens-and-tabs--resources-with-no-rows).
 
 ## Relations become subqueries
 

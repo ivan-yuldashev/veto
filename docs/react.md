@@ -149,6 +149,40 @@ Nothing above re-renders — not the provider, not the list — and only the row
 
 Use the `rules` prop to seed the tree from the server, and `useSetRules` for changes that happen without a new request.
 
+## Screens and tabs — resources with no rows
+
+An analytics screen, a billing tab, a settings page: nouns in your vocabulary that no table ever backs. They are declared like anything else, and their "row" is what identifies *this* screen — usually the route parameters.
+
+```tsx
+const ac = defineAbilities({
+	resources: {
+		analytics: {
+			schema: shape<{ workspaceId: string }>(),
+			actions: ["view"],
+		},
+	},
+});
+
+const { allow } = createRules(ac);
+const { Can } = createVetoContext(ac);
+
+const rules = [
+	allow("view", "analytics", { where: { workspaceId: { in: ["w1"] } } }),
+];
+
+const AnalyticsTab = ({ workspaceId }: { workspaceId: string }) => (
+	<Can I="view" a="analytics" this={{ workspaceId }} fallback={<Forbidden />}>
+		<AnalyticsPanel />
+	</Can>
+);
+```
+
+**Pass `this` whenever the screen has a parameter.** Dropping it is right for a "New post" button, where no row exists yet, and wrong here: the row-less answer is optimistic — true when the action could be allowed for *some* row — so the tab appears in every workspace, including the ones the rule does not name. The parameter is the row; hand it over.
+
+The rule stays a rule, so a `deny` still wins and a change of route parameter re-answers the question: the same policy that hides one workspace's analytics shows another's, without a second code path.
+
+Such a resource has no table, and both sides say so — the adapter with [`defineTables(ac, { analytics: null })`](./drizzle.md#resources-without-a-table), and the server by checking `can("view", "analytics", { workspaceId })` where the page renders, because there is nothing to filter. Which is the next section.
+
 ## Hiding is not protecting
 
 A hidden button is a courtesy to the user, not a security boundary — the request it would have sent can still be made by hand. Every action still needs its check on the server:
