@@ -93,6 +93,16 @@ These flow into `createRules(ac)` and `buildAbility(ac, …)`, which is why a ty
 
 - **`const` type parameter instead of `as const`.** The literal action names are captured for you, so the declaration stays clean.
 - **Each resource keeps its own shape.** A single shared shape parameter would collapse resources of different shapes into one; here `ShapeOf` reads each `schema` individually.
+- **The same helper answers to `shape`.** `type` collides with the TypeScript modifier, so an import line mixing them reads like a typo and sorters order it differently between runs. `shape` is the identical function:
+
+```ts
+import { defineAbilities, shape } from "@vetojs/core";
+
+const ac = defineAbilities({
+	resources: { post: { schema: shape<Post>(), actions: ["read"] } },
+});
+```
+
 - **`schema` carries a type, it isn't data.** `type<T>()` exists purely to smuggle `T` into the type system at zero runtime cost. Swap in a Standard Schema when you want `ability.validate` to actually check incoming data — see [ability](./ability.md).
 - **Rules referencing something you didn't declare are caught.** With typed factories it is a compile error. For rules arriving as JSON at runtime, the same check happens at the trust boundary — see [parse](./parse.md).
 

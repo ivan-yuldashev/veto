@@ -53,7 +53,7 @@ ability.can("update", "post", post);
 | Export | Signature | Purpose |
 |---|---|---|
 | `defineAbilities` | `({ resources }) => AC` | declares resources, actions, relations |
-| `type<T>()` | `() => Schema<T>` | carries a row shape and checks nothing at runtime. Pass a Zod / Valibot / ArkType schema instead and `ability.validate` starts checking data — the shape is then inferred from it. **Not Yup**: its Standard Schema implementation is async, and an async schema throws |
+| `type<T>()`, `shape<T>()` | `() => Schema<T>` | the same function under two names; prefer `shape` when `type` sits next to the TypeScript modifier in an import. carries a row shape and checks nothing at runtime. Pass a Zod / Valibot / ArkType schema instead and `ability.validate` starts checking data — the shape is then inferred from it. **Not Yup**: its Standard Schema implementation is async, and an async schema throws |
 | `createRules` | `(ac, { maxDepth? }?) => { allow, deny }` | typed rule factories |
 | `buildAbility` | `(ac, rules) => AbilitySet` | turns a policy into the object you call |
 | `parseRules` | `(json, vocabulary) => RuleParseResult` | validates untrusted rule JSON |
