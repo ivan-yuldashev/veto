@@ -5,20 +5,20 @@
 Everything the library knows about your resources comes from one declaration: what resources exist, what you can do to them, and how they relate. Every type downstream — resource names, the actions valid for each one, the shape of a row — is inferred from it. You never hand-write a union or a tuple type.
 
 ```ts
-import { defineAbilities, type } from "@vetojs/core";
+import { defineAbilities, shape } from "@vetojs/core";
 
 const ac = defineAbilities({
 	resources: {
 		post: {
-			schema: type<Post>(),
+			schema: shape<Post>(),
 			actions: ["read", "create", "update", "delete", "publish"],
 			relations: {
 				blog: { resource: "blog", kind: "one" },
 				comments: { resource: "comment", kind: "many" },
 			},
 		},
-		blog: { schema: type<Blog>(), actions: ["read", "update"] },
-		comment: { schema: type<Comment>(), actions: ["read", "create", "delete"] },
+		blog: { schema: shape<Blog>(), actions: ["read", "update"] },
+		comment: { schema: shape<Comment>(), actions: ["read", "create", "delete"] },
 	},
 });
 ```
@@ -29,15 +29,15 @@ At runtime this returns the `resources` object unchanged — it is a typed ident
 
 | Field | Meaning |
 |---|---|
-| `schema` | the row's own fields. `type<T>()` is a zero-runtime marker that only carries the type; pass a real [Standard Schema](https://standardschema.dev) instead if you also want runtime validation — [see below](#swapping-typet-for-a-real-schema) |
+| `schema` | the row's own fields. `shape<T>()` is a zero-runtime marker that only carries the type; pass a real [Standard Schema](https://standardschema.dev) instead if you also want runtime validation — [see below](#swapping-typet-for-a-real-schema) |
 | `actions` | what can be done to this resource, captured as literals |
 | `relations` | named links to other resources — `{ resource, kind }`, where `kind` is `"one"` or `"many"` |
 
 Relation **names** are yours to choose; the **target** must be a resource you declared. Names live in their own namespace, separate from schema fields — the same split your ORM makes between columns and `include`/`with`.
 
-## Swapping `type<T>()` for a real schema
+## Swapping `shape<T>()` for a real schema
 
-`type<T>()` is erased at build time — it carries the shape into the type system and checks nothing at runtime. Pass a [Standard Schema](https://standardschema.dev) instead and the same declaration also validates incoming data:
+`shape<T>()` is erased at build time — it carries the shape into the type system and checks nothing at runtime. Pass a [Standard Schema](https://standardschema.dev) instead and the same declaration also validates incoming data:
 
 ```ts
 import { z } from "zod";
@@ -93,17 +93,8 @@ These flow into `createRules(ac)` and `buildAbility(ac, …)`, which is why a ty
 
 - **`const` type parameter instead of `as const`.** The literal action names are captured for you, so the declaration stays clean.
 - **Each resource keeps its own shape.** A single shared shape parameter would collapse resources of different shapes into one; here `ShapeOf` reads each `schema` individually.
-- **The same helper answers to `shape`.** `type` collides with the TypeScript modifier, so an import line mixing them reads like a typo and sorters order it differently between runs. `shape` is the identical function:
-
-```ts
-import { defineAbilities, shape } from "@vetojs/core";
-
-const ac = defineAbilities({
-	resources: { post: { schema: shape<Post>(), actions: ["read"] } },
-});
-```
-
-- **`schema` carries a type, it isn't data.** `type<T>()` exists purely to smuggle `T` into the type system at zero runtime cost. Swap in a Standard Schema when you want `ability.validate` to actually check incoming data — see [ability](./ability.md).
+- **`type` is the former name of `shape`.** It is deprecated and still exported: the two are the same function, so rename whenever it suits you. `type` collides with the TypeScript modifier, so an import line carrying both reads like a typo and sorters order it differently between runs.
+- **`schema` carries a type, it isn't data.** `shape<T>()` exists purely to smuggle `T` into the type system at zero runtime cost. Swap in a Standard Schema when you want `ability.validate` to actually check incoming data — see [ability](./ability.md).
 - **Rules referencing something you didn't declare are caught.** With typed factories it is a compile error. For rules arriving as JSON at runtime, the same check happens at the trust boundary — see [parse](./parse.md).
 
 ## Source

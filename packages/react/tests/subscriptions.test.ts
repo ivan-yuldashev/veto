@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 
-import { createRules, defineAbilities, type } from "@vetojs/core";
+import { createRules, defineAbilities, shape } from "@vetojs/core";
 import { act, createElement, StrictMode, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { describe, expect, it, vi } from "vitest";
@@ -12,7 +12,7 @@ import * as storeModule from "../src/store.js";
 
 type Post = { id: string };
 const ac = defineAbilities({
-	resources: { post: { schema: type<Post>(), actions: ["read"] } },
+	resources: { post: { schema: shape<Post>(), actions: ["read"] } },
 });
 const { allow } = createRules(ac);
 

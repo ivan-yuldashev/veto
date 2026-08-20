@@ -22,17 +22,17 @@ npm install @vetojs/core
 ## How it works: three simple steps
 
 ```ts
-import { defineAbilities, type, createRules, buildAbility } from "@vetojs/core";
+import { defineAbilities, shape, createRules, buildAbility } from "@vetojs/core";
 
 // 1. Declare your resource schema once.
 const ac = defineAbilities({
 	resources: {
 		post: {
-			schema: type<{ id: string; authorId: string; status: "draft" | "published" }>(),
+			schema: shape<{ id: string; authorId: string; status: "draft" | "published" }>(),
 			actions: ["read", "update", "publish"],
 			relations: { author: { resource: "user", kind: "one" } },
 		},
-		user: { schema: type<{ id: string; role: string }>(), actions: ["read"] },
+		user: { schema: shape<{ id: string; role: string }>(), actions: ["read"] },
 	},
 });
 

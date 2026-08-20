@@ -6,7 +6,7 @@ import {
 	createRules,
 	defineAbilities,
 	type Rule,
-	type,
+	shape,
 } from "@vetojs/core";
 import { sql } from "drizzle-orm";
 import {
@@ -38,7 +38,7 @@ const uppercaseText = customType<{ data: string; driverData: string }>({
 
 const ac = defineAbilities({
 	resources: {
-		post: { schema: type<Post>(), actions: ["read"] },
+		post: { schema: shape<Post>(), actions: ["read"] },
 	},
 });
 const { allow, deny } = createRules(ac);

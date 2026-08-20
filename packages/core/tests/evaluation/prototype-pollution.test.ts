@@ -3,14 +3,14 @@ import { buildAbility } from "../../src/api/ability.js";
 import type { CheckedRules } from "../../src/api/checked-rules.types.js";
 import { defineAbilities } from "../../src/api/define-abilities.js";
 import { validatePayload } from "../../src/api/mutation.js";
-import { type } from "../../src/api/schema.js";
+import { shape } from "../../src/api/schema.js";
 import { markLoaded } from "../../src/evaluation/loaded.js";
 import type { Rule } from "../../src/model/index.js";
 import { isPlainObject } from "../../src/shared/utils/isPlainObject.js";
 
 type Post = { id: string; authorId: string; featured: boolean };
 const ac = defineAbilities({
-	resources: { post: { schema: type<Post>(), actions: ["update", "read"] } },
+	resources: { post: { schema: shape<Post>(), actions: ["update", "read"] } },
 });
 
 const cleanProto = () => {

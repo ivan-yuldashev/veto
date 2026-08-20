@@ -119,7 +119,7 @@ ability.permittedFields("update", "post", ["title", "status", "views"]);
 // → ["title", "status"]
 ```
 
-You pass the field universe rather than getting it for free, because a schema can't be asked for its keys — `type<T>()` is erased at runtime, and Standard Schema doesn't enumerate them either.
+You pass the field universe rather than getting it for free, because a schema can't be asked for its keys — `shape<T>()` is erased at runtime, and Standard Schema doesn't enumerate them either.
 
 This drives the UI. The server still enforces with `validatePayload`; a disabled input is a courtesy, not a control.
 
@@ -133,7 +133,7 @@ if (!result.ok) return badRequest(result.issues);
 
 This is the other half of handling untrusted input: `validate` answers *is this even a valid post?*, `validatePayload` answers *is this actor allowed to write it?* Both, in that order, is the complete story.
 
-It runs the resource's schema, so it only does something real when you passed a Standard Schema (Zod, Valibot, ArkType) to `defineAbilities`. A phantom `type<T>()` still rejects non-objects but can't check fields. Async schemas are not supported — a `validate` returning a promise throws, which rules out Yup: it implements the standard, but only asynchronously. See [swapping in a real schema](./define-abilities.md#swapping-typet-for-a-real-schema).
+It runs the resource's schema, so it only does something real when you passed a Standard Schema (Zod, Valibot, ArkType) to `defineAbilities`. A phantom `shape<T>()` still rejects non-objects but can't check fields. Async schemas are not supported — a `validate` returning a promise throws, which rules out Yup: it implements the standard, but only asynchronously. See [swapping in a real schema](./define-abilities.md#swapping-typet-for-a-real-schema).
 
 Unknown resources fail rather than pass through, as a gate should.
 

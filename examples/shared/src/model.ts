@@ -1,4 +1,4 @@
-import { defineAbilities, type ShapeOf, type } from "@vetojs/core";
+import { defineAbilities, type ShapeOf, shape } from "@vetojs/core";
 import { z } from "zod";
 
 export type Workspace = {
@@ -38,11 +38,11 @@ export type User = {
 export const ac = defineAbilities({
 	resources: {
 		workspace: {
-			schema: type<Workspace>(),
+			schema: shape<Workspace>(),
 			actions: ["read", "update"],
 		},
 		blog: {
-			schema: type<Blog>(),
+			schema: shape<Blog>(),
 			actions: ["read"],
 			relations: {
 				workspace: { resource: "workspace", kind: "one" },
@@ -58,15 +58,15 @@ export const ac = defineAbilities({
 			},
 		},
 		comment: {
-			schema: type<Comment>(),
+			schema: shape<Comment>(),
 			actions: ["read", "delete"],
 		},
 		user: {
-			schema: type<User>(),
+			schema: shape<User>(),
 			actions: ["read"],
 		},
 		analytics: {
-			schema: type<{ workspaceId: string }>(),
+			schema: shape<{ workspaceId: string }>(),
 			actions: ["view"],
 		},
 	},

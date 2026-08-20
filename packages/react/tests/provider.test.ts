@@ -5,7 +5,7 @@ import {
 	type CheckedRules,
 	createRules,
 	defineAbilities,
-	type,
+	shape,
 } from "@vetojs/core";
 import { act, createElement, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
@@ -18,7 +18,7 @@ import { createVetoContext } from "../src/context.js";
 
 type Post = { id: string; authorId: string };
 const ac = defineAbilities({
-	resources: { post: { schema: type<Post>(), actions: ["read", "update"] } },
+	resources: { post: { schema: shape<Post>(), actions: ["read", "update"] } },
 });
 const { allow, deny } = createRules(ac);
 const { AbilityProvider, Can } = createVetoContext(ac);

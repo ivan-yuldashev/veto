@@ -2,7 +2,7 @@
 "@vetojs/core": minor
 ---
 
-**`type()` is also exported as `shape()`.**
+**`shape()` replaces `type()`, which is now deprecated.**
 
 `type` collides with the TypeScript modifier of the same name, so a real import line reads like a typo and import sorters order it differently between runs:
 
@@ -20,4 +20,4 @@ const ac = defineAbilities({
 });
 ```
 
-`type` stays and keeps working; nothing has to change.
+`type` stays exported and keeps working; rename whenever it suits you.

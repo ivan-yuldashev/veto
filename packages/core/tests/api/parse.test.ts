@@ -3,7 +3,7 @@ import { buildAbility } from "../../src/api/ability.js";
 import { createRules } from "../../src/api/create-rules.js";
 import { defineAbilities } from "../../src/api/define-abilities.js";
 import { type CONDITION_SHAPES, parseRules } from "../../src/api/parse.js";
-import { type } from "../../src/api/schema.js";
+import { shape } from "../../src/api/schema.js";
 import type { ConditionNode, Rule } from "../../src/model/index.js";
 
 describe("parseRules", () => {
@@ -516,7 +516,7 @@ describe("parseRules", () => {
 			const ac = defineAbilities({
 				resources: {
 					task: {
-						schema: type<{ id: string; due: Date }>(),
+						schema: shape<{ id: string; due: Date }>(),
 						actions: ["complete"],
 					},
 				},

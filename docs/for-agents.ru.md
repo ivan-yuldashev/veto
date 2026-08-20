@@ -17,17 +17,17 @@ npm install @vetojs/react         # по желанию: <Can>, useAbility, Abil
 ## Весь путь целиком
 
 ```ts
-import { defineAbilities, type, createRules, buildAbility } from "@vetojs/core";
+import { defineAbilities, shape, createRules, buildAbility } from "@vetojs/core";
 
 // 1. Опишите схему ресурсов один раз. Все типы ниже выводятся отсюда.
 const ac = defineAbilities({
 	resources: {
 		post: {
-			schema: type<{ id: string; authorId: string; status: "draft" | "published"; featured: boolean }>(),
+			schema: shape<{ id: string; authorId: string; status: "draft" | "published"; featured: boolean }>(),
 			actions: ["read", "update", "publish"],
 			relations: { author: { resource: "user", kind: "one" } },
 		},
-		user: { schema: type<{ id: string; role: string }>(), actions: ["read"] },
+		user: { schema: shape<{ id: string; role: string }>(), actions: ["read"] },
 	},
 });
 
@@ -53,7 +53,7 @@ ability.can("update", "post", post);
 | Экспорт | Сигнатура | Зачем |
 |---|---|---|
 | `defineAbilities` | `({ resources }) => AC` | объявляет ресурсы, действия, связи |
-| `type<T>()`, `shape<T>()` | `() => Schema<T>` | одна и та же функция под двумя именами; берите `shape`, когда `type` в импорте стоит рядом с одноимённым модификатором. несёт форму строки и в рантайме не проверяет ничего. Передайте вместо неё схему Zod / Valibot / ArkType — и `ability.validate` начнёт проверять данные, а форма выведется из схемы. **Не Yup**: его реализация Standard Schema асинхронная, а асинхронная схема бросает исключение |
+| `shape<T>()` | `() => Schema<T>` | несёт форму строки и в рантайме не проверяет ничего. Передайте вместо неё схему Zod / Valibot / ArkType — и `ability.validate` начнёт проверять данные, а форма выведется из схемы. **Не Yup**: его реализация Standard Schema асинхронная, а асинхронная схема бросает исключение |
 | `createRules` | `(ac, { maxDepth? }?) => { allow, deny }` | типизированные фабрики правил |
 | `buildAbility` | `(ac, rules) => AbilitySet` | превращает политику в объект, который вы вызываете |
 | `parseRules` | `(json, vocabulary) => RuleParseResult` | проверяет недоверенный JSON с правилами |
@@ -63,6 +63,7 @@ ability.can("update", "post", post);
 | `ConditionOperator` | объект-константа | `eq ne in nin gt gte lt lte contains exists has hasAny hasAll` |
 | `ForbiddenError` | класс | `.action`, `.resource`, `.violations?`; опознавать через `ForbiddenError.is(error)`, а не `instanceof` |
 | `RelationNotLoadedError` | класс | `.relation` |
+| `type<T>()` | `() => Schema<T>` | **устарело**, прежнее имя `shape`, та же функция. Написанный код продолжает работать; в новом пишите `shape` |
 
 Методы `ability`:
 

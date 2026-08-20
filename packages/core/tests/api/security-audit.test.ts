@@ -3,7 +3,7 @@ import { buildAbility } from "../../src/api/ability.js";
 import type { CheckedRules } from "../../src/api/checked-rules.types.js";
 import { createRules } from "../../src/api/create-rules.js";
 import { defineAbilities } from "../../src/api/define-abilities.js";
-import { type } from "../../src/api/schema.js";
+import { shape } from "../../src/api/schema.js";
 import { evaluateCondition } from "../../src/evaluation/index.js";
 import type { Rule } from "../../src/model/index.js";
 
@@ -14,14 +14,14 @@ type Tag = { id: string; classified: boolean };
 
 const ac = defineAbilities({
 	resources: {
-		txn: { schema: type<Txn>(), actions: ["update"] },
-		user: { schema: type<User>(), actions: ["update"] },
+		txn: { schema: shape<Txn>(), actions: ["update"] },
+		user: { schema: shape<User>(), actions: ["update"] },
 		doc: {
-			schema: type<Doc>(),
+			schema: shape<Doc>(),
 			actions: ["read"],
 			relations: { tags: { resource: "tag", kind: "many" } },
 		},
-		tag: { schema: type<Tag>(), actions: ["read"] },
+		tag: { schema: shape<Tag>(), actions: ["read"] },
 	},
 });
 const { allow, deny } = createRules(ac);

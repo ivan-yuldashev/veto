@@ -3,7 +3,7 @@ import { buildAbility } from "../../src/api/ability.js";
 import type { DecisionReport } from "../../src/api/ability.types.js";
 import { createRules } from "../../src/api/create-rules.js";
 import { defineAbilities } from "../../src/api/define-abilities.js";
-import { type } from "../../src/api/schema.js";
+import { shape } from "../../src/api/schema.js";
 import { RelationNotLoadedError } from "../../src/errors/index.js";
 import { markLoaded } from "../../src/evaluation/index.js";
 
@@ -20,15 +20,15 @@ type Post = {
 const ac = defineAbilities({
 	resources: {
 		post: {
-			schema: type<Post>(),
+			schema: shape<Post>(),
 			actions: ["read", "update"],
 			relations: {
 				author: { resource: "user", kind: "one" },
 				comments: { resource: "comment", kind: "many" },
 			},
 		},
-		user: { schema: type<User>(), actions: ["read"] },
-		comment: { schema: type<Comment>(), actions: ["read"] },
+		user: { schema: shape<User>(), actions: ["read"] },
+		comment: { schema: shape<Comment>(), actions: ["read"] },
 	},
 });
 

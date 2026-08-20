@@ -49,13 +49,13 @@ async function ship(code: string) {
 const declare = `
 const ac = defineAbilities({
 	resources: {
-		post: { schema: type(), actions: ["read", "update", "publish"] },
-		user: { schema: type(), actions: ["read"] },
+		post: { schema: shape(), actions: ["read", "update", "publish"] },
+		user: { schema: shape(), actions: ["read"] },
 	},
 });`;
 
 const browser = `
-import { defineAbilities, type, buildAbility, parseRules } from "${coreDist}";${declare}
+import { defineAbilities, shape, buildAbility, parseRules } from "${coreDist}";${declare}
 const parsed = parseRules(JSON.parse(globalThis.raw), ac);
 if (!parsed.ok) throw new Error(parsed.errors.join("\\n"));
 const ability = buildAbility(ac, parsed.rules);
@@ -63,7 +63,7 @@ globalThis.out = ability.can("update", "post", globalThis.post);
 `;
 
 const trusted = `
-import { defineAbilities, type, buildAbility } from "${coreDist}";${declare}
+import { defineAbilities, shape, buildAbility } from "${coreDist}";${declare}
 const ability = buildAbility(ac, globalThis.rules);
 globalThis.out = ability.can("update", "post", globalThis.post);
 `;

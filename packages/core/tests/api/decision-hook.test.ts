@@ -3,14 +3,14 @@ import { buildAbility } from "../../src/api/ability.js";
 import type { DecisionReport } from "../../src/api/ability.types.js";
 import { createRules } from "../../src/api/create-rules.js";
 import { defineAbilities } from "../../src/api/define-abilities.js";
-import { type } from "../../src/api/schema.js";
+import { shape } from "../../src/api/schema.js";
 import { ForbiddenError } from "../../src/errors/index.js";
 
 type Post = { id: string; authorId: string; status: "draft" | "published" };
 
 const ac = defineAbilities({
 	resources: {
-		post: { schema: type<Post>(), actions: ["read", "update"] },
+		post: { schema: shape<Post>(), actions: ["read", "update"] },
 	},
 });
 

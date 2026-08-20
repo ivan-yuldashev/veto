@@ -2,7 +2,7 @@ import { describe, expect, expectTypeOf, it } from "vitest";
 import type { CheckedRule } from "../../src/api/checked-rules.types.js";
 import { createRules } from "../../src/api/create-rules.js";
 import { defineAbilities } from "../../src/api/define-abilities.js";
-import { type } from "../../src/api/schema.js";
+import { shape } from "../../src/api/schema.js";
 import type { Rule } from "../../src/model/index.js";
 
 type Post = {
@@ -15,7 +15,7 @@ type Post = {
 const ac = defineAbilities({
 	resources: {
 		post: {
-			schema: type<Post>(),
+			schema: shape<Post>(),
 			actions: ["read", "update", "publish"],
 		},
 	},
@@ -234,7 +234,7 @@ describe("array-valued fields take membership operators only", () => {
 		status: "draft" | "published";
 	};
 	const acDoc = defineAbilities({
-		resources: { doc: { schema: type<Doc>(), actions: ["update"] } },
+		resources: { doc: { schema: shape<Doc>(), actions: ["update"] } },
 	});
 	const rules = createRules(acDoc);
 

@@ -13,7 +13,7 @@ type Post = { id: string; authorId: string };
 describe("the names the package exports", () => {
 	it("names one checked rule the way it names many", () => {
 		const ac = defineAbilities({
-			resources: { post: { schema: type<Post>(), actions: ["read"] } },
+			resources: { post: { schema: shape<Post>(), actions: ["read"] } },
 		});
 		const { allow } = createRules(ac);
 		const one: CheckedRule = allow("read", "post");

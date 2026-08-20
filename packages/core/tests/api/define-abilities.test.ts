@@ -5,17 +5,17 @@ import type {
 	ShapeOf,
 } from "../../src/api/define-abilities.js";
 import { defineAbilities } from "../../src/api/define-abilities.js";
-import { type } from "../../src/api/schema.js";
+import { shape } from "../../src/api/schema.js";
 
 const ac = defineAbilities({
 	resources: {
 		post: {
-			schema: type<{ id: number; title: string }>(),
+			schema: shape<{ id: number; title: string }>(),
 			actions: ["read", "delete"],
 			relations: { author: { resource: "post", kind: "one" } },
 		},
 		comment: {
-			schema: type<{ id: number; body: string }>(),
+			schema: shape<{ id: number; body: string }>(),
 			actions: ["read"],
 		},
 	},
@@ -61,7 +61,7 @@ describe("defineAbilities — edge cases & type constraints", () => {
 	it("infers only 'manage' when actions array is empty", () => {
 		const noActionsAc = defineAbilities({
 			resources: {
-				system: { schema: type<{ id: string }>(), actions: [] },
+				system: { schema: shape<{ id: string }>(), actions: [] },
 			},
 		});
 		expectTypeOf<
@@ -73,7 +73,7 @@ describe("defineAbilities — edge cases & type constraints", () => {
 		const invalidAc = defineAbilities({
 			resources: {
 				post: {
-					schema: type<{ id: string }>(),
+					schema: shape<{ id: string }>(),
 					actions: ["read"],
 					// @ts-expect-error 'users' does not exist; the types must catch it
 					relations: { author: { resource: "users", kind: "one" } },

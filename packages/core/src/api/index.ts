@@ -16,7 +16,7 @@ export type {
 export type { PayloadResult, PayloadViolation } from "./mutation.types.js";
 export { parseRules } from "./parse.js";
 export type { RuleParseResult, UnknownRule } from "./parse.types.js";
-export { type, type as shape } from "./schema.js";
+export { shape, type } from "./schema.js";
 export type { Schema, ValidateResult } from "./schema.types.js";
 export { toVocabulary } from "./vocabulary.js";
 export type { Vocabulary } from "./vocabulary.types.js";

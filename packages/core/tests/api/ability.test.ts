@@ -3,7 +3,7 @@ import { buildAbility } from "../../src/api/ability.js";
 import type { CheckedRules } from "../../src/api/checked-rules.types.js";
 import { createRules } from "../../src/api/create-rules.js";
 import { defineAbilities } from "../../src/api/define-abilities.js";
-import { type } from "../../src/api/schema.js";
+import { shape } from "../../src/api/schema.js";
 import {
 	ForbiddenError,
 	RelationNotLoadedError,
@@ -18,7 +18,7 @@ type Post = {
 const ac = defineAbilities({
 	resources: {
 		post: {
-			schema: type<Post>(),
+			schema: shape<Post>(),
 			actions: ["read", "update", "delete", "view"],
 			relations: {
 				post: {
@@ -359,7 +359,7 @@ describe("AbilitySet — relations via the where builder", () => {
 describe("authorize without an instance", () => {
 	const acPost = defineAbilities({
 		resources: {
-			post: { schema: type<{ id: string }>(), actions: ["create"] },
+			post: { schema: shape<{ id: string }>(), actions: ["create"] },
 		},
 	});
 	const { allow } = createRules(acPost);
@@ -379,7 +379,7 @@ describe("ability.rules is ready for the client", () => {
 	it("keeps the checked brand, so it can be handed to a provider", () => {
 		const acPost = defineAbilities({
 			resources: {
-				post: { schema: type<{ id: string }>(), actions: ["read"] },
+				post: { schema: shape<{ id: string }>(), actions: ["read"] },
 			},
 		});
 		const { allow } = createRules(acPost);

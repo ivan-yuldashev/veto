@@ -35,10 +35,10 @@ Veto takes one declaration and derives everything from it:
 const ac = defineAbilities({
 	resources: {
 		post: {
-			schema: type<{ id: string; authorId: string; status: "draft" | "published" }>(),
+			schema: shape<{ id: string; authorId: string; status: "draft" | "published" }>(),
 			actions: ["read", "update"],
 		},
-		user: { schema: type<{ id: string; role: string }>(), actions: ["read"] },
+		user: { schema: shape<{ id: string; role: string }>(), actions: ["read"] },
 	},
 });
 ```

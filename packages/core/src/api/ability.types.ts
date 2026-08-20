@@ -116,7 +116,7 @@ export type AbilitySet<AC extends ResourceMap = ResourceMap> = {
 	 * the other half of handling untrusted input.
 	 *
 	 * Only does real work when the resource was declared with a Standard Schema; a
-	 * phantom `type<T>()` still rejects non-objects but cannot check fields.
+	 * phantom `shape<T>()` still rejects non-objects but cannot check fields.
 	 */
 	validate<R extends ResourceName<AC>>(
 		resource: R,

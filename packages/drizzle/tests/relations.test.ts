@@ -5,7 +5,7 @@ import {
 	createRules,
 	defineAbilities,
 	type Rule,
-	type,
+	shape,
 } from "@vetojs/core";
 import { eq, sql } from "drizzle-orm";
 import { type AnyPgColumn, boolean, pgTable, text } from "drizzle-orm/pg-core";
@@ -21,19 +21,19 @@ type Comment = { id: string; postId: string; spam: boolean };
 const ac = defineAbilities({
 	resources: {
 		user: {
-			schema: type<User>(),
+			schema: shape<User>(),
 			actions: ["read"],
 			relations: { manager: { resource: "user", kind: "one" } },
 		},
 		post: {
-			schema: type<Post>(),
+			schema: shape<Post>(),
 			actions: ["read"],
 			relations: {
 				author: { resource: "user", kind: "one" },
 				comments: { resource: "comment", kind: "many" },
 			},
 		},
-		comment: { schema: type<Comment>(), actions: ["read"] },
+		comment: { schema: shape<Comment>(), actions: ["read"] },
 	},
 });
 const { allow, deny } = createRules(ac);
@@ -316,9 +316,9 @@ describe("defineTables — relation conformance (EXISTS ≡ engine)", () => {
 describe("defineTables — phantom (table-less) resources", () => {
 	const acWithPhantom = defineAbilities({
 		resources: {
-			post: { schema: type<Post>(), actions: ["read"] },
+			post: { schema: shape<Post>(), actions: ["read"] },
 			analytics: {
-				schema: type<{ workspaceId: string }>(),
+				schema: shape<{ workspaceId: string }>(),
 				actions: ["view"],
 			},
 		},
@@ -385,12 +385,12 @@ describe("defineTables — loud configuration failures", () => {
 		const acPhantom = defineAbilities({
 			resources: {
 				post: {
-					schema: type<Post>(),
+					schema: shape<Post>(),
 					actions: ["read"],
 					relations: { author: { resource: "user", kind: "one" } },
 				},
 				user: {
-					schema: type<User>(),
+					schema: shape<User>(),
 					actions: ["read"],
 					relations: { manager: { resource: "user", kind: "one" } },
 				},
@@ -555,11 +555,11 @@ describe("defineTables — joins derived from FK metadata (.references())", () =
 		const acReviews = defineAbilities({
 			resources: {
 				review: {
-					schema: type<{ id: string }>(),
+					schema: shape<{ id: string }>(),
 					actions: ["read"],
 					relations: { author: { resource: "user", kind: "one" } },
 				},
-				user: { schema: type<User>(), actions: ["read"] },
+				user: { schema: shape<User>(), actions: ["read"] },
 			},
 		});
 		const { allow: allowReview } = createRules(acReviews);

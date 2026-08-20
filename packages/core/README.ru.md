@@ -19,17 +19,17 @@ npm install @vetojs/core
 ## Быстрый старт
 
 ```ts
-import { defineAbilities, type, createRules, buildAbility } from "@vetojs/core";
+import { defineAbilities, shape, createRules, buildAbility } from "@vetojs/core";
 
 // 1. Опишите схему ресурсов один раз.
 const ac = defineAbilities({
 	resources: {
 		post: {
-			schema: type<{ id: string; authorId: string; status: "draft" | "published" }>(),
+			schema: shape<{ id: string; authorId: string; status: "draft" | "published" }>(),
 			actions: ["read", "update", "publish"],
 			relations: { author: { resource: "user", kind: "one" } },
 		},
-		user: { schema: type<{ id: string; role: string }>(), actions: ["read"] },
+		user: { schema: shape<{ id: string; role: string }>(), actions: ["read"] },
 	},
 });
 
@@ -53,7 +53,7 @@ ability.can("delete", "post");        // ✗ ошибка компиляции �
 Мы спроектировали API так, чтобы он был интуитивно понятным.
 
 - [`defineAbilities`](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/define-abilities.ru.md): Единый источник правды для схемы ресурсов, из которого выводятся все типы (формы, действия, связи).
-- `type<T>()`: Утилита для объявления формы ресурса. Для runtime-проверок сюда можно передать любую схему, совместимую со [Standard Schema](https://standardschema.dev) (например, Zod, Valibot или ArkType).
+- `shape<T>()`: Утилита для объявления формы ресурса. Для runtime-проверок сюда можно передать любую схему, совместимую со [Standard Schema](https://standardschema.dev) (например, Zod, Valibot или ArkType).
 - [`createRules(ac)`](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/create-rules.ru.md): Генератор строго типизированных функций `allow` и `deny` — ваши действия, ресурсы и `where` автоматически сверяются со схемой.
 - [`buildAbility(ac, rules)`](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/ability.ru.md): Превращает массив плоских правил в готовый к использованию объект `ability`.
 - [`parseRules(json, ac)`](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/parse.ru.md): Безопасно валидирует JSON-правила, пришедшие по сети или из базы.

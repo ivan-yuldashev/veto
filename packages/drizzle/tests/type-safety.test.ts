@@ -1,4 +1,9 @@
-import { buildAbility, createRules, defineAbilities, type } from "@vetojs/core";
+import {
+	buildAbility,
+	createRules,
+	defineAbilities,
+	shape,
+} from "@vetojs/core";
 import { eq } from "drizzle-orm";
 import { boolean, integer, pgTable, text } from "drizzle-orm/pg-core";
 import { it } from "vitest";
@@ -16,11 +21,11 @@ type User = { id: string; role: string };
 const ac = defineAbilities({
 	resources: {
 		post: {
-			schema: type<Post>(),
+			schema: shape<Post>(),
 			actions: ["read", "update"],
 			relations: { author: { resource: "user", kind: "one" } },
 		},
-		user: { schema: type<User>(), actions: ["read"] },
+		user: { schema: shape<User>(), actions: ["read"] },
 	},
 });
 const { allow } = createRules(ac);

@@ -17,17 +17,17 @@ ESM only, Node 20+. `@vetojs/core` is a peer dependency of both bindings, so ins
 ## The whole flow
 
 ```ts
-import { defineAbilities, type, createRules, buildAbility } from "@vetojs/core";
+import { defineAbilities, shape, createRules, buildAbility } from "@vetojs/core";
 
 // 1. Declare the resource schema once. Every type below is inferred from this.
 const ac = defineAbilities({
 	resources: {
 		post: {
-			schema: type<{ id: string; authorId: string; status: "draft" | "published"; featured: boolean }>(),
+			schema: shape<{ id: string; authorId: string; status: "draft" | "published"; featured: boolean }>(),
 			actions: ["read", "update", "publish"],
 			relations: { author: { resource: "user", kind: "one" } },
 		},
-		user: { schema: type<{ id: string; role: string }>(), actions: ["read"] },
+		user: { schema: shape<{ id: string; role: string }>(), actions: ["read"] },
 	},
 });
 
@@ -53,7 +53,7 @@ ability.can("update", "post", post);
 | Export | Signature | Purpose |
 |---|---|---|
 | `defineAbilities` | `({ resources }) => AC` | declares resources, actions, relations |
-| `type<T>()`, `shape<T>()` | `() => Schema<T>` | the same function under two names; prefer `shape` when `type` sits next to the TypeScript modifier in an import. carries a row shape and checks nothing at runtime. Pass a Zod / Valibot / ArkType schema instead and `ability.validate` starts checking data — the shape is then inferred from it. **Not Yup**: its Standard Schema implementation is async, and an async schema throws |
+| `shape<T>()` | `() => Schema<T>` | carries a row shape and checks nothing at runtime. Pass a Zod / Valibot / ArkType schema instead and `ability.validate` starts checking data — the shape is then inferred from it. **Not Yup**: its Standard Schema implementation is async, and an async schema throws |
 | `createRules` | `(ac, { maxDepth? }?) => { allow, deny }` | typed rule factories |
 | `buildAbility` | `(ac, rules) => AbilitySet` | turns a policy into the object you call |
 | `parseRules` | `(json, vocabulary) => RuleParseResult` | validates untrusted rule JSON |
@@ -63,6 +63,7 @@ ability.can("update", "post", post);
 | `ConditionOperator` | const object | `eq ne in nin gt gte lt lte contains exists has hasAny hasAll` |
 | `ForbiddenError` | class | `.action`, `.resource`, `.violations?`; recognise it with `ForbiddenError.is(error)`, not `instanceof` |
 | `RelationNotLoadedError` | class | `.relation` |
+| `type<T>()` | `() => Schema<T>` | **deprecated**, the former name of `shape`, same function. Existing code keeps working; write `shape` in new code |
 
 Methods on `ability`:
 

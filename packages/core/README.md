@@ -19,17 +19,17 @@ The library ships as ESM only and requires Node.js 20+.
 ## Quick start
 
 ```ts
-import { defineAbilities, type, createRules, buildAbility } from "@vetojs/core";
+import { defineAbilities, shape, createRules, buildAbility } from "@vetojs/core";
 
 // 1. Declare your resource schema once.
 const ac = defineAbilities({
 	resources: {
 		post: {
-			schema: type<{ id: string; authorId: string; status: "draft" | "published" }>(),
+			schema: shape<{ id: string; authorId: string; status: "draft" | "published" }>(),
 			actions: ["read", "update", "publish"],
 			relations: { author: { resource: "user", kind: "one" } },
 		},
-		user: { schema: type<{ id: string; role: string }>(), actions: ["read"] },
+		user: { schema: shape<{ id: string; role: string }>(), actions: ["read"] },
 	},
 });
 
@@ -53,7 +53,7 @@ ability.can("delete", "post");        // ✗ compile error — "post" has no "de
 We designed the API to be intuitive.
 
 - [`defineAbilities`](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/define-abilities.md): the single source of truth for your resource schema, and where every type is inferred from (shapes, actions, relations).
-- `type<T>()`: a helper for declaring a resource shape. For runtime validation, pass any schema compatible with [Standard Schema](https://standardschema.dev) here instead (Zod, Valibot or ArkType, for example).
+- `shape<T>()`: a helper for declaring a resource shape. For runtime validation, pass any schema compatible with [Standard Schema](https://standardschema.dev) here instead (Zod, Valibot or ArkType, for example).
 - [`createRules(ac)`](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/create-rules.md): a generator for strictly typed `allow` and `deny` functions — your actions, resources and `where` are checked against the schema automatically.
 - [`buildAbility(ac, rules)`](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/ability.md): turns an array of flat rules into a ready-to-use `ability` object.
 - [`parseRules(json, ac)`](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/parse.md): safely validates rule JSON that arrived over the network or from a database.

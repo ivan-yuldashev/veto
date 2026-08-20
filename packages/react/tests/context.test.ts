@@ -1,11 +1,11 @@
-import { type AbilitySet, defineAbilities, type } from "@vetojs/core";
+import { type AbilitySet, defineAbilities, shape } from "@vetojs/core";
 import { describe, expect, expectTypeOf, it } from "vitest";
 import { createVetoContext } from "../src/context.js";
 
 const ac = defineAbilities({
 	resources: {
 		post: {
-			schema: type<{ id: string; status: "draft" | "published" }>(),
+			schema: shape<{ id: string; status: "draft" | "published" }>(),
 			actions: ["read", "update"],
 		},
 	},
