@@ -1,5 +1,15 @@
 # @vetojs-examples/next-app
 
+## 0.0.9
+
+### Patch Changes
+
+- Updated dependencies [edb18ec]
+  - @vetojs/core@0.9.0
+  - @vetojs-examples/shared@0.0.9
+  - @vetojs/drizzle@0.1.1
+  - @vetojs/react@0.3.1
+
 ## 0.0.8
 
 ### Patch Changes

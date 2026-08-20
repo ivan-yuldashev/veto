@@ -1,5 +1,12 @@
 # @vetojs-examples/shared
 
+## 0.0.9
+
+### Patch Changes
+
+- Updated dependencies [edb18ec]
+  - @vetojs/core@0.9.0
+
 ## 0.0.8
 
 ### Patch Changes

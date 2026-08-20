@@ -1,6 +1,6 @@
 {
 	"name": "@vetojs-examples/react-spa",
-	"version": "0.0.9",
+	"version": "0.0.10",
 	"private": true,
 	"description": "SPA demo: role switcher → rules as JSON → AbilityProvider → <Can> gating, no Next required.",
 	"type": "module",
