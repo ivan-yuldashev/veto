@@ -27,6 +27,7 @@ export const withPermission = createGuard({ ac, getActor, policy: policyFor });
 | `getActor` | how to find the current user — cookies, session, headers; may be async |
 | `policy` | the actor → rules function |
 | `onDeny` | optional: what to do instead of throwing (see below) |
+| `onDecision` | optional: every decision, with the actor it was made for |
 | `onUnauthenticated` | optional: what to do when nobody is signed in — answer 401 where the default reports 403 |
 
 ## Wrap an action
@@ -117,6 +118,23 @@ createGuard({
 	onDeny: () => notFound(),   // or redirect("/login")
 });
 ```
+
+Every decision a guarded action makes can be recorded, actor included:
+
+```ts
+const withPermission = createGuard({
+	ac,
+	getActor,
+	policy: policyFor,
+	onDecision: (decision, actor) => {
+		log.info({ actor: actor.id, ...decision });
+	},
+});
+```
+
+The actor is the second argument rather than part of the report, because this
+hook is configured once while the actor is resolved per call. What the report
+carries, and which calls do not produce one, is on [checking access](./ability.md).
 
 `onDeny` must not return — `notFound()`, `redirect()` and `throw` all satisfy that, which keeps control flow linear for everything downstream. If one does return, the guard throws `ForbiddenError` anyway: the hook reports a denial, it never overturns one. `onUnauthenticated` works the same way.
 

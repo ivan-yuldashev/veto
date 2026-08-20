@@ -76,6 +76,40 @@ Handy in a route handler or server action where a framework error boundary turns
 
 Use `ForbiddenError.is` rather than `instanceof`. If two copies of `@vetojs/core` ever end up in one tree, the error has two class identities and `instanceof` answers `false` for a perfectly valid refusal — a 403 silently becomes a 500. The brand behind `is` is a registered symbol, so it survives that.
 
+## Watching the decisions
+
+Pass `onDecision` and every answer arrives as data — what was asked, what was
+answered, and the rule that settled it:
+
+```ts
+const ability = buildAbility(ac, policyFor(currentUser), {
+	onDecision: (decision) => {
+		log.info({
+			actor: currentUser.id,
+			action: decision.action,
+			resource: decision.resource,
+			allowed: decision.allowed,
+			rule: decision.rule,
+		});
+	},
+});
+```
+
+The actor is not part of the report because it does not need to be: an ability
+belongs to one actor, so the hook's own closure already has them.
+
+`rule` is the `deny` that fired or the `allow` that granted, and it is absent
+when nothing matched and the default denied — which is the case worth alerting
+on, because it means a policy said nothing about a question someone asked.
+
+It fires for `can`, `cannot`, `authorize`, `canMutate` and `validatePayload`,
+once per call. A payload decision carries no `rule`, because a refusal there is
+per field and no single rule settles it — the `violations` you get back name the
+field and the reason. Not for `where`, `permittedFields` or `validate`: those ask what
+a policy says, not whether an actor may act. Whatever the hook throws reaches
+your caller untouched, so keep it to recording — the verdict is decided before
+it runs and nothing it does can change the answer.
+
 ## `permittedFields` — for forms
 
 ```ts

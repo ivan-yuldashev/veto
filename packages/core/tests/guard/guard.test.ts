@@ -839,3 +839,46 @@ describe("the options are checked against the declarations", () => {
 		);
 	});
 });
+
+describe("the guard reports the decisions it makes", () => {
+	const row: Post = { id: "p1", authorId: "u1", status: "draft" };
+
+	it("hands each decision to the hook, with the actor in scope", async () => {
+		const seen: { actor: string; allowed: boolean; rule: boolean }[] = [];
+		const guard = createGuard({
+			ac,
+			getActor: () => actor,
+			policy: () => [allow("read", "post")],
+			onDecision: (decision, who) =>
+				seen.push({
+					actor: who.id,
+					allowed: decision.allowed,
+					rule: decision.rule !== undefined,
+				}),
+		});
+		const read = guard(
+			{ action: "read", resource: "post", load: async () => row },
+			async (ctx) => ctx.row.id,
+		);
+
+		await expect(read()).resolves.toBe("p1");
+		expect(seen).toEqual([{ actor: "u1", allowed: true, rule: true }]);
+	});
+
+	it("reports the refusal that becomes a ForbiddenError", async () => {
+		const seen: boolean[] = [];
+		const guard = createGuard({
+			ac,
+			getActor: () => actor,
+			policy: () => [],
+			onDecision: (decision) => seen.push(decision.allowed),
+		});
+		const read = guard(
+			{ action: "read", resource: "post", load: async () => row },
+			async () => "ok",
+		);
+
+		await expect(read()).rejects.toBeInstanceOf(ForbiddenError);
+		expect(seen).toEqual([false]);
+	});
+});

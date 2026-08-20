@@ -1,7 +1,11 @@
 import { ForbiddenError } from "../errors/index.js";
-import { evaluateRules, mightAllow } from "../evaluation/index.js";
+import {
+	evaluateRules,
+	mightAllow,
+	type Settled,
+} from "../evaluation/index.js";
 import type { ConditionNode } from "../model/index.js";
-import type { AbilitySet } from "./ability.types.js";
+import type { AbilityOptions, AbilitySet } from "./ability.types.js";
 import type { CheckedRules } from "./checked-rules.types.js";
 import type { ResourceMap } from "./define-abilities.js";
 import { canMutate, permittedFields, validatePayload } from "./mutation.js";
@@ -29,17 +33,47 @@ export type { AbilitySet } from "./ability.types.js";
 export const buildAbility = <AC extends ResourceMap = ResourceMap>(
 	registry: AC,
 	rules: CheckedRules,
+	options?: AbilityOptions,
 ): AbilitySet<AC> => {
-	// One decision, three ways to report it: a boolean, its negation, or an exception.
-	// With an instance the answer is exact; without one it is the optimistic check.
+	const report = options?.onDecision;
+
+	const answer = (
+		action: string,
+		resource: string,
+		allowed: boolean,
+		settled: Settled<Record<string, unknown>>,
+	): boolean => {
+		report?.(
+			settled.rule === undefined
+				? { action, resource, allowed }
+				: { action, resource, allowed, rule: settled.rule },
+		);
+
+		return allowed;
+	};
+
 	const decide = (
 		action: string,
 		resource: string,
 		instance?: unknown,
-	): boolean =>
-		instance === undefined
-			? mightAllow(rules, action, resource)
-			: evaluateRules(rules, action, resource, instance);
+	): boolean => {
+		if (report === undefined) {
+			return instance === undefined
+				? mightAllow(rules, action, resource)
+				: evaluateRules(rules, action, resource, instance);
+		}
+
+		const settled: Settled<Record<string, unknown>> = {};
+
+		return answer(
+			action,
+			resource,
+			instance === undefined
+				? mightAllow(rules, action, resource, settled)
+				: evaluateRules(rules, action, resource, instance, settled),
+			settled,
+		);
+	};
 
 	const core = {
 		rules,
@@ -51,15 +85,32 @@ export const buildAbility = <AC extends ResourceMap = ResourceMap>(
 				throw new ForbiddenError(action, resource);
 			}
 		},
-		canMutate: (action: string, resource: string, row: unknown): boolean =>
-			canMutate(rules, action, resource, row),
+		canMutate: (action: string, resource: string, row: unknown): boolean => {
+			if (report === undefined) {
+				return canMutate(rules, action, resource, row);
+			}
+
+			const settled: Settled<Record<string, unknown>> = {};
+
+			return answer(
+				action,
+				resource,
+				canMutate(rules, action, resource, row, settled),
+				settled,
+			);
+		},
 		validatePayload: (
 			action: string,
 			resource: string,
 			row: unknown,
 			data: unknown,
-		): PayloadResult<Record<string, unknown>> =>
-			validatePayload(rules, action, resource, row, data),
+		): PayloadResult<Record<string, unknown>> => {
+			const result = validatePayload(rules, action, resource, row, data);
+
+			report?.({ action, resource, allowed: result.ok });
+
+			return result;
+		},
 		where: (
 			action: string,
 			resource: string,

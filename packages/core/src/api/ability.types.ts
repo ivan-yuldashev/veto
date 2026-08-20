@@ -1,4 +1,4 @@
-import type { ConditionNode } from "../model/index.js";
+import type { ConditionNode, Rule } from "../model/index.js";
 import type { CheckedRules } from "./checked-rules.types.js";
 import type {
 	ActionFor,
@@ -122,4 +122,34 @@ export type AbilitySet<AC extends ResourceMap = ResourceMap> = {
 		resource: R,
 		data: unknown,
 	): ValidateResult<ShapeOf<AC, R>>;
+};
+
+/**
+ * One access decision, as it happened.
+ *
+ * `rule` is the rule that settled it: the `deny` that fired, or the `allow` that granted.
+ * It is absent when nothing matched and the default denied.
+ */
+export type DecisionReport = {
+	action: string;
+	resource: string;
+	allowed: boolean;
+	rule?: Rule;
+};
+
+/**
+ * Extras for {@link buildAbility}.
+ */
+export type AbilityOptions = {
+	/**
+	 * Called after every access decision — `can`, `cannot`, `authorize`, `canMutate` and
+	 * `validatePayload` — with what was asked and what was answered.
+	 *
+	 * Not called for `where`, `permittedFields` or `validate`: those ask what a policy
+	 * says, not whether an actor may act. Build the ability per actor and the hook's
+	 * closure has the actor; nothing is threaded through the call.
+	 *
+	 * Whatever it throws reaches your caller, so keep it to recording.
+	 */
+	onDecision?: (decision: DecisionReport) => void;
 };
