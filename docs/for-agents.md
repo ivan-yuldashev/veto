@@ -122,6 +122,8 @@ export const { AbilityProvider, useAbility, useCan, useSetRules, Can } =
 
 `createGuard({ ac, getActor, policy })` returns `withPermission(options, handler)`. It knows no framework — the same wrapper guards a server action, an HTTP handler and an agent's tool call. Declare `load` for the row and `payload` for what is being written; the handler runs only if both pass. `ctx.payload` is the validated copy, and `ctx.row` is a row rather than a maybe-row whenever `load` is declared. See [the guide](./guard.md).
 
+A resource is a noun in the vocabulary, not a table, so an effect with nothing to fetch — sending mail, writing a file, calling a webhook, charging a card — is guarded the same way: `load` builds the row out of the arguments, deriving the fields the policy judges (`recipientDomain`, not the raw address). Skipping `load` there is a mistake: the row-less answer is optimistic, and a conditional `deny` refuses every call. See [guarding what an agent does](./agents.md).
+
 ## Writing conditions
 
 Sibling keys are ANDed. A bare value means equals.

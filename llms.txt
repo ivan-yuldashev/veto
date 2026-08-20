@@ -45,7 +45,7 @@ The one page to read if you are generating code that uses this library is [For a
 - [Drizzle](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/drizzle.md): `defineTables` → `filter` — the policy as a SQL `WHERE` that returns exactly the rows `can()` allows. Postgres.
 - [Express, Fastify, Hono](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/http.md): the guard in a plain HTTP handler; no framework package needed.
 - [Server rendering](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/ssr.md): rules across the boundary beyond RSC, and why a static page cannot carry a verdict.
-- [Agents](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/agents.md): guarding tool calls with the same policy, and the per-field refusal a model can act on.
+- [Agents](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/agents.md): guarding tool calls with the same policy, the per-field refusal a model can act on, and effects with no row — mail, files, webhooks, payments — judged on a row built from the arguments.
 - [Postgres RLS](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/rls.md): running veto alongside row-level security, and the traps that make RLS protect nothing.
 
 ## Optional

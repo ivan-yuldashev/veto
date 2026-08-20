@@ -71,9 +71,75 @@ const search = async (args: { term: string }) => {
 
 Retrieval is where an over-permissioned agent leaks quietly: nothing throws, the model simply sees more than the person asking it. See [filtering in the database](./where.md) and the [Drizzle adapter](./drizzle.md).
 
+## Not every tool touches a database
+
+Sending mail, writing a file, calling a webhook, moving money — none of these have a row to fetch, and they are where a wrong tool call costs the most, because nothing about them can be undone by a rollback. The question is unchanged, and so is the mechanism: **a resource is a noun in your vocabulary, not a table**. The row is a description of the effect itself, computed from the arguments the model chose.
+
+```ts
+const ac = defineAbilities({
+	resources: {
+		email: {
+			schema: shape<{
+				workspaceId: string;
+				recipientDomain: string;
+				attachments: number;
+			}>(),
+			actions: ["send"],
+		},
+	},
+});
+
+const { allow, deny } = createRules(ac);
+
+const policyFor = (actor: { id: string; workspaceId: string }) => [
+	allow("send", "email", {
+		where: {
+			workspaceId: actor.workspaceId,
+			recipientDomain: { in: ["acme.com"] },
+		},
+	}),
+	deny("send", "email", { where: { attachments: { gt: 0 } } }),
+];
+
+const withPermission = createGuard({
+	ac,
+	getActor: () => agent,
+	policy: policyFor,
+});
+
+const domainOf = (address: string) =>
+	address.slice(address.lastIndexOf("@") + 1).toLowerCase();
+
+type SendArgs = { to: string; subject: string; attachments: string[] };
+
+const sendEmail = withPermission(
+	{
+		action: "send",
+		resource: "email",
+		load: (args: SendArgs) => ({
+			workspaceId: agent.workspaceId,
+			recipientDomain: domainOf(args.to),
+			attachments: args.attachments.length,
+		}),
+	},
+	async (_ctx, args: SendArgs) =>
+		sendMail({ to: args.to, subject: args.subject }),
+);
+```
+
+`load` is where a tool's arguments become something a policy can judge, and it is worth deriving the field you actually mean. `recipientDomain` is a decision; the raw address is a string, and a rule written against the string with `contains` accepts `ceo@acme.com.evil.io` — it does contain `@acme.com`, while its domain is `evil.io`. The same shape of derivation covers the other effects: the write root for a file (so `../../etc/passwd` cannot pass as an upload), the host and method for a webhook, the currency and amount for a charge.
+
+**Give an effect tool a `load`, always.** Without a row the check is optimistic by contract — true when some `allow` could cover the action for *some* row — which is the wrong answer to give before something irreversible. Synthesizing the row is a few lines, and the guard then refuses before your handler exists.
+
+**A limit that is state is just another field.** "No more than $500 a day" is not a property of the call, so look the running total up and put it in the row: `where: { spentTodayCents: { lte: 50000 } }` then reads the way the rule sounds. Nothing counts for you — veto answers about one decision, from the values you hand it.
+
+**The payload gate still applies.** Declaring `payload` on the action narrows what the model may write, and the refusal names the field — `amountCents: value not permitted` is what the model reads before its next attempt.
+
+A resource like this has no table, and the adapter is told so: `defineTables(ac, { email: null })`. Filtering is a question about reading, so `where` and `filter` never apply to it — and reaching one through a relation or filtering on it throws rather than quietly producing SQL.
+
 ## Three things to get right
 
-**A tool with arguments and no row is the strict path.** If you cannot `load` — `deleteFile(path)` has no row to fetch — the guard has only the payload to judge, and against a policy carrying a **conditional `deny`** it refuses every call, including legitimate ones. That is the documented contract, not a bug: an unknown row cannot prove a deny false. Give the tool a `load`, or keep the resource's denies unconditional.
+**A tool with arguments and no row is the strict path.** If you cannot `load` — `deleteFile(path)` has no row to fetch — the guard has only the payload to judge, and against a policy carrying a **conditional `deny`** it refuses every call, including legitimate ones. That is the documented contract, not a bug: an unknown row cannot prove a deny false. Give the tool a `load` — for an effect you [build the row from the arguments](#not-every-tool-touches-a-database) — or keep the resource's denies unconditional.
 
 **The guard checks permissions, not shapes.** `validatePayload` answers *may this actor write these fields and values*. It does not run the resource's schema, so `{ title: "no" }` against `z.string().min(3)` passes the guard. Validate the arguments first — the SDKs do it from the tool's input schema — or call [`ability.validate`](./ability.md) yourself.
 
