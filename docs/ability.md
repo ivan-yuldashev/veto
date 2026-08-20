@@ -104,8 +104,10 @@ on, because it means a policy said nothing about a question someone asked.
 
 It fires for `can`, `cannot`, `authorize`, `canMutate` and `validatePayload`,
 once per call. A payload decision carries no `rule`, because a refusal there is
-per field and no single rule settles it — the `violations` you get back name the
-field and the reason. Not for `where`, `permittedFields` or `validate`: those ask what
+settled field by field; it carries `violations` instead — the same list the call
+returns. That is what tells an attempted substitution apart from an ordinary
+refusal in a log: `{ field: "authorId", reason: "field not permitted" }` says
+someone tried to write a field they do not own. Not for `where`, `permittedFields` or `validate`: those ask what
 a policy says, not whether an actor may act. Whatever the hook throws reaches
 your caller untouched, so keep it to recording — the verdict is decided before
 it runs and nothing it does can change the answer.

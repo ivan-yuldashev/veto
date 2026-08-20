@@ -107,7 +107,16 @@ export const buildAbility = <AC extends ResourceMap = ResourceMap>(
 		): PayloadResult<Record<string, unknown>> => {
 			const result = validatePayload(rules, action, resource, row, data);
 
-			report?.({ action, resource, allowed: result.ok });
+			report?.(
+				result.ok
+					? { action, resource, allowed: true }
+					: {
+							action,
+							resource,
+							allowed: false,
+							violations: result.violations,
+						},
+			);
 
 			return result;
 		},

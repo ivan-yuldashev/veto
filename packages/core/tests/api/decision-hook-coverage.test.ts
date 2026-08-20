@@ -269,3 +269,64 @@ describe("every answer reaches the hook", () => {
 		});
 	});
 });
+
+describe("a refusal by field says which field", () => {
+	const row: Post = { id: "p1", authorId: "u1", status: "draft" };
+
+	it("names the field a substituted value tried to reach", () => {
+		const { seen, ability } = watch([
+			allow("update", "post", { payload: { fields: ["status"] } }),
+		]);
+
+		expect(
+			ability.validatePayload("update", "post", row, { authorId: "someone" })
+				.ok,
+		).toBe(false);
+
+		expect(seen).toEqual([
+			{
+				action: "update",
+				resource: "post",
+				allowed: false,
+				violations: [{ field: "authorId", reason: "field not permitted" }],
+			},
+		]);
+	});
+
+	it("names the value a constraint refused", () => {
+		const { seen, ability } = watch([
+			allow("update", "post", {
+				payload: {
+					fields: ["status"],
+					constraints: { status: { eq: "draft" } },
+				},
+			}),
+		]);
+
+		ability.validatePayload("update", "post", row, { status: "published" });
+
+		expect(seen[0]?.violations).toEqual([
+			{ field: "status", reason: "value not permitted" },
+		]);
+	});
+
+	it("carries nothing extra when the payload passed", () => {
+		const { seen, ability } = watch([
+			allow("update", "post", { payload: { fields: ["status"] } }),
+		]);
+
+		ability.validatePayload("update", "post", row, { status: "published" });
+
+		expect(seen).toEqual([
+			{ action: "update", resource: "post", allowed: true },
+		]);
+	});
+
+	it("keeps violations out of a decision about rows", () => {
+		const { seen, ability } = watch([allow("update", "post")]);
+
+		ability.canMutate("update", "post", row);
+
+		expect(seen[0] && "violations" in seen[0]).toBe(false);
+	});
+});

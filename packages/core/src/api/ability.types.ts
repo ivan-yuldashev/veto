@@ -6,7 +6,7 @@ import type {
 	ResourceName,
 	ShapeOf,
 } from "./define-abilities.types.js";
-import type { PayloadResult } from "./mutation.types.js";
+import type { PayloadResult, PayloadViolation } from "./mutation.types.js";
 import type { ValidateResult } from "./schema.types.js";
 
 /**
@@ -129,12 +129,17 @@ export type AbilitySet<AC extends ResourceMap = ResourceMap> = {
  *
  * `rule` is the rule that settled it: the `deny` that fired, or the `allow` that granted.
  * It is absent when nothing matched and the default denied.
+ *
+ * A payload decision names no rule — a refusal there is settled field by field — and carries
+ * `violations` instead, which is what tells an attempted field substitution apart from an
+ * ordinary refusal in a log.
  */
 export type DecisionReport = {
 	action: string;
 	resource: string;
 	allowed: boolean;
 	rule?: Rule;
+	violations?: PayloadViolation[];
 };
 
 /**
