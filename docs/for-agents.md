@@ -59,6 +59,7 @@ ability.can("update", "post", post);
 | `parseRules` | `(json, vocabulary) => RuleParseResult` | validates untrusted rule JSON |
 | `toVocabulary` | `(ac) => Vocabulary` | serializable names for storing a vocabulary |
 | `markLoaded` | `(row, relation, value) => row` | states a relation is loaded |
+| `"manage"` | action name | the wildcard: an `allow("manage", "post")` grants every action `post` declares, **including ones added later**. Write the list out instead — `allow([...ac.post.actions], "post")` — when the grant should be a snapshot |
 | `ConditionOperator` | const object | `eq ne in nin gt gte lt lte contains exists has hasAny hasAll` |
 | `ForbiddenError` | class | `.action`, `.resource`, `.violations?`; recognise it with `ForbiddenError.is(error)`, not `instanceof` |
 | `RelationNotLoadedError` | class | `.relation` |
@@ -67,7 +68,7 @@ Methods on `ability`:
 
 | Method | Returns | Use for |
 |---|---|---|
-| `can(action, resource, row?)` | `boolean` | branching |
+| `can(action, resource, row?)` | `boolean` | branching. **Without a row the answer is optimistic** — true when some `allow` covers the action and no blanket `deny` overrides it — which is what a render decision needs before a row exists |
 | `cannot(action, resource, row?)` | `boolean` | early exits |
 | `authorize(action, resource, row?)` | `void`, throws `ForbiddenError` | server boundaries |
 | `canMutate(action, resource, row)` | `boolean` | may this row be written |

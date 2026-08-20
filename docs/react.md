@@ -24,6 +24,27 @@ export const { AbilityProvider, useAbility, Can } = createVetoContext(ac);
 
 This step exists because a module-level import can't carry your `ac` type — a factory can. The payoff is that `<Can>` autocompletes actions per resource and rejects the ones that don't exist.
 
+### Keep the resource map out of your `.d.ts`
+
+If the module is part of a package you publish, annotate the export. TypeScript keeps a
+named alias only where the alias is written in the declaration, so the destructured form
+prints your whole resource map into the emitted types — once per binding:
+
+```ts
+export type AC = typeof ac;
+
+const veto: VetoContext<AC> = createVetoContext(ac);
+
+export const AbilityProvider: VetoContext<AC>["AbilityProvider"] = veto.AbilityProvider;
+export const Can: VetoContext<AC>["Can"] = veto.Can;
+export const useAbility: VetoContext<AC>["useAbility"] = veto.useAbility;
+```
+
+Measured on a declaration with 25 resources: the destructured form emits 28.6 kB of
+declarations, the annotated one 5.1 kB. Declaring `type AC = typeof ac` alone changes
+nothing — the alias has to appear in the declaration that uses it. Re-exporting a member
+without its type expands the map again.
+
 ## Provide the ability
 
 Wrap the tree once, near the root:
@@ -45,6 +66,12 @@ If you already have an ability on the client, pass that instead:
 The two props are mutually exclusive — passing both is a type error.
 
 > Rules arriving from a server are untrusted input like any other. Validate them with [`parseRules`](./parse.md) at the boundary; the provider takes checked rules for exactly that reason.
+
+**Rules are not reference-stable.** A policy function builds new rule objects on every
+call, and the provider rebuilds the ability whenever the `rules` prop changes identity. A
+selector like `useStore(useShallow((s) => policyFor(s.user)))` therefore never settles —
+every render produces a new array. Memoise by the actor, or push the rules in with
+[`useSetRules`](#usesetrules--switch-actors-without-re-rendering-the-page).
 
 ## `<Can>` — render if allowed
 

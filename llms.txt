@@ -20,6 +20,7 @@ The one page to read if you are generating code that uses this library is [For a
 
 - [Declaring resources](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/define-abilities.md): `defineAbilities` — the single declaration every type is inferred from.
 - [What a rule is](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/rules.md): the data model, and why `where` (which rows) and `payload` (which fields and values) are separate.
+- [The `manage` action](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/rules.md): the wildcard every resource accepts — it grants actions added later, so write the list out when a grant should be a snapshot.
 - [Writing policies](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/create-rules.md): `createRules` — typed `allow` / `deny` factories.
 - [Checking access](https://github.com/ivan-yuldashev/vetojs/blob/main/docs/ability.md): `buildAbility` — `can`, `cannot`, `authorize`, `permittedFields`, `validate`.
 

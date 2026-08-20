@@ -59,6 +59,7 @@ ability.can("update", "post", post);
 | `parseRules` | `(json, vocabulary) => RuleParseResult` | проверяет недоверенный JSON с правилами |
 | `toVocabulary` | `(ac) => Vocabulary` | сериализуемые имена, если словарь хранится отдельно |
 | `markLoaded` | `(row, relation, value) => row` | сообщает, что связь загружена |
+| `"manage"` | имя действия | wildcard: `allow("manage", "post")` даёт все действия, объявленные у `post`, **включая те, что появятся позже**. Когда нужен снимок, перечислите явно — `allow([...ac.post.actions], "post")` |
 | `ConditionOperator` | объект-константа | `eq ne in nin gt gte lt lte contains exists has hasAny hasAll` |
 | `ForbiddenError` | класс | `.action`, `.resource`, `.violations?`; опознавать через `ForbiddenError.is(error)`, а не `instanceof` |
 | `RelationNotLoadedError` | класс | `.relation` |
@@ -67,7 +68,7 @@ ability.can("update", "post", post);
 
 | Метод | Возвращает | Для чего |
 |---|---|---|
-| `can(action, resource, row?)` | `boolean` | ветвление |
+| `can(action, resource, row?)` | `boolean` | ветвление. **Без строки ответ оптимистичный** — истина, когда есть покрывающий `allow` и нет глухого `deny`, — и это ровно то, что нужно решению о рендере, пока строки ещё нет |
 | `cannot(action, resource, row?)` | `boolean` | ранний выход |
 | `authorize(action, resource, row?)` | `void`, бросает `ForbiddenError` | границы на сервере |
 | `canMutate(action, resource, row)` | `boolean` | можно ли писать в эту строку |
