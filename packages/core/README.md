@@ -1,5 +1,8 @@
 # @vetojs/core
 
+[![Socket](https://socket.dev/api/badge/npm/package/@vetojs/core)](https://socket.dev/npm/package/@vetojs/core)
+[![Snyk](https://snyk.io/test/npm/@vetojs/core/badge.svg)](https://snyk.io/test/npm/@vetojs/core)
+
 The engine of [`@vetojs`](https://github.com/ivan-yuldashev/vetojs#readme) — **[English](README.md) · [Русский](README.ru.md)**.
 
 **Type-safe authorization with no classes, no magic, and no hidden state.**

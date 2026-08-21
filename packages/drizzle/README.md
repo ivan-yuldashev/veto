@@ -1,5 +1,8 @@
 # @vetojs/drizzle
 
+[![Socket](https://socket.dev/api/badge/npm/package/@vetojs/drizzle)](https://socket.dev/npm/package/@vetojs/drizzle)
+[![Snyk](https://snyk.io/test/npm/@vetojs/drizzle/badge.svg)](https://snyk.io/test/npm/@vetojs/drizzle)
+
 The SQL side of the [`@vetojs`](https://github.com/ivan-yuldashev/vetojs#readme) engine — **[English](README.md) · [Русский](README.ru.md)**.
 
 Checking a row you already loaded answers "may this user touch *this*". Listing needs the opposite: let the database return only the rows they are allowed to see. This adapter turns the same policy into a Drizzle `WHERE`.
