@@ -11,6 +11,7 @@ export type {
 	ResourceName,
 	RuleParseResult,
 	Schema,
+	SchemaIssue,
 	ShapeOf,
 	UnknownRule,
 	ValidateResult,

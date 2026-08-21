@@ -76,7 +76,7 @@ ability.can("update", "post", post);
 | `validatePayload(action, resource, row, data)` | `{ ok: true, data } \| { ok: false, violations }` | можно ли записать эти данные |
 | `permittedFields(action, resource, fields)` | подмножество `fields` | для формы |
 | `where(action, resource)` | `ConditionNode` | фильтр для базы |
-| `validate(resource, data)` | `{ ok: true, value } \| { ok: false, issues }` | проверка по схеме |
+| `validate(resource, data)` | `{ ok: true, value } \| { ok: false, issues }` | проверка по схеме; каждая проблема — `{ message, path? }`, где `path` — поле, на которое указала схема |
 | `rules` | `CheckedRules` | отправить клиенту |
 
 ### `@vetojs/react`

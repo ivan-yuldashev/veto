@@ -76,7 +76,7 @@ Methods on `ability`:
 | `validatePayload(action, resource, row, data)` | `{ ok: true, data } \| { ok: false, violations }` | may this data be written |
 | `permittedFields(action, resource, fields)` | subset of `fields` | driving a form |
 | `where(action, resource)` | `ConditionNode` | database filter |
-| `validate(resource, data)` | `{ ok: true, value } \| { ok: false, issues }` | schema check |
+| `validate(resource, data)` | `{ ok: true, value } \| { ok: false, issues }` | schema check; each issue is `{ message, path? }`, where `path` is the field the schema blamed |
 | `rules` | `CheckedRules` | ship to the client |
 
 ### `@vetojs/react`

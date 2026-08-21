@@ -1,5 +1,11 @@
 import { isPlainObject } from "../shared/index.js";
-import type { AnySchema, Schema, ValidateResult } from "./schema.types.js";
+import type {
+	AnySchema,
+	Schema,
+	SchemaIssue,
+	StandardIssue,
+	ValidateResult,
+} from "./schema.types.js";
 
 export type {
 	AnySchema,
@@ -31,6 +37,19 @@ export const shape = <T>(): Schema<T> => passthrough;
  */
 export const type = shape;
 
+const toIssue = (issue: StandardIssue): SchemaIssue => {
+	if (issue.path === undefined) {
+		return { message: issue.message };
+	}
+
+	return {
+		message: issue.message,
+		path: issue.path.map((segment) =>
+			segment !== null && typeof segment === "object" ? segment.key : segment,
+		),
+	};
+};
+
 export const validateSchema = (
 	schema: AnySchema | undefined,
 	data: unknown,
@@ -50,10 +69,7 @@ export const validateSchema = (
 	}
 
 	if (result.issues) {
-		return {
-			ok: false,
-			issues: result.issues.map((issue) => ({ message: issue.message })),
-		};
+		return { ok: false, issues: result.issues.map(toIssue) };
 	}
 
 	return { ok: true, value: result.value };

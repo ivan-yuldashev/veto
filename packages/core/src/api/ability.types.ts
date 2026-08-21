@@ -132,7 +132,15 @@ export type AbilitySet<AC extends ResourceMap = ResourceMap> = {
  *
  * A payload decision names no rule — a refusal there is settled field by field — and carries
  * `violations` instead, which is what tells an attempted field substitution apart from an
- * ordinary refusal in a log.
+ * ordinary refusal in a log. **An empty `violations` array is still a refusal:** the write
+ * was turned down as a whole, because no `allow` covered it or a blanket `deny` did, so
+ * there was no field left to name.
+ *
+ * `reason` appears when the refusal never reached the rules at all.
+ *
+ * Neither the row nor the data is here. Field names are, in `violations`; values are not,
+ * because a decision log is not the place they belong by default. Both are in scope where
+ * you build the hook, so a log that wants them can close over them.
  */
 export type DecisionReport = {
 	action: string;
@@ -140,6 +148,7 @@ export type DecisionReport = {
 	allowed: boolean;
 	rule?: Rule;
 	violations?: PayloadViolation[];
+	reason?: "no row";
 };
 
 /**

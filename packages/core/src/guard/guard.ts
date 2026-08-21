@@ -105,12 +105,14 @@ export const createGuard = <AC extends ResourceMap, Actor>(
 		handler: (ctx: unknown, ...args: unknown[]) => unknown,
 	) => {
 		const guarded = async (...args: unknown[]): Promise<unknown> => {
+			const { action, resource } = options;
+
 			const actor = await config.getActor();
 
 			if (actor === null || actor === undefined) {
-				config.onUnauthenticated?.();
+				config.onUnauthenticated?.({ action, resource });
 
-				return deny(new ForbiddenError(options.action, options.resource));
+				return deny(new ForbiddenError(action, resource));
 			}
 
 			const watch = config.onDecision;
@@ -122,14 +124,17 @@ export const createGuard = <AC extends ResourceMap, Actor>(
 					: { onDecision: (decision) => watch(decision, actor) },
 			);
 
-			const { action, resource } = options;
-
 			let row: Record<string, unknown> | undefined;
 
 			if (options.load) {
 				const loaded = await options.load(...args);
 
 				if (!isPlainObject<Record<string, unknown>>(loaded)) {
+					watch?.(
+						{ action, resource, allowed: false, reason: "no row" },
+						actor,
+					);
+
 					return deny(new ForbiddenError(action, resource));
 				}
 

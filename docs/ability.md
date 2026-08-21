@@ -107,10 +107,16 @@ once per call. A payload decision carries no `rule`, because a refusal there is
 settled field by field; it carries `violations` instead — the same list the call
 returns. That is what tells an attempted substitution apart from an ordinary
 refusal in a log: `{ field: "authorId", reason: "field not permitted" }` says
-someone tried to write a field they do not own. Not for `where`, `permittedFields` or `validate`: those ask what
+someone tried to write a field they do not own. An **empty** `violations` list is
+still a refusal — the write was turned down whole, by a blanket `deny` or for want
+of an `allow`, so no field was left to name. Not for `where`, `permittedFields` or `validate`: those ask what
 a policy says, not whether an actor may act. Whatever the hook throws reaches
 your caller untouched, so keep it to recording — the verdict is decided before
 it runs and nothing it does can change the answer.
+
+Neither the row nor the data is in the report. Field names are; values are not,
+because a decision log is not where they belong by default. Both are in scope
+where you write the hook, so a log that needs them can close over them.
 
 ## `permittedFields` — for forms
 
@@ -132,6 +138,8 @@ if (!result.ok) return badRequest(result.issues);
 ```
 
 This is the other half of handling untrusted input: `validate` answers *is this even a valid post?*, `validatePayload` answers *is this actor allowed to write it?* Both, in that order, is the complete story.
+
+Each issue carries the schema's own `message` and the `path` it blamed — `["authorId"]`, or `["meta", "views"]` when nested — so a log or a form knows which field to point at. `path` is absent when the schema blamed the value as a whole.
 
 It runs the resource's schema, so it only does something real when you passed a Standard Schema (Zod, Valibot, ArkType) to `defineAbilities`. A phantom `shape<T>()` still rejects non-objects but can't check fields. Async schemas are not supported — a `validate` returning a promise throws, which rules out Yup: it implements the standard, but only asynchronously. See [swapping in a real schema](./define-abilities.md#swapping-typet-for-a-real-schema).
 

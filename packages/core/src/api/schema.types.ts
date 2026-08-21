@@ -15,9 +15,16 @@ export type StandardSchema<Output = unknown> = {
 	};
 };
 
+type StandardPathSegment = PropertyKey | { readonly key: PropertyKey };
+
+export type StandardIssue = {
+	readonly message: string;
+	readonly path?: ReadonlyArray<StandardPathSegment> | undefined;
+};
+
 type StandardResult<Output> =
 	| { readonly value: Output; readonly issues?: undefined }
-	| { readonly issues: ReadonlyArray<{ readonly message: string }> };
+	| { readonly issues: ReadonlyArray<StandardIssue> };
 
 export type AnySchema =
 	| Schema<Record<string, unknown>>
@@ -29,6 +36,15 @@ export type InferSchema<S> = S extends StandardSchema
 		? T
 		: never;
 
+/**
+ * One thing the schema rejected: what was wrong, and where.
+ *
+ * `path` is the field it happened on — `["views"]`, or `["meta", "a"]` when nested. It is
+ * absent when the schema blamed the value as a whole, and always absent for a resource
+ * declared with {@link shape} alone, which only ever rejects non-objects.
+ */
+export type SchemaIssue = { message: string; path?: PropertyKey[] };
+
 export type ValidateResult<T> =
 	| { ok: true; value: T }
-	| { ok: false; issues: { message: string }[] };
+	| { ok: false; issues: SchemaIssue[] };

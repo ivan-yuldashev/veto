@@ -51,13 +51,15 @@ export const updatePost = withPermission(
 
 The actor is resolved, the policy built, the row loaded and checked, and the payload validated — all before your handler runs. If any of that fails, the handler is never reached.
 
+`load` may come back empty — `findFirst` matched nothing, or the id belongs to someone else. That is a refusal, reported as `reason: "no row"`, and it is why `ctx.row` is typed as a row rather than a maybe-row: reaching your handler is proof one was found.
+
 Your handler receives a context first, then the original arguments untouched:
 
 | `ctx` | |
 |---|---|
 | `actor` | whatever `getActor` returned |
 | `ability` | the built ability, if you need further checks |
-| `row` | what `load` returned |
+| `row` | what `load` returned — a row, never a maybe-row |
 | `payload` | the **validated** data — use this, not the raw input |
 
 ## What gets checked
@@ -135,6 +137,20 @@ const withPermission = createGuard({
 The actor is the second argument rather than part of the report, because this
 hook is configured once while the actor is resolved per call. What the report
 carries, and which calls do not produce one, is on [checking access](./ability.md).
+
+Two refusals never reach the rules, and each is reported where it happens. When
+`load` comes back with no row the decision carries `reason: "no row"` — the id was
+someone else's or nothing at all, which reads differently in a log from a policy
+saying no. When nobody is signed in there is no actor, so no policy and no
+decision; `onUnauthenticated` receives what was attempted instead, and it is the
+only place that attempt can be recorded:
+
+```ts
+onUnauthenticated: ({ action, resource }) => {
+	log.warn({ action, resource, outcome: "no session" });
+	throw new Response(null, { status: 401 });
+},
+```
 
 `onDeny` must not return — `notFound()`, `redirect()` and `throw` all satisfy that, which keeps control flow linear for everything downstream. If one does return, the guard throws `ForbiddenError` anyway: the hook reports a denial, it never overturns one. `onUnauthenticated` works the same way.
 

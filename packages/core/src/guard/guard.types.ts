@@ -40,14 +40,21 @@ export type GuardConfig<AC extends ResourceMap, Actor> = {
 	 * What to do when nobody is signed in. Must not return — throw, `redirect()`, or
 	 * answer with a 401.
 	 *
+	 * Receives what was attempted, since {@link GuardConfig.onDecision} cannot report it:
+	 * there is no actor, so no policy and no decision. It is the only place an attempt
+	 * without a session can be logged.
+	 *
 	 * Without it, an absent actor is treated as an actor with no rules: the check fails
 	 * and you get the usual {@link ForbiddenError}. That is safe, but it reports 403
 	 * where 401 is the honest answer — which is why REST handlers will want this hook.
 	 *
 	 * @example
-	 * onUnauthenticated: () => { throw new Response(null, { status: 401 }); }
+	 * onUnauthenticated: ({ action, resource }) => {
+	 * 	log.warn(`401 on ${action} ${resource}`);
+	 * 	throw new Response(null, { status: 401 });
+	 * }
 	 */
-	onUnauthenticated?: () => never;
+	onUnauthenticated?: (attempt: { action: string; resource: string }) => never;
 
 	/** What to do when the actor is known but not allowed. Must not return. */
 	onDeny?: (error: ForbiddenError) => never;
@@ -76,7 +83,15 @@ export type ActionOptions<
 > = {
 	action: ActionFor<AC, R>;
 	resource: R;
-	load?: (...args: Args) => Awaitable<ShapeOf<AC, R>>;
+
+	/**
+	 * How to fetch the row this call acts on.
+	 *
+	 * May come back empty — a `findFirst` that matched nothing, an id belonging to someone
+	 * else — and the guard refuses, reporting `reason: "no row"`. That is why the handler's
+	 * `ctx.row` is a row and not a maybe-row: reaching it is proof one was found.
+	 */
+	load?: (...args: Args) => Awaitable<ShapeOf<AC, R> | null | undefined>;
 	payload?: (...args: Args) => Partial<ShapeOf<AC, R>>;
 };
 
