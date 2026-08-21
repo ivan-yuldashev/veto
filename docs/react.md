@@ -181,6 +181,8 @@ const AnalyticsTab = ({ workspaceId }: { workspaceId: string }) => (
 
 The rule stays a rule, so a `deny` still wins and a change of route parameter re-answers the question: the same policy that hides one workspace's analytics shows another's, without a second code path.
 
+A screen with nothing to key on — one report, one settings page — needs no shape at all, and `schema` is left out of its declaration. This one has a workspace, so it has a row.
+
 Such a resource has no table, and both sides say so — the adapter with [`defineTables(ac, { analytics: null })`](./drizzle.md#resources-without-a-table), and the server by checking `can("view", "analytics", { workspaceId })` where the page renders, because there is nothing to filter. Which is the next section.
 
 ## Hiding is not protecting

@@ -8,7 +8,14 @@ export type Relation<R extends string = string> = {
 };
 
 export type ResourceDefinition<R extends string = string> = {
-	schema: AnySchema;
+	/**
+	 * The row shape — {@link shape} for a type alone, or a Standard Schema validator when
+	 * `ability.validate` should check incoming data.
+	 *
+	 * Leave it out for a resource that has no rows, such as a screen or a report. The shape
+	 * is then empty: no row can be passed by mistake and no field condition can be written.
+	 */
+	schema?: AnySchema;
 	actions: readonly string[];
 	relations?: Record<string, Relation<R>>;
 };
@@ -21,6 +28,15 @@ export type ActionFor<T extends ResourceMap, R extends keyof T> =
 	| T[R]["actions"][number]
 	| typeof MANAGE_ACTION;
 
-export type ShapeOf<T extends ResourceMap, R extends keyof T> = InferSchema<
-	T[R]["schema"]
+type EmptyShape = Record<string, never>;
+
+type SchemaOf<T extends ResourceMap, R extends keyof T> = Extract<
+	T[R]["schema"],
+	AnySchema
 >;
+
+export type ShapeOf<T extends ResourceMap, R extends keyof T> = [
+	SchemaOf<T, R>,
+] extends [never]
+	? EmptyShape
+	: InferSchema<SchemaOf<T, R>>;

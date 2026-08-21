@@ -52,7 +52,7 @@ ability.can("update", "post", post);
 
 | Export | Signature | Purpose |
 |---|---|---|
-| `defineAbilities` | `({ resources }) => AC` | declares resources, actions, relations |
+| `defineAbilities` | `({ resources }) => AC` | declares resources, actions, relations. `schema` is optional: leave it out for a resource with no rows — a screen, a report — and its shape is empty, so no row and no field comparison type-check |
 | `shape<T>()` | `() => Schema<T>` | carries a row shape and checks nothing at runtime. Pass a Zod / Valibot / ArkType schema instead and `ability.validate` starts checking data — the shape is then inferred from it. **Not Yup**: its Standard Schema implementation is async, and an async schema throws |
 | `createRules` | `(ac, { maxDepth? }?) => { allow, deny }` | typed rule factories |
 | `buildAbility` | `(ac, rules) => AbilitySet` | turns a policy into the object you call |

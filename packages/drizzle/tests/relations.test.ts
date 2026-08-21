@@ -346,6 +346,25 @@ describe("defineTables — phantom (table-less) resources", () => {
 			phantomSchema.filter("analytics", ability.where("view", "analytics")),
 		).toThrow(/phantom resource/);
 	});
+
+	it("takes a resource declared without a schema at all", () => {
+		const acSchemaless = defineAbilities({
+			resources: {
+				post: { schema: shape<Post>(), actions: ["read"] },
+				report: { actions: ["view"] },
+			},
+		});
+		const schemaless = defineTables(acSchemaless, {
+			post: posts,
+			report: null,
+		});
+		const { allow: allowRep } = createRules(acSchemaless);
+		const ability = buildAbility(acSchemaless, [allowRep("view", "report")]);
+
+		expect(() =>
+			schemaless.filter("report", ability.where("view", "report")),
+		).toThrow(/phantom resource/);
+	});
 });
 
 describe("defineTables — loud configuration failures", () => {

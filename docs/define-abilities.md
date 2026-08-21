@@ -29,11 +29,43 @@ At runtime this returns the `resources` object unchanged — it is a typed ident
 
 | Field | Meaning |
 |---|---|
-| `schema` | the row's own fields. `shape<T>()` is a zero-runtime marker that only carries the type; pass a real [Standard Schema](https://standardschema.dev) instead if you also want runtime validation — [see below](#swapping-typet-for-a-real-schema) |
+| `schema` | the row's own fields, optional — leave it out for a resource that has no rows ([see below](#a-resource-with-no-rows)). `shape<T>()` is a zero-runtime marker that only carries the type; pass a real [Standard Schema](https://standardschema.dev) instead if you also want runtime validation — [see below](#swapping-typet-for-a-real-schema) |
 | `actions` | what can be done to this resource, captured as literals |
 | `relations` | named links to other resources — `{ resource, kind }`, where `kind` is `"one"` or `"many"` |
 
 Relation **names** are yours to choose; the **target** must be a resource you declared. Names live in their own namespace, separate from schema fields — the same split your ORM makes between columns and `include`/`with`.
+
+## A resource with no rows
+
+A screen, a report, a background job: something the policy decides about, with no record anywhere behind it. Leave `schema` out.
+
+```ts
+const ac = defineAbilities({
+	resources: {
+		post: { schema: shape<Post>(), actions: ["read", "update"] },
+		report: { actions: ["view", "export"] },
+	},
+});
+```
+
+Everything else is unchanged: `report` has its own actions, rules are written against it as usual, and `can("view", "report")` answers from those rules.
+
+What changes is the shape, which is now empty — and that is the point. A row cannot be passed by mistake, and no condition can compare a field the resource never had:
+
+```ts
+const ac = defineAbilities({ resources: { report: { actions: ["view"] } } });
+const { allow } = createRules(ac);
+const ability = buildAbility(ac, []);
+
+ability.can("view", "report", { id: "r1" });        // ✗ a resource with no rows has no row to pass
+allow("view", "report", { where: { id: "r1" } });   // ✗ and no field to write a condition against
+```
+
+`ability.validate("report", data)` still answers — it accepts any object and refuses anything else, exactly as a `shape<T>()` without a validator does. A resource you never declared is still refused as unknown, so "declared, with nothing in it" and "not a resource" stay different answers.
+
+The [Drizzle adapter](./drizzle.md#resources-without-a-table) is told the same thing separately: `defineTables(ac, { report: null })`. The declaration says the resource has no shape; the map says it has no table.
+
+If the screen *is* keyed by something — a workspace id from the route — then it has a row after all, and the row is that key. Declare it: [gating a screen](./react.md#screens-and-tabs--resources-with-no-rows) is about exactly that case.
 
 ## Swapping `shape<T>()` for a real schema
 

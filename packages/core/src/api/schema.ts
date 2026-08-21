@@ -32,7 +32,7 @@ export const shape = <T>(): Schema<T> => passthrough;
 export const type = shape;
 
 export const validateSchema = (
-	schema: AnySchema,
+	schema: AnySchema | undefined,
 	data: unknown,
 ): ValidateResult<Record<string, unknown>> => {
 	if (typeof schema !== "object" || !("~standard" in schema)) {
