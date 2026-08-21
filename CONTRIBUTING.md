@@ -4,7 +4,7 @@ Thanks for taking the time. This page is short on purpose — everything here is
 
 ## Getting set up
 
-Node 20+ and pnpm 10.
+Node 20+ and pnpm 10. Writing a changeset needs Node 22.11+ — that is what the Changesets CLI requires.
 
 ```sh
 pnpm install
