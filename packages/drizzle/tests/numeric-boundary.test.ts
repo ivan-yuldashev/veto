@@ -4,7 +4,7 @@ import {
 	type CheckedRules,
 	defineAbilities,
 	type Rule,
-	type,
+	shape,
 } from "@vetojs/core";
 import { sql } from "drizzle-orm";
 import { bigint, pgTable, text } from "drizzle-orm/pg-core";
@@ -14,7 +14,7 @@ import { toDrizzle } from "../src/compile.js";
 
 type Row = { id: string; score: bigint };
 const ac = defineAbilities({
-	resources: { rec: { schema: type<Row>(), actions: ["read"] } },
+	resources: { rec: { schema: shape<Row>(), actions: ["read"] } },
 });
 const recs = pgTable("recs", {
 	id: text("id").primaryKey(),

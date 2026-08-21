@@ -20,11 +20,11 @@ export type {
  * const ac = defineAbilities({
  *   resources: {
  *     post: {
- *       schema: type<Post>(),
+ *       schema: shape<Post>(),
  *       actions: ["read", "update"],
  *       relations: { author: { resource: "user", kind: "one" } },
  *     },
- *     user: { schema: type<User>(), actions: ["read"] },
+ *     user: { schema: shape<User>(), actions: ["read"] },
  *   },
  * });
  */

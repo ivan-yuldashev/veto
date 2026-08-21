@@ -1,5 +1,8 @@
 # @vetojs/drizzle
 
+[![Socket](https://socket.dev/api/badge/npm/package/@vetojs/drizzle)](https://socket.dev/npm/package/@vetojs/drizzle)
+[![Snyk](https://snyk.io/test/npm/@vetojs/drizzle/badge.svg)](https://snyk.io/test/npm/@vetojs/drizzle)
+
 SQL-сторона движка [`@vetojs`](https://github.com/ivan-yuldashev/vetojs/blob/main/README.ru.md) — **[English](README.md) · [Русский](README.ru.md)**.
 
 Проверка уже загруженной строки отвечает на вопрос «можно ли этому пользователю трогать *вот это*». Для списка нужно обратное: пусть база вернёт только те строки, которые ему разрешено видеть. Адаптер превращает ту же самую политику в условие `WHERE` для Drizzle.

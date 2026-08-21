@@ -1,5 +1,8 @@
 # @vetojs/react
 
+[![Socket](https://socket.dev/api/badge/npm/package/@vetojs/react)](https://socket.dev/npm/package/@vetojs/react)
+[![Snyk](https://snyk.io/test/npm/@vetojs/react/badge.svg)](https://snyk.io/test/npm/@vetojs/react)
+
 Привязки к React для [`@vetojs`](https://github.com/ivan-yuldashev/vetojs/blob/main/README.ru.md) — **[English](README.md) · [Русский](README.ru.md)**.
 
 Основная идея пакета проста: те же самые правила, которые надёжно защищают ваш сервер, решают, какие элементы интерфейса будут доступны пользователю на клиенте.

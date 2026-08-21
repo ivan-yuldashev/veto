@@ -17,17 +17,17 @@ ESM only, Node 20+. `@vetojs/core` is a peer dependency of both bindings, so ins
 ## The whole flow
 
 ```ts
-import { defineAbilities, type, createRules, buildAbility } from "@vetojs/core";
+import { defineAbilities, shape, createRules, buildAbility } from "@vetojs/core";
 
 // 1. Declare the resource schema once. Every type below is inferred from this.
 const ac = defineAbilities({
 	resources: {
 		post: {
-			schema: type<{ id: string; authorId: string; status: "draft" | "published"; featured: boolean }>(),
+			schema: shape<{ id: string; authorId: string; status: "draft" | "published"; featured: boolean }>(),
 			actions: ["read", "update", "publish"],
 			relations: { author: { resource: "user", kind: "one" } },
 		},
-		user: { schema: type<{ id: string; role: string }>(), actions: ["read"] },
+		user: { schema: shape<{ id: string; role: string }>(), actions: ["read"] },
 	},
 });
 
@@ -53,21 +53,23 @@ ability.can("update", "post", post);
 | Export | Signature | Purpose |
 |---|---|---|
 | `defineAbilities` | `({ resources }) => AC` | declares resources, actions, relations |
-| `type<T>()` | `() => Schema<T>` | carries a row shape and checks nothing at runtime. Pass a Zod / Valibot / ArkType schema instead and `ability.validate` starts checking data — the shape is then inferred from it. **Not Yup**: its Standard Schema implementation is async, and an async schema throws |
+| `shape<T>()` | `() => Schema<T>` | carries a row shape and checks nothing at runtime. Pass a Zod / Valibot / ArkType schema instead and `ability.validate` starts checking data — the shape is then inferred from it. **Not Yup**: its Standard Schema implementation is async, and an async schema throws |
 | `createRules` | `(ac, { maxDepth? }?) => { allow, deny }` | typed rule factories |
 | `buildAbility` | `(ac, rules) => AbilitySet` | turns a policy into the object you call |
 | `parseRules` | `(json, vocabulary) => RuleParseResult` | validates untrusted rule JSON |
 | `toVocabulary` | `(ac) => Vocabulary` | serializable names for storing a vocabulary |
 | `markLoaded` | `(row, relation, value) => row` | states a relation is loaded |
+| `"manage"` | action name | the wildcard: an `allow("manage", "post")` grants every action `post` declares, **including ones added later**. Write the list out instead — `allow([...ac.post.actions], "post")` — when the grant should be a snapshot |
 | `ConditionOperator` | const object | `eq ne in nin gt gte lt lte contains exists has hasAny hasAll` |
 | `ForbiddenError` | class | `.action`, `.resource`, `.violations?`; recognise it with `ForbiddenError.is(error)`, not `instanceof` |
 | `RelationNotLoadedError` | class | `.relation` |
+| `type<T>()` | `() => Schema<T>` | **deprecated**, the former name of `shape`, same function. Existing code keeps working; write `shape` in new code |
 
 Methods on `ability`:
 
 | Method | Returns | Use for |
 |---|---|---|
-| `can(action, resource, row?)` | `boolean` | branching |
+| `can(action, resource, row?)` | `boolean` | branching. **Without a row the answer is optimistic** — true when some `allow` covers the action and no blanket `deny` overrides it — which is what a render decision needs before a row exists |
 | `cannot(action, resource, row?)` | `boolean` | early exits |
 | `authorize(action, resource, row?)` | `void`, throws `ForbiddenError` | server boundaries |
 | `canMutate(action, resource, row)` | `boolean` | may this row be written |
@@ -119,6 +121,8 @@ export const { AbilityProvider, useAbility, useCan, useSetRules, Can } =
 ### `@vetojs/core/guard`
 
 `createGuard({ ac, getActor, policy })` returns `withPermission(options, handler)`. It knows no framework — the same wrapper guards a server action, an HTTP handler and an agent's tool call. Declare `load` for the row and `payload` for what is being written; the handler runs only if both pass. `ctx.payload` is the validated copy, and `ctx.row` is a row rather than a maybe-row whenever `load` is declared. See [the guide](./guard.md).
+
+A resource is a noun in the vocabulary, not a table, so an effect with nothing to fetch — sending mail, writing a file, calling a webhook, charging a card — is guarded the same way: `load` builds the row out of the arguments, deriving the fields the policy judges (`recipientDomain`, not the raw address). Skipping `load` there is a mistake: the row-less answer is optimistic, and a conditional `deny` refuses every call. See [guarding what an agent does](./agents.md).
 
 ## Writing conditions
 

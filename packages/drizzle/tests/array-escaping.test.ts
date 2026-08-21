@@ -1,5 +1,10 @@
 import { PGlite } from "@electric-sql/pglite";
-import { buildAbility, createRules, defineAbilities, type } from "@vetojs/core";
+import {
+	buildAbility,
+	createRules,
+	defineAbilities,
+	shape,
+} from "@vetojs/core";
 import { sql } from "drizzle-orm";
 import { pgTable, text } from "drizzle-orm/pg-core";
 import { drizzle } from "drizzle-orm/pglite";
@@ -8,7 +13,7 @@ import { toDrizzle } from "../src/compile.js";
 
 type Doc = { id: string; labels: string[] | null };
 const ac = defineAbilities({
-	resources: { doc: { schema: type<Doc>(), actions: ["read"] } },
+	resources: { doc: { schema: shape<Doc>(), actions: ["read"] } },
 });
 const { allow } = createRules(ac);
 const docs = pgTable("docs", {

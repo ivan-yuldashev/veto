@@ -1,7 +1,7 @@
 {
 	"name": "@vetojs/react",
-	"version": "0.3.1",
-	"description": "React bindings for @vetojs — <Can>, useAbility, AbilityProvider. The same rules that guard the server decide what the user can reach in the UI.",
+	"version": "0.3.2",
+	"description": "React bindings for @vetojs — <Can>, useCan, useAbility, AbilityProvider, plus a server <Can> that decides while rendering, with no client boundary and no hooks. The same rules that guard the server decide what the user can reach in the UI.",
 	"keywords": [
 		"authorization",
 		"permissions",

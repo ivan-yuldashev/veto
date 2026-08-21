@@ -1,6 +1,6 @@
 {
 	"name": "@vetojs-examples/next-app",
-	"version": "0.0.9",
+	"version": "0.0.10",
 	"private": true,
 	"description": "Flagship demo: RSC can() with server <Can>, withPermission server actions, drizzle+PGlite data layer.",
 	"type": "module",
@@ -16,7 +16,7 @@
 		"@vetojs/drizzle": "workspace:*",
 		"@vetojs/react": "workspace:*",
 		"@electric-sql/pglite": "^0.5.5",
-		"drizzle-orm": "^0.44.0",
+		"drizzle-orm": "^0.45.2",
 		"next": "^15.1.0",
 		"react": "^19.0.0",
 		"react-dom": "^19.0.0"

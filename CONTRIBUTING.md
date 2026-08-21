@@ -4,7 +4,7 @@ Thanks for taking the time. This page is short on purpose — everything here is
 
 ## Getting set up
 
-Node 20+ and pnpm 10.
+Node 20+ and pnpm 10. Writing a changeset needs Node 22.11+ — that is what the Changesets CLI requires.
 
 ```sh
 pnpm install
@@ -21,9 +21,11 @@ pnpm typecheck   # tsc across the workspace
 pnpm check       # biome — formatting and lint
 pnpm knip        # unused exports
 pnpm type-bench  # inference cost of the public types
+
+pnpm check:packaging  # publint + are-the-types-wrong, on what npm would receive
 ```
 
-All five run in CI, on Node 20 and 22. `pnpm test:coverage` is there when you want the numbers.
+All of them run in CI, the first five on Node 20 and 22. `pnpm test:coverage` is there when you want the numbers.
 
 To run one package's tests, either form works:
 

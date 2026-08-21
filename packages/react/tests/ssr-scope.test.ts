@@ -1,5 +1,10 @@
 import type { CheckedRules } from "@vetojs/core";
-import { buildAbility, createRules, defineAbilities, type } from "@vetojs/core";
+import {
+	buildAbility,
+	createRules,
+	defineAbilities,
+	shape,
+} from "@vetojs/core";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
@@ -9,7 +14,7 @@ import { createAbilityStore } from "../src/store.js";
 type Post = { id: string; authorId: string };
 
 const ac = defineAbilities({
-	resources: { post: { schema: type<Post>(), actions: ["update"] } },
+	resources: { post: { schema: shape<Post>(), actions: ["update"] } },
 });
 
 const { allow } = createRules(ac);

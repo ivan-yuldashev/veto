@@ -4,7 +4,7 @@ import type {
 	Schema,
 	StandardSchema,
 } from "../../src/api/schema.js";
-import { type, validateSchema } from "../../src/api/schema.js";
+import { shape, validateSchema } from "../../src/api/schema.js";
 
 const mockSchema = (valid: boolean): StandardSchema<{ id: string }> => ({
 	"~standard": {
@@ -33,18 +33,18 @@ describe("InferSchema", () => {
 
 describe("validateSchema", () => {
 	it("passes through a phantom schema", () => {
-		expect(validateSchema(type<{ id: string }>(), { id: "1" })).toEqual({
+		expect(validateSchema(shape<{ id: string }>(), { id: "1" })).toEqual({
 			ok: true,
 			value: { id: "1" },
 		});
 	});
 
 	it("fails closed for non-object data on a phantom schema", () => {
-		expect(validateSchema(type<{ id: string }>(), "garbage")).toEqual({
+		expect(validateSchema(shape<{ id: string }>(), "garbage")).toEqual({
 			ok: false,
 			issues: [{ message: "expected an object" }],
 		});
-		expect(validateSchema(type<{ id: string }>(), null)).toEqual({
+		expect(validateSchema(shape<{ id: string }>(), null)).toEqual({
 			ok: false,
 			issues: [{ message: "expected an object" }],
 		});

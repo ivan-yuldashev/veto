@@ -1,6 +1,6 @@
 {
 	"name": "@vetojs-examples/drizzle-pg",
-	"version": "0.0.8",
+	"version": "0.0.9",
 	"private": true,
 	"description": "CLI demo: one policy, two enforcement paths — can() vs SQL WHERE, side by side.",
 	"type": "module",
@@ -13,7 +13,7 @@
 		"@vetojs/core": "workspace:*",
 		"@vetojs/drizzle": "workspace:*",
 		"@electric-sql/pglite": "^0.5.5",
-		"drizzle-orm": "^0.44.0",
+		"drizzle-orm": "^0.45.2",
 		"pg": "^8.16.0"
 	},
 	"devDependencies": {

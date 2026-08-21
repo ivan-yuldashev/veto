@@ -65,6 +65,13 @@ Values inside rules stay JSON-native — a `Date` is stored as epoch millisecond
 - **`where` and `payload` are separate fields, not one merged condition.** The structure itself prevents writing a row-constraint where a value-constraint was meant.
 - **`payload.constraints` is typed over a partial shape**, because a PATCH sends only the fields it changes. Only the keys actually present in the data are checked.
 - **The default type is `Record<string, unknown>`, not `any`.** Rules deserialised from a database stay usable without leaking `any` into your code; a typed `Rule<Post>` narrows `where`, `fields` and `constraints` to the resource.
+- **`"manage"` opens to the future.** It grants every action the resource declares *at the moment of the check*, so an action added to `defineAbilities` later is granted to everyone already holding it. That is usually what "this role owns the resource" means. When a grant should be a snapshot of today — a policy transcribed from a list of permissions the backend hands out, where a new action is not granted by the model learning about it — write the list instead:
+
+```ts
+allow("manage", "post");            // every action post has, now and later
+allow([...ac.post.actions], "post"); // the actions post has today
+```
+
 - **`"manage"` is a plain string, not a special type.** Its meaning is given by rule matching, so a policy stored as JSON needs no special encoding.
 
 ## Source

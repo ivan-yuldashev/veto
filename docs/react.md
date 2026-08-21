@@ -24,6 +24,27 @@ export const { AbilityProvider, useAbility, Can } = createVetoContext(ac);
 
 This step exists because a module-level import can't carry your `ac` type — a factory can. The payoff is that `<Can>` autocompletes actions per resource and rejects the ones that don't exist.
 
+### Keep the resource map out of your `.d.ts`
+
+If the module is part of a package you publish, annotate the export. TypeScript keeps a
+named alias only where the alias is written in the declaration, so the destructured form
+prints your whole resource map into the emitted types — once per binding:
+
+```ts
+export type AC = typeof ac;
+
+const veto: VetoContext<AC> = createVetoContext(ac);
+
+export const AbilityProvider: VetoContext<AC>["AbilityProvider"] = veto.AbilityProvider;
+export const Can: VetoContext<AC>["Can"] = veto.Can;
+export const useAbility: VetoContext<AC>["useAbility"] = veto.useAbility;
+```
+
+Measured on a declaration with 25 resources: the destructured form emits 28.6 kB of
+declarations, the annotated one 5.1 kB. Declaring `type AC = typeof ac` alone changes
+nothing — the alias has to appear in the declaration that uses it. Re-exporting a member
+without its type expands the map again.
+
 ## Provide the ability
 
 Wrap the tree once, near the root:
@@ -45,6 +66,12 @@ If you already have an ability on the client, pass that instead:
 The two props are mutually exclusive — passing both is a type error.
 
 > Rules arriving from a server are untrusted input like any other. Validate them with [`parseRules`](./parse.md) at the boundary; the provider takes checked rules for exactly that reason.
+
+**Rules are not reference-stable.** A policy function builds new rule objects on every
+call, and the provider rebuilds the ability whenever the `rules` prop changes identity. A
+selector like `useStore(useShallow((s) => policyFor(s.user)))` therefore never settles —
+every render produces a new array. Memoise by the actor, or push the rules in with
+[`useSetRules`](#usesetrules--switch-actors-without-re-rendering-the-page).
 
 ## `<Can>` — render if allowed
 
@@ -121,6 +148,40 @@ const onSwitchActor = async (id: string) => {
 Nothing above re-renders — not the provider, not the list — and only the rows whose verdict moved update. Measured on that list: provider 0, ungated rows 0, gated rows 1.
 
 Use the `rules` prop to seed the tree from the server, and `useSetRules` for changes that happen without a new request.
+
+## Screens and tabs — resources with no rows
+
+An analytics screen, a billing tab, a settings page: nouns in your vocabulary that no table ever backs. They are declared like anything else, and their "row" is what identifies *this* screen — usually the route parameters.
+
+```tsx
+const ac = defineAbilities({
+	resources: {
+		analytics: {
+			schema: shape<{ workspaceId: string }>(),
+			actions: ["view"],
+		},
+	},
+});
+
+const { allow } = createRules(ac);
+const { Can } = createVetoContext(ac);
+
+const rules = [
+	allow("view", "analytics", { where: { workspaceId: { in: ["w1"] } } }),
+];
+
+const AnalyticsTab = ({ workspaceId }: { workspaceId: string }) => (
+	<Can I="view" a="analytics" this={{ workspaceId }} fallback={<Forbidden />}>
+		<AnalyticsPanel />
+	</Can>
+);
+```
+
+**Pass `this` whenever the screen has a parameter.** Dropping it is right for a "New post" button, where no row exists yet, and wrong here: the row-less answer is optimistic — true when the action could be allowed for *some* row — so the tab appears in every workspace, including the ones the rule does not name. The parameter is the row; hand it over.
+
+The rule stays a rule, so a `deny` still wins and a change of route parameter re-answers the question: the same policy that hides one workspace's analytics shows another's, without a second code path.
+
+Such a resource has no table, and both sides say so — the adapter with [`defineTables(ac, { analytics: null })`](./drizzle.md#resources-without-a-table), and the server by checking `can("view", "analytics", { workspaceId })` where the page renders, because there is nothing to filter. Which is the next section.
 
 ## Hiding is not protecting
 

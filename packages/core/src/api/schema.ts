@@ -18,9 +18,18 @@ const passthrough = (value: unknown): unknown => value;
  * you also want `ability.validate` to check incoming data at runtime.
  *
  * @example
- * schema: type<{ id: string; authorId: string }>()
+ * schema: shape<{ id: string; authorId: string }>()
  */
-export const type = <T>(): Schema<T> => passthrough;
+export const shape = <T>(): Schema<T> => passthrough;
+
+/**
+ * The same declaration as {@link shape}.
+ *
+ * @alias
+ * @deprecated Use {@link shape}. This name collides with the TypeScript `type` modifier, so
+ * an import carrying both reads like a typo and import sorters disagree about its order.
+ */
+export const type = shape;
 
 export const validateSchema = (
 	schema: AnySchema,

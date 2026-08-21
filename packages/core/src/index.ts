@@ -2,6 +2,7 @@ export type {
 	AbilityOptions,
 	AbilitySet,
 	ActionFor,
+	CheckedRule,
 	CheckedRules,
 	DecisionReport,
 	PayloadResult,
@@ -20,6 +21,7 @@ export {
 	createRules,
 	defineAbilities,
 	parseRules,
+	shape,
 	toVocabulary,
 	type,
 } from "./api/index.js";

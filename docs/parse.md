@@ -66,7 +66,7 @@ if (!result.ok) throw new Error(result.errors.join(", "));
 result.unknown; // [{ rule, reasons, quarantined }]
 ```
 
-Both `ac` itself and a stored vocabulary work here — `toVocabulary(ac)` produces the serialisable form when you keep it in a database.
+**`parseRules(json, ac)` and `parseRules(json, toVocabulary(ac))` are interchangeable.** The gate reads only the action names and the relations, and a resource declaration is a vocabulary entry with a schema attached, so passing either answers the same. Prefer `toVocabulary(ac)` when the vocabulary is stored: it is the serialisable half, without the schemas, and it is what you keep in a database beside the rules.
 
 What you do with `unknown` is your policy, one line either way:
 

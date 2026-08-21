@@ -1,5 +1,8 @@
 # @vetojs/react
 
+[![Socket](https://socket.dev/api/badge/npm/package/@vetojs/react)](https://socket.dev/npm/package/@vetojs/react)
+[![Snyk](https://snyk.io/test/npm/@vetojs/react/badge.svg)](https://snyk.io/test/npm/@vetojs/react)
+
 React bindings for [`@vetojs`](https://github.com/ivan-yuldashev/vetojs#readme) — **[English](README.md) · [Русский](README.ru.md)**.
 
 The idea behind this package is simple: the very same rules that reliably guard your server decide which interface elements the user can reach on the client.

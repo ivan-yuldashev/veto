@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { defineAbilities } from "../../src/api/define-abilities.js";
-import { type } from "../../src/api/schema.js";
+import { shape } from "../../src/api/schema.js";
 import { compileWhereInput } from "../../src/api/where-input.js";
 import {
 	evaluateCondition,
@@ -10,7 +10,7 @@ import {
 const ac = defineAbilities({
 	resources: {
 		post: {
-			schema: type<{
+			schema: shape<{
 				id: string;
 				status: "draft" | "published";
 				views: number;
@@ -21,9 +21,9 @@ const ac = defineAbilities({
 				comments: { resource: "comment", kind: "many" },
 			},
 		},
-		user: { schema: type<{ id: string; role: string }>(), actions: ["read"] },
+		user: { schema: shape<{ id: string; role: string }>(), actions: ["read"] },
 		comment: {
-			schema: type<{ id: string; approved: boolean }>(),
+			schema: shape<{ id: string; approved: boolean }>(),
 			actions: ["read"],
 		},
 	},

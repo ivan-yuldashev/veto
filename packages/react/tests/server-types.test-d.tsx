@@ -1,10 +1,15 @@
-import { buildAbility, createRules, defineAbilities, type } from "@vetojs/core";
+import {
+	buildAbility,
+	createRules,
+	defineAbilities,
+	shape,
+} from "@vetojs/core";
 import { Can } from "../src/server.js";
 
 const ac = defineAbilities({
 	resources: {
-		post: { schema: type<{ id: string }>(), actions: ["read", "update"] },
-		user: { schema: type<{ id: string }>(), actions: ["read"] },
+		post: { schema: shape<{ id: string }>(), actions: ["read", "update"] },
+		user: { schema: shape<{ id: string }>(), actions: ["read"] },
 	},
 });
 const { allow } = createRules(ac);
