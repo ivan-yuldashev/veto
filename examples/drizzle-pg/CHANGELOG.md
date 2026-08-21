@@ -1,5 +1,16 @@
 # @vetojs-examples/drizzle-pg
 
+## 0.0.9
+
+### Patch Changes
+
+- Updated dependencies [4be5eeb]
+- Updated dependencies [b2e7ab2]
+- Updated dependencies [4be5eeb]
+  - @vetojs/core@0.10.0
+  - @vetojs-examples/shared@0.0.10
+  - @vetojs/drizzle@0.1.1
+
 ## 0.0.8
 
 ### Patch Changes

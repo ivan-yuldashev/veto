@@ -1,5 +1,55 @@
 # @vetojs/core
 
+## 0.10.0
+
+### Minor Changes
+
+- 4be5eeb: **`CheckedRule` is exported again.**
+
+  `0.7.0` dropped it as unreachable. It is not: a table typed as permission → rule needs the singular, and `CheckedRules[number]` is a workaround for a name that should simply be there — `Rule` is exported and its checked sibling was not.
+
+  ```ts
+  const byPermission: Record<string, CheckedRule> = { … };
+  ```
+
+- 4be5eeb: **`shape()` replaces `type()`, which is now deprecated.**
+
+  `type` collides with the TypeScript modifier of the same name, so a real import line reads like a typo and import sorters order it differently between runs:
+
+  ```ts
+  import {
+    type CheckedRules,
+    createRules,
+    defineAbilities,
+    type,
+  } from "@vetojs/core";
+  ```
+
+  `shape` is the same function under a name that cannot be confused with syntax:
+
+  ```ts
+  import {
+    type CheckedRules,
+    createRules,
+    defineAbilities,
+    shape,
+  } from "@vetojs/core";
+
+  const ac = defineAbilities({
+    resources: { post: { schema: shape<Post>(), actions: ["read"] } },
+  });
+  ```
+
+  `type` stays exported and keeps working; rename whenever it suits you.
+
+### Patch Changes
+
+- b2e7ab2: **The npm descriptions say what each package does.**
+
+  `@vetojs/core` no longer claims to compile SQL by itself — the rules become a `WHERE` clause through the Drizzle adapter — and now names what it does do on its own: answer `can()`, gate writes field by field, and guard a server action, an HTTP handler or an agent tool call.
+
+  `@vetojs/react` names the server `<Can>`, which decides while rendering with no client boundary and no hooks.
+
 ## 0.9.0
 
 ### Minor Changes
