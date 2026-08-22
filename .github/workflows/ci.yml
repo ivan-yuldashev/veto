@@ -61,9 +61,9 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       - name: Downgrade to React 18
-        run: >
-          pnpm --filter @vetojs/react add -D
-          react@^18 react-dom@^18 @types/react@^18 @types/react-dom@^18
+        run: |
+          npm pkg set pnpm.overrides.react="^18" pnpm.overrides.react-dom="^18" pnpm.overrides.@types/react="^18" pnpm.overrides.@types/react-dom="^18"
+          pnpm install --no-frozen-lockfile
       - run: pnpm vitest run --project @vetojs/react
       - run: pnpm typecheck:packages
 
