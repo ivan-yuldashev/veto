@@ -1,5 +1,51 @@
 # @vetojs/core
 
+## 0.11.0
+
+### Minor Changes
+
+- c3a0de4: **A refusal now says where it happened.**
+  
+  `ability.validate` keeps the path the schema blamed, instead of handing you a message with no field attached:
+  
+  ```ts
+  const result = ability.validate("post", input);
+  // { ok: false, issues: [{ message: "expected string", path: ["authorId"] }] }
+  ```
+  
+  `path` follows Standard Schema, so nested fields arrive as `["meta", "views"]` and array indices as `["tags", 0]`. It is absent when the schema blamed the value as a whole.
+  
+  **Two refusals that never reached the rules are now visible.**
+  
+  When `load` comes back with nothing — a `findFirst` that matched nothing, an id belonging to someone else — the guard's decision carries `reason: "no row"`, which reads differently in a log from a policy saying no. When nobody is signed in there is no actor, so no policy and no decision; `onUnauthenticated` now receives `{ action, resource }`, making it the place to record an attempt without a session:
+  
+  ```ts
+  onUnauthenticated: ({ action, resource }) => {
+  	log.warn({ action, resource, outcome: "no session" });
+  	throw new Response(null, { status: 401 });
+  },
+  ```
+  
+  **`load` may say it found nothing.** Its return type accepts `null` and `undefined`, so a loader that returns `Post | undefined` no longer needs a cast. `ctx.row` stays a row rather than a maybe-row: reaching your handler is proof one was found.
+  
+  An empty `violations` array is documented for what it is — a write refused as a whole, with no field left to name — rather than looking like an absence of problems.
+- fb3edee: **`schema` is optional now.**
+  
+  A resource that has no rows behind it — a screen, a report, a background job — is declared without one:
+  
+  ```ts
+  const ac = defineAbilities({
+  	resources: {
+  		post: { schema: shape<Post>(), actions: ["read", "update"] },
+  		report: { actions: ["view", "export"] },
+  	},
+  });
+  ```
+  
+  It stays a resource in every other way: its own actions, ordinary rules, and `can("view", "report")` answering from them. What changes is the shape, which is empty — so a row cannot be passed by mistake and no condition can compare a field the resource never had. `ability.validate` still accepts any object and refuses anything else, and a resource nobody declared is still refused as unknown.
+  
+  Declaring `schema: shape<Record<string, never>>()` to say the same thing is no longer needed.
+
 ## 0.10.0
 
 ### Minor Changes
